@@ -1,0 +1,12 @@
+#' @importFrom methods as
+#' @importFrom sf st_coordinates st_centroid
+#' @importFrom lingmatch lma_simets
+#' @importFrom cli cli_abort cli_bullets
+#' @import Matrix
+"_PACKAGE"
+
+# The following block is used by usethis to automatically manage
+# roxygen namespace tags. Modify with care!
+## usethis namespace: start
+## usethis namespace: end
+NULL

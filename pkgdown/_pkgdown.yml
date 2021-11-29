@@ -1,0 +1,9 @@
+template:
+  params:
+    bootswatch: flatly
+
+reference:
+- title: Main Function
+  desc: This is the main function to calculate 2- or 3-step floating catchment area ratios.
+  contents:
+  - catchment_ratio

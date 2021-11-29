@@ -1,0 +1,20 @@
+Package: catchment
+Type: Package
+Title: Calculate spatial access and availability metrics
+Version: 0.0.1
+Date: 2021-11-25
+Authors@R: c(
+    person("Biocomplexity Institute", role = c("aut", "cph")),
+    person("Micah", "Iserman", role = "cre", email = "micah.iserman@gmail.com")
+  )
+Description: Offers a range of spatial access and availability metrics, including
+  variants of 2- and 3-step floating catchment areas: 2SFCA (Luo & Wang, 2003) <doi:10.1068/b29120>,
+  E2FSCA (Lou & Qi, 2009) <doi:10.1016/j.healthplace.2009.06.002>, KD2SFCA / G2SFCA (Dai, 2010)
+  <doi: 10.1016/j.healthplace.2010.06.012>, and 3SFCA (Wan, Zou, & Sternberg, 2012)
+  <doi:10.1080/13658816.2011.624987>.
+License: MIT + file LICENSE
+Imports: cli, methods, Matrix, lingmatch, sf
+Suggests: testthat (>= 3.0.0), splot
+Config/testthat/edition: 3
+RoxygenNote: 7.1.2
+Roxygen: list(old_usage = TRUE)
