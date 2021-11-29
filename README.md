@@ -7,7 +7,7 @@ restaurant customers. Each of these entities might have any number of conceptual
 externally defined (like a school district), those realized (as by the origin of actual customers), and those
 projected (such as a travel-time radius).
 
-[catchment_ratio](reference/catchment_ratio.html) is the main function, used to define catchments
+[catchment_ratio](https://uva-bi-sdad.github.io/catchment/reference/catchment_ratio.html) is the main function, used to define catchments
 by a travel-cost matrix with bounds and/or a decay function, and calculate supply to demand ratios
 within them. It is a generalized implementation of a range of 2- and 3-step floating catchment
 area models, which is generally meant to align with those of the [access](https://access.readthedocs.io)
