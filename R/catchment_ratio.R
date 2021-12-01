@@ -51,7 +51,8 @@
 #' \code{sum(region) / sum(consumers)}.
 #' @param consumers_id,consumers_value,consumers_location,providers_id,providers_value,providers_location Column
 #' names in \code{consumers} and/or \code{providers} to extract IDs, values, and location data (referring to a single
-#' \code{sf} geometry column, or multiple columns with coordinates).
+#' \code{sf} geometry column, or multiple columns with coordinates). These can also be used to directly enter
+#' ID, value, and/or location vectors (or matrices for location coordinates).
 #' @param print_type Logical; if \code{TRUE}, will print the type of floating catchment area that was calculated.
 #' @examples
 #' pop <- c(5, 10, 50)
@@ -103,7 +104,7 @@
 #' doi: \href{https://doi.org/10.1080/13658816.2011.624987}{10.1080/13658816.2011.624987}
 #' @export
 
-catchment_ratio <- function(consumers, providers, cost = NULL, weight = NULL, normalize_weight = FALSE,
+catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, weight = NULL, normalize_weight = FALSE,
                             scale = 2, max_cost = NULL, return_type = "original", consumers_id = "geoid",
                             consumers_value = "count", consumers_location = "geometry", providers_id = "geoid",
                             providers_value = "count", providers_location = "geometry", print_type = FALSE) {
@@ -111,52 +112,62 @@ catchment_ratio <- function(consumers, providers, cost = NULL, weight = NULL, no
   input_data <- c(is.null(dim(providers)), is.null(dim(consumers)))
   # getting provider and consumer value vectors
   pv <- if (input_data[1]) {
-    providers
-  } else if (providers_value %in% colnames(providers)) {
-    providers[, providers_value, drop = TRUE]
+    if(is.null(providers)){
+      if(is.numeric(providers_value)) providers_value else
+        cli_abort("{.arg providers} is not specified, and {.arg providers_value} is non-numeric")
+    }else as.numeric(providers)
+  } else if (length(providers_value) == 1 && providers_value %in% colnames(providers)) {
+    as.numeric(providers[, providers_value, drop = TRUE])
   } else {
-    providers[, which(vapply(seq_len(ncol(providers)), function(i) {
+    as.numeric(providers[, which(vapply(seq_len(ncol(providers)), function(i) {
       is.numeric(providers[, i])
-    }, TRUE))[1], drop = TRUE]
+    }, TRUE))[1], drop = TRUE])
   }
   if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
   cv <- if (input_data[2]) {
-    consumers
-  } else if (consumers_value %in% colnames(consumers)) {
-    consumers[, consumers_value, drop = TRUE]
+    if(is.null(consumers)){
+      if(is.numeric(consumers_value)) consumers_value else
+        cli_abort("{.arg consumers} is not specified, and {.arg consumers_value} is non-numeric")
+    }else as.numeric(consumers)
+  } else if (length(consumers_value) == 1 && consumers_value %in% colnames(consumers)) {
+    as.numeric(consumers[, consumers_value, drop = TRUE])
   } else {
-    consumers[, which(vapply(seq_len(ncol(consumers)), function(i) {
+    as.numeric(consumers[, which(vapply(seq_len(ncol(consumers)), function(i) {
       is.numeric(consumers[, i])
-    }, TRUE))[1], drop = TRUE]
+    }, TRUE))[1], drop = TRUE])
   }
   if (!length(cv)) cli_abort("failed to recognize values in {.arg consumers}")
   # getting provider and consumer ids
   pid <- if (input_data[1]) {
-    if (!is.null(names(providers))) names(providers) else seq_along(pv)
-  } else
-  if (providers_id %in% colnames(providers)) providers[, providers_id, drop = TRUE] else seq_along(pv)
+    if (!is.null(names(providers))) names(providers) else if(length(providers) == length(providers_id))
+      providers_id else seq_along(pv)
+  } else if (length(providers_id) == 1 && providers_id %in% colnames(providers))
+    providers[, providers_id, drop = TRUE] else seq_along(pv)
   if (!length(pid)) cli_abort("failed to recognize IDs in {.arg providers}")
   cid <- if (input_data[2]) {
-    if (!is.null(names(consumers))) names(consumers) else seq_along(cv)
-  } else
-  if (consumers_id %in% colnames(consumers)) consumers[, consumers_id, drop = TRUE] else seq_along(cv)
+    if (!is.null(names(consumers))) names(consumers) else if(length(consumers) == length(consumers_id))
+      consumers_id else seq_along(cv)
+  } else if (length(consumers_id) == 1 && consumers_id %in% colnames(consumers))
+    consumers[, consumers_id, drop = TRUE] else seq_along(cv)
   if (!length(cid)) cli_abort("failed to recognize IDs in {.arg consumers}")
   if (is.null(cost)) {
-    if (all(!input_data) && all(providers_location %in% colnames(providers)) &&
-      all(consumers_location %in% colnames(consumers))) {
-      pcords <- providers[, providers_location]
+    if ((!is.character(providers_location) || all(providers_location %in% colnames(providers))) &&
+        (!is.character(consumers_location) || all(consumers_location %in% colnames(consumers)))) {
+      pcords <- if(is.character(providers_location)) providers[, providers_location] else providers_location
       if (any(grepl("^sf", class(pcords)))) {
         if (!any(grepl("POINT$", class(pcords)))) pcords <- st_centroid(pcords)
         pcords <- st_coordinates(pcords)
       }
-      ccords <- consumers[, consumers_location]
+      ccords <- if(is.character(consumers_location)) consumers[, consumers_location] else consumers_location
       if (any(grepl("^sf", class(ccords)))) {
         if (!any(grepl("POINT$", class(ccords)))) ccords <- st_centroid(ccords)
         ccords <- st_coordinates(ccords)
       }
       if (ncol(pcords) == ncol(ccords)) {
         cost <- 1 / lma_simets(ccords, pcords, metric = "euclidean", pairwise = TRUE) - 1
-      }
+      }else cli_abort(
+        "{.arg cost} is NULL, and failed to calculate it from provided locations (differing number of columns)"
+      )
     }
     if (is.null(cost)) {
       cost <- sparseMatrix(
@@ -231,29 +242,21 @@ catchment_ratio <- function(consumers, providers, cost = NULL, weight = NULL, no
     w <- as(weight, "dgCMatrix")
   }
   if (!is.null(max_cost)) w[cost > max_cost] <- 0
+  wr <- rowSums(w)
+  if(!is.null(rownames(w)) && !all(cid == rownames(w)) && all(cid %in% rownames(w))) w <- w[cid,]
+  if(!is.null(colnames(w)) && !all(pid == colnames(w)) && all(pid %in% colnames(w))) w <- w[, pid]
+  if(nrow(w) != length(cv) && is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) w <- w[cid,]
+  if(ncol(w) != length(pv) && is.numeric(pid) && min(pid) > 0 && max(pid) <= ncol(w)) w <- w[, pid]
+  if (!all(dim(w) == c(length(cv), length(pv))))
+    cli_abort("failed to align weight matrix with consumer and provider values")
   if (normalize_weight) {
     # adjust weights by selection probability (3-step)
     type <- paste0(type, "3-step floating catchment area")
-    wr <- rowSums(w)
-    if (nrow(w) != length(cv)) {
-      w <- if (!is.null(rownames(w))) {
-        w[as.character(pid), as.character(cid)]
-      } else {
-        w[seq_along(pid), seq_along(cid)]
-      }
-      wr <- wr[rownames(w)]
-    }
+    if(!is.null(rownames(w)) && all(rownames(w) %in% names(wr))) wr <- wr[rownames(w)]
     wr[wr == 0] <- 1
     w <- w * sweep(w, 1, wr, "/")
   } else {
     type <- paste0(type, "2-step floating catchment area")
-    if (nrow(w) != length(cv)) {
-      w <- if (!is.null(rownames(w))) {
-        w[as.character(pid), as.character(cid)]
-      } else {
-        w[seq_along(pid), seq_along(cid)]
-      }
-    }
   }
   wd <- crossprod(w, cv)
   wd[abs(wd) < .Machine$double.eps] <- 1
