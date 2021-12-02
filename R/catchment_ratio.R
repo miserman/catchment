@@ -120,7 +120,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     as.numeric(providers[, providers_value, drop = TRUE])
   } else {
     as.numeric(providers[, which(vapply(seq_len(ncol(providers)), function(i) {
-      is.numeric(providers[, i])
+      is.numeric(providers[, i, drop = TRUE])
     }, TRUE))[1], drop = TRUE])
   }
   if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
@@ -133,7 +133,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     as.numeric(consumers[, consumers_value, drop = TRUE])
   } else {
     as.numeric(consumers[, which(vapply(seq_len(ncol(consumers)), function(i) {
-      is.numeric(consumers[, i])
+      is.numeric(consumers[, i, drop = TRUE])
     }, TRUE))[1], drop = TRUE])
   }
   if (!length(cv)) cli_abort("failed to recognize values in {.arg consumers}")
@@ -153,12 +153,14 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   if (is.null(cost)) {
     if ((!is.character(providers_location) || all(providers_location %in% colnames(providers))) &&
         (!is.character(consumers_location) || all(consumers_location %in% colnames(consumers)))) {
-      pcords <- if(is.character(providers_location)) providers[, providers_location] else providers_location
+      pcords <- if(is.character(providers_location)) providers[, providers_location, drop = TRUE] else
+        providers_location
       if (any(grepl("^sf", class(pcords)))) {
         if (!any(grepl("POINT$", class(pcords)))) pcords <- st_centroid(pcords)
         pcords <- st_coordinates(pcords)
       }
-      ccords <- if(is.character(consumers_location)) consumers[, consumers_location] else consumers_location
+      ccords <- if(is.character(consumers_location)) consumers[, consumers_location, drop = TRUE] else
+        consumers_location
       if (any(grepl("^sf", class(ccords)))) {
         if (!any(grepl("POINT$", class(ccords)))) ccords <- st_centroid(ccords)
         ccords <- st_coordinates(ccords)
