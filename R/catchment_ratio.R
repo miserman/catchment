@@ -14,6 +14,7 @@
 #' \code{providers} are vectors, or will be aligned by name if available (as vector names or in \code{_id} columns).
 #' If \code{NULL}, coordinate information will be looked for in \code{consumers} and \code{providers} (based on
 #' \code{consumers_location} and \code{providers_location}), from which to calculate Euclidean distances.
+#' Costs equal to \code{0} are treated as missing, so any truly \code{0} costs should be set to some minimal value.
 #' @param weight Means of defining catchment areas and their topology / friction. The simplest is a single number
 #' representing a maximum distance between \code{consumers} and \code{providers} (2-step floating catchment area).
 #' An enhancement of this is a list of vectors with two values each: the first is a distance, and the second a weight
@@ -53,7 +54,7 @@
 #' names in \code{consumers} and/or \code{providers} to extract IDs, values, and location data (referring to a single
 #' \code{sf} geometry column, or multiple columns with coordinates). These can also be used to directly enter
 #' ID, value, and/or location vectors (or matrices for location coordinates).
-#' @param print_type Logical; if \code{TRUE}, will print the type of floating catchment area that was calculated.
+#' @param verbose Logical; if \code{TRUE}, will print logs, and the type of floating catchment area that was calculated.
 #' @examples
 #' pop <- c(5, 10, 50)
 #' doc <- c(50, 100)
@@ -85,7 +86,8 @@
 #'     exponential = exp(-cost * scale)
 #'   ) ~ cost, title = "Decay Functions", laby = "Weight", labx = "Cost", lines = "con", note = FALSE)
 #' }
-#' @return A vector with an access score (determined by \code{return_type}) for each entry in \code{consumers}.
+#' @return \code{catchment_ratio}: A vector with an access score (determined by \code{return_type})
+#' for each entry in \code{consumers}.
 #' @references
 #' Dai, D. (2010). Black residential segregation, disparities in spatial access to health care facilities, and
 #' late-stage breast cancer diagnosis in metropolitan Detroit. \emph{Health & place, 16}, 1038-1052.
@@ -105,73 +107,161 @@
 #' @export
 
 catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, weight = NULL, normalize_weight = FALSE,
-                            scale = 2, max_cost = NULL, return_type = "original", consumers_id = "geoid",
-                            consumers_value = "count", consumers_location = "geometry", providers_id = "geoid",
-                            providers_value = "count", providers_location = "geometry", print_type = FALSE) {
+                            scale = 2, max_cost = NULL, return_type = "original", consumers_id = "GEOID",
+                            consumers_value = "count", consumers_location = c("X", "Y"), providers_id = "GEOID",
+                            providers_value = "count", providers_location = c("X", "Y"), verbose = FALSE) {
+  if (verbose) cli_rule("Calculating a Floating Catchment Area Ratio")
   type <- ""
   input_data <- c(is.null(dim(providers)), is.null(dim(consumers)))
   # getting provider and consumer value vectors
-  pv <- if (input_data[1]) {
-    if(is.null(providers)){
-      if(is.numeric(providers_value)) providers_value else
-        cli_abort("{.arg providers} is not specified, and {.arg providers_value} is non-numeric")
-    }else as.numeric(providers)
-  } else if (length(providers_value) == 1 && providers_value %in% colnames(providers)) {
-    as.numeric(providers[, providers_value, drop = TRUE])
-  } else {
-    as.numeric(providers[, which(vapply(seq_len(ncol(providers)), function(i) {
-      is.numeric(providers[, i, drop = TRUE])
-    }, TRUE))[1], drop = TRUE])
-  }
-  if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
   cv <- if (input_data[2]) {
-    if(is.null(consumers)){
-      if(is.numeric(consumers_value)) consumers_value else
+    if (is.null(consumers)) {
+      if (is.numeric(consumers_value)) {
+        consumers_value
+      } else {
         cli_abort("{.arg consumers} is not specified, and {.arg consumers_value} is non-numeric")
-    }else as.numeric(consumers)
+      }
+    } else {
+      if (verbose) cli_alert_info("consumers value: {.arg consumers} vector")
+      as.numeric(consumers)
+    }
   } else if (length(consumers_value) == 1 && consumers_value %in% colnames(consumers)) {
+    if (verbose) cli_alert_info("consumers value: {.var {consumers_value}} column")
     as.numeric(consumers[, consumers_value, drop = TRUE])
   } else {
-    as.numeric(consumers[, which(vapply(seq_len(ncol(consumers)), function(i) {
-      is.numeric(consumers[, i, drop = TRUE])
-    }, TRUE))[1], drop = TRUE])
+    if (verbose) cli_alert_info("consumers value: {.field 1}")
+    rep(1, nrow(consumers))
   }
   if (!length(cv)) cli_abort("failed to recognize values in {.arg consumers}")
-  # getting provider and consumer ids
-  pid <- if (input_data[1]) {
-    if (!is.null(names(providers))) names(providers) else if(length(providers) == length(providers_id))
-      providers_id else seq_along(pv)
-  } else if (length(providers_id) == 1 && providers_id %in% colnames(providers))
-    providers[, providers_id, drop = TRUE] else seq_along(pv)
-  if (!length(pid)) cli_abort("failed to recognize IDs in {.arg providers}")
-  cid <- if (input_data[2]) {
-    if (!is.null(names(consumers))) names(consumers) else if(length(consumers) == length(consumers_id))
-      consumers_id else seq_along(cv)
-  } else if (length(consumers_id) == 1 && consumers_id %in% colnames(consumers))
-    consumers[, consumers_id, drop = TRUE] else seq_along(cv)
-  if (!length(cid)) cli_abort("failed to recognize IDs in {.arg consumers}")
-  if (is.null(cost)) {
-    if ((!is.character(providers_location) || all(providers_location %in% colnames(providers))) &&
-        (!is.character(consumers_location) || all(consumers_location %in% colnames(consumers)))) {
-      pcords <- if(is.character(providers_location)) providers[, providers_location, drop = TRUE] else
-        providers_location
-      if (any(grepl("^sf", class(pcords)))) {
-        if (!any(grepl("POINT$", class(pcords)))) pcords <- st_centroid(pcords)
-        pcords <- st_coordinates(pcords)
+  pv <- if (input_data[1]) {
+    if (is.null(providers)) {
+      if (is.numeric(providers_value)) {
+        providers_value
+      } else {
+        cli_abort("{.arg providers} is not specified, and {.arg providers_value} is non-numeric")
       }
-      ccords <- if(is.character(consumers_location)) consumers[, consumers_location, drop = TRUE] else
+    } else {
+      if (verbose) cli_alert_info("providers value: {.arg providers} vector")
+      as.numeric(providers)
+    }
+  } else if (length(providers_value) == 1 && providers_value %in% colnames(providers)) {
+    if (verbose) cli_alert_info("providers value: {.var {providers_value}} column")
+    as.numeric(providers[, providers_value, drop = TRUE])
+  } else {
+    if (verbose) cli_alert_info("providers value: {.field 1}")
+    rep(1, nrow(providers))
+  }
+  if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
+  # getting provider and consumer ids
+  cid <- if (input_data[1]) {
+    if (!is.null(names(consumers))) {
+      if (verbose) cli_alert_info("consumers id: {.arg consumers} names")
+      names(consumers)
+    } else if (length(consumers) == length(consumers_id)) {
+      if (verbose) cli_alert_info("consumers id: {.arg consumers_id} vector")
+      consumers_id
+    } else if (!is.null(colnames(cost))) {
+      if (verbose) cli_alert_info("consumers id: {.arg cost} column names")
+      colnames(cost)
+    } else {
+      if (verbose) cli_alert_info("consumers id: sequence along consumers value")
+      seq_along(cv)
+    }
+  } else if (length(consumers_id) == 1 && consumers_id %in% colnames(consumers)) {
+    if (verbose) cli_alert_info("consumers id: {.var {consumers_id}} column")
+    consumers[, consumers_id, drop = TRUE]
+  } else {
+    if (verbose) cli_alert_info("consumers id: sequence along consumers value")
+    seq_along(cv)
+  }
+  if (!length(cid)) cli_abort("failed to recognize IDs in {.arg consumers}")
+  pid <- if (input_data[1]) {
+    if (!is.null(names(providers))) {
+      if (verbose) cli_alert_info("providers id: {.arg providers} names")
+      names(providers)
+    } else if (length(providers) == length(providers_id)) {
+      if (verbose) cli_alert_info("providers id: {.arg providers_id} vector")
+      providers_id
+    } else if (!is.null(colnames(cost))) {
+      if (verbose) cli_alert_info("providers id: {.arg cost} column names")
+      colnames(cost)
+    } else {
+      if (verbose) cli_alert_info("providers id: sequence along providers value")
+      seq_along(pv)
+    }
+  } else if (length(providers_id) == 1 && providers_id %in% colnames(providers)) {
+    if (verbose) cli_alert_info("providers id: {.var {providers_id}} column")
+    providers[, providers_id, drop = TRUE]
+  } else {
+    if (verbose) cli_alert_info("providers id: sequence along providers value")
+    seq_along(pv)
+  }
+  if (!length(pid)) cli_abort("failed to recognize IDs in {.arg providers}")
+  if (is.null(cost)) {
+    if (missing(consumers_location) && !all(consumers_location %in% colnames(consumers))) {
+      consumers_location <- "geometry"
+    }
+    if (missing(providers_location) && !all(providers_location %in% colnames(providers))) {
+      providers_location <- "geometry"
+    }
+    if ((!is.character(providers_location) || all(providers_location %in% colnames(providers))) &&
+      (!is.character(consumers_location) || all(consumers_location %in% colnames(consumers)))) {
+      if (verbose) cli_bullets("calculating cost from locations...")
+      ccords <- if (is.character(consumers_location)) {
+        if (verbose) cli_alert_info("consumers location: {.arg consumers} columns ({.field {consumers_location}})")
+        consumers[, consumers_location, drop = TRUE]
+      } else {
+        if (verbose) cli_alert_info("consumers location: {.arg consumers_location}")
         consumers_location
+      }
       if (any(grepl("^sf", class(ccords)))) {
-        if (!any(grepl("POINT$", class(ccords)))) ccords <- st_centroid(ccords)
-        ccords <- st_coordinates(ccords)
+        if (ncol(consumers_location) == 2 && is.numeric(consumers_location[, 1]) && is.numeric(consumers_location[, 2])) {
+          if (verbose) cli_alert_info("dropping {.arg consumers_location} geometry")
+          consumers_location <- consumers_location[, 1:2, drop = TRUE]
+        } else {
+          if (any(grepl("POLY", class(ccords), fixed = TRUE))) {
+            if (verbose) cli_alert_info("calculating centroids of consumers location geometry")
+            ccords <- st_centroid(ccords)
+          }
+          if (verbose) cli_alert_info("using coordinates from consumers location geometry")
+          ccords <- st_coordinates(ccords)
+        }
+      }
+      pcords <- if (is.character(providers_location)) {
+        if (verbose) cli_alert_info("providers location: {.arg providers} columns ({.field {providers_location}})")
+        providers[, providers_location, drop = FALSE]
+      } else {
+        if (verbose) cli_alert_info("providers location: {.arg providers_location}")
+        providers_location
+      }
+      if (any(grepl("^sf", class(pcords)))) {
+        if (ncol(providers_location) == 2 && is.numeric(providers_location[, 1]) && is.numeric(providers_location[, 2])) {
+          if (verbose) cli_alert_info("dropping {.arg providers_location} geometry")
+          providers_location <- providers_location[, 1:2, drop = FALSE]
+        } else {
+          if (any(grepl("POLY", class(pcords), fixed = TRUE))) {
+            if (verbose) cli_alert_info("calculating centroids of providers location geometry")
+            pcords <- st_centroid(pcords)
+          }
+          if (verbose) cli_alert_info("using coordinates from providers location geometry")
+          pcords <- st_coordinates(pcords)
+        }
       }
       if (ncol(pcords) == ncol(ccords)) {
+        if (verbose) cli_alert_info("cost: calculated Euclidean distances")
         cost <- 1 / lma_simets(ccords, pcords, metric = "euclidean", pairwise = TRUE) - 1
-      }else cli_abort(
-        "{.arg cost} is NULL, and failed to calculate it from provided locations (differing number of columns)"
-      )
+        if (is.null(dim(cost))) {
+          cost <- t(cost)
+          if (nrow(pcords) == 1) cost <- t(cost)
+        }
+      } else {
+        cli_abort(
+          "{.arg cost} is NULL, and failed to calculate it from provided locations (differing number of columns)"
+        )
+      }
     }
     if (is.null(cost)) {
+      if (verbose) cli_alert_info("cost: {.feild 1}")
       cost <- sparseMatrix(
         {},
         {},
@@ -180,81 +270,36 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
       )
       cost[] <- TRUE
     }
-  } else if (is.null(dim(cost))) cli_abort("{.arg cost} must be a matrix-like object")
-  if (is.null(weight) && !is.null(max_cost)) {
-    weight <- max_cost
-    max_cost <- NULL
-  }
-  if (is.null(weight)) {
-    w <- as(cost > 0, "lgCMatrix")
-  } else if (is.null(dim(weight))) {
-    if (is.numeric(weight)) {
-      # single buffer value means a uniformly weighted catchment area (original)
-      w <- as(cost > 0 & cost < weight[[1]], "lgCMatrix")
-    } else if (is.list(weight)) {
-      # list of steps for roughly graded weightings (enhanced)
-      type <- "enchanced "
-      weight <- weight[order(-vapply(weight, "[[", 1, 1))]
-      w <- as((cost <= weight[[1]][1]) * weight[[1]][2], "dgCMatrix")
-      for (s in weight[-1]) w[cost <= s[1]] <- s[2]
-      w[cost <= 0] <- 0
-    } else if (is.character(weight)) {
-      # name of a weight function (kernel density)
-      weight <- tolower(weight[[1]])
-      type <- paste0("kernel density (", weight, ") ")
-      if ("units" %in% class(cost)) {
-        cost <- matrix(
-          as.numeric(cost), nrow(cost), ncol(cost),
-          dimnames = dimnames(cost)
-        )
-      }
-      if (grepl("^(?:gr|n)", weight)) {
-        # gravity / normal kernel
-        w <- as(sqrt(1 / cost^scale), "dgCMatrix")
-      } else if (grepl("^e", weight)) {
-        # exponential kernel
-        w <- as(exp(-cost * scale), "dgCMatrix")
-      } else if (grepl("^loga", weight)) {
-        # logarithmic kernel
-        w <- as(1 / (1 + log(cost, scale)), "dgCMatrix")
-      } else if (grepl("^l", weight)) {
-        # logistic kernel
-        w <- as(1 / (1 + exp(scale * cost)), "dgCMatrix")
-      } else if (grepl("^ga", weight)) {
-        # Gaussian kernel
-        w <- as(exp(-cost^2 / (2 * scale^2)), "dgCMatrix")
-      } else if (grepl("^d", weight) && exists(weight)) {
-        # assumed to be a density function like dnorm
-        w <- as(cost, "dgCMatrix")
-        w@x <- do.call(weight, list(w@x, 0, scale))
-      } else if (grepl("^p", weight) && exists(weight)) {
-        # assumed to be a distribution function like pnorm
-        w <- as(cost, "dgCMatrix")
-        w@x <- do.call(weight, list(-w@x, 0, scale))
-      } else {
-        cli_abort("{.arg weight} not recognized")
-      }
-      w[cost <= 0 | !is.finite(w)] <- 0
-    } else if (is.function(weight)) {
-      type <- paste0("kernel density (custom) ")
-      w <- as(weight(cost), "dgCMatrix")
-      w[cost <= 0 | !is.finite(w)] <- 0
-    }
-  } else {
-    w <- as(weight, "dgCMatrix")
-  }
-  if (!is.null(max_cost)) w[cost > max_cost] <- 0
+  } else if (is.null(dim(cost))) {
+    cli_abort("{.arg cost} must be a matrix-like object")
+  } else if (verbose) cli_alert_info("cost: {.arg cost} matrix")
+  if (is.data.frame(cost)) cost <- as.matrix(cost)
+  w <- catchment_weight(cost, weight, max_cost = max_cost, scale = scale, normalize_weight = FALSE, verbose = verbose)
   wr <- rowSums(w)
-  if(!is.null(rownames(w)) && !all(cid == rownames(w)) && all(cid %in% rownames(w))) w <- w[cid,]
-  if(!is.null(colnames(w)) && !all(pid == colnames(w)) && all(pid %in% colnames(w))) w <- w[, pid]
-  if(nrow(w) != length(cv) && is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) w <- w[cid,]
-  if(ncol(w) != length(pv) && is.numeric(pid) && min(pid) > 0 && max(pid) <= ncol(w)) w <- w[, pid]
-  if (!all(dim(w) == c(length(cv), length(pv))))
+  if (!is.null(rownames(w)) && !all(cid == rownames(w)) && all(cid %in% rownames(w))) {
+    if (verbose) cli_alert_info("selected weight rows by consumers id names")
+    w <- w[cid, ]
+  }
+  if (!is.null(colnames(w)) && !all(pid == colnames(w)) && all(pid %in% colnames(w))) {
+    if (verbose) cli_alert_info("selected weight columns by providers id names")
+    w <- w[, pid]
+  }
+  if (nrow(w) != length(cv) && is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) {
+    if (verbose) cli_alert_info("selected weight rows by consumers id indices")
+    w <- w[cid, ]
+  }
+  if (ncol(w) != length(pv) && is.numeric(pid) && min(pid) > 0 && max(pid) <= ncol(w)) {
+    if (verbose) cli_alert_info("selected weight rows by providers id indices")
+    w <- w[, pid]
+  }
+  if (!all(dim(w) == c(length(cv), length(pv)))) {
     cli_abort("failed to align weight matrix with consumer and provider values")
+  }
   if (normalize_weight) {
-    # adjust weights by selection probability (3-step)
+    # adjust weights by selection probability (3-step){
+    if (verbose) cli_alert_info("normalizing weight")
     type <- paste0(type, "3-step floating catchment area")
-    if(!is.null(rownames(w)) && all(rownames(w) %in% names(wr))) wr <- wr[rownames(w)]
+    if (!is.null(rownames(w)) && all(rownames(w) %in% names(wr))) wr <- wr[rownames(w)]
     wr[wr == 0] <- 1
     w <- w * sweep(w, 1, wr, "/")
   } else {
@@ -267,14 +312,16 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     return_type <- tolower(substr(return_type, 1, 1))
     if ("n" == return_type) {
       type <- paste(type, "(normalized)")
+      if (verbose) cli_alert_info("normalizing ratios")
       r <- r / (sum(r * cv) / sum(cv))
     } else if ("r" == return_type) {
       type <- paste(type, "(resources per region)")
+      if (verbose) cli_alert_info("multiplying ratios by consumers value")
       r <- r * cv
     }
   } else {
     type <- paste(type, "(resources per consumer)")
   }
-  if (print_type) cli_bullets(c(v = paste("calculated", type)))
+  if (verbose) cli_bullets(c(v = paste("calculated", type)))
   r
 }

@@ -49,31 +49,30 @@ test_that("alternative inputs work", {
     long = rnorm(10)
   )
   rownames(supply) <- supply$id
-  cost <- 1 / lma_simets(demand[, c('lat', 'long')], supply[, c('lat', 'long')], 'euc', pairwise = TRUE) - 1
+  cost <- 1 / lma_simets(demand[, c("lat", "long")], supply[, c("lat", "long")], "euc", pairwise = TRUE) - 1
   m <- catchment_ratio(
-    demand, supply, cost, weight = 1,
-    consumers_id = 'id', consumers_value = 'd',
-    providers_id = 'id', providers_value = 's'
+    demand, supply, cost,
+    weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s"
   )
   expect_equal(m, catchment_ratio(
-    demand, supply[sample(supply$id),], cost, weight = 1,
-    consumers_id = 'id', consumers_value = 'd',
-    providers_id = 'id', providers_value = 's'
+    demand, supply[sample(supply$id), ], cost,
+    weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s"
   ))
   expect_equal(m, catchment_ratio(
-    as.matrix(demand), as.matrix(supply), as.data.frame(as.matrix(cost)), weight = 1,
-    consumers_id = 'id', consumers_value = 'd',
-    providers_id = 'id', providers_value = 's'
+    as.matrix(demand), as.matrix(supply), as.data.frame(as.matrix(cost)),
+    weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s"
   ))
   expect_equal(m, catchment_ratio(
-    demand, supply, cost, max_cost = 1,
-    consumers_id = 'id',
-    providers_id = 'id'
-  ))
-  expect_equal(m, catchment_ratio(
-    demand, supply, weight = 1,
-    consumers_id = 'id', consumers_location = c('lat', 'long'),
-    providers_id = 'id', providers_location = c('lat', 'long')
+    demand, supply,
+    weight = 1,
+    consumers_id = "id", consumers_value = "d", consumers_location = c("lat", "long"),
+    providers_id = "id", providers_value = "s", providers_location = c("lat", "long")
   ))
   expect_equal(m, catchment_ratio(
     cost = cost, weight = 1,
@@ -87,8 +86,8 @@ test_that("alternative inputs work", {
   ))
   expect_equal(m, catchment_ratio(
     weight = 1,
-    consumers_location = demand[, c('lat', 'long')],
-    providers_location = supply[, c('lat', 'long')],
+    consumers_location = demand[, c("lat", "long")],
+    providers_location = supply[, c("lat", "long")],
     consumers_id = demand$id, consumers_value = demand$d,
     providers_id = supply$id, providers_value = supply$s
   ))

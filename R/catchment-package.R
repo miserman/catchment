@@ -1,7 +1,9 @@
 #' @importFrom methods as
-#' @importFrom sf st_coordinates st_centroid
+#' @importFrom stats rnorm
+#' @importFrom sf st_coordinates st_centroid read_sf st_as_sf
+#' @importFrom jsonlite toJSON
 #' @importFrom lingmatch lma_simets
-#' @importFrom cli cli_abort cli_bullets
+#' @importFrom cli cli_abort cli_bullets cli_rule cli_alert_info
 #' @import Matrix
 "_PACKAGE"
 
