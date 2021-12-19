@@ -1,0 +1,287 @@
+---
+title: "Introduction to Floating Catchment Areas"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to Floating Catchment Areas}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+bibliography: introduction.bib
+csl: apa.csl
+link-citations: true
+---
+
+*Built with R 
+`r getRversion()`
+on 
+`r format(Sys.time(),'%B %d %Y')`*
+
+***
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+**Floating catchment areas** can be thought of as a means of distributing consumers across providers,
+or allocating providers to consumers.
+
+**Providers** and **consumers** are locations with some quantity. At most granular, these might be individuals,
+such as a single doctor as provider, and single patient as consumer. In this case, each would have a quantity of
+1, and if they are within range of each other, and there are no other providers or consumers in range, their
+floating catchment area ratio would be 1 (`providers / consumers`).
+
+Usually, consumers are local groups of people, such as the population of a region (say, 1,000 people). In this case
+the floating catchment area ratio is `1 / 1000` -- the provider distributed across consumers, resulting in
+the number of providers per person, or the fraction of the population with concurrent access to the provider.
+These ratios sum up to the number of providers when multiplied by the population: `1000 * 1 / 1000 == 1`.
+
+So far, these are simple ratios, and that holds in discrete cases. **Catchment areas** define
+the range of providers, such that we can make cases discrete; that is, given a large region with many spread-out
+provider and consumer locations, we can define sub-regions (catchment areas) in which to calculate ratios.
+A catchment is the result of the provider's catching (attracting, serving), which, when applied spatially,
+defines an area.
+
+A simple means of defining a catchment area could be by city. Say there are two doctors in a region, but they are in
+different cities; it might make sense to define each doctor's catchment area as their city, and then we have two
+discrete ratios to work with (each doctor divided by the population of their city). It would remain discrete to add
+doctors in each city, as this would simply increase the numerator of the ratio -- as long as they are in the same city,
+they are not differentiated by this catchment area definition.
+
+This might make sense in some cases, but what if the cities are close enough that the population of one
+might visit doctors in the other? The **floating** part of floating catchment areas come in when each provider
+location gets their own catchment area. For example, say we define each doctor's catchment area as a range of
+5 miles, rather than the city's boundaries. This might exclude some portion of the population (those in the same
+city but far away), and include others (those in another city that is close), and it might result in some overlap
+of catchment areas between doctors.
+
+# Basic Example
+The most basic case where floating catchment areas differ from simple ratios is when multiple providers have differing
+but overlapping coverage of consumers.
+
+In simpler cases, a single ratio applies equally to all consumers:
+```{r}
+# one provider to many consumers (which are summed within the same region)
+providers <- 1
+consumers <- 10
+
+## this is a single score that applies to all consumers;
+## number of providers per consumer
+providers / consumers
+
+# many providers to one consumer
+providers <- 10
+consumers <- 1
+
+providers / consumers
+```
+
+But imagine we had providers with differing consumer bases:
+```{r}
+providers <- c(1, 1)
+consumers <- rep(1, 3)
+
+# here, provider 1 is in range of consumers 1 and 2,
+# and provider 2 is in range of consumers 2 and 3
+
+## this is represented by binary weight vectors
+in_range_p1 <- c(1, 1, 0)
+in_range_p2 <- c(0, 1, 1)
+
+## this is the ratio for provider 1
+(ratio_p1 <- providers[1] / sum(in_range_p1 * consumers))
+
+## which applies to consumers 1 and 2, again represented by the weight vector
+(access_p1 <- in_range_p1 * consumers * ratio_p1)
+
+## same for provider 2
+(ratio_p2 <- providers[2] / sum(in_range_p2 * consumers))
+(access_p2 <- in_range_p2 * consumers * ratio_p2)
+
+## and now we can combine them for individualized access scores
+access_p1 + access_p2
+```
+
+This introduces the concept of weights, which are the instantiation of catchment areas. In the previous example,
+we applied weights vector by vector manually, but an easier way to do this in bigger examples is to use a weight matrix:
+```{r}
+# we can add both `in_range` vectors to a matrix
+(weight <- matrix(c(in_range_p1, in_range_p2), 3))
+
+# then multiply and sum in one line for the same result
+weight %*% (providers / crossprod(weight, consumers))
+```
+
+This is what the `catchment_ratio` function does:
+```{r}
+library(catchment)
+catchment_ratio(consumers, providers, weight = weight)
+```
+
+This is called a 2-step floating catchment area [2SFCA\; @luo03] because we are effectively combining catchment
+areas around both providers (step 1) and consumers (step 2).
+
+# Variable Weights
+Binary weight vectors denote which consumers fall within a catchment area, but they imply that all
+consumers fall within the catchment area to the same degree -- all consumers get a weight of 1. But when providers
+are singular physical location which consumers must travel to, consumers might differ in distance, and this intuitively
+related to how well they fall into the catchment area; someone on the edge of a catchment area is not as well caught
+as someone nearer its center. To appreciate this difference, we can adjust weights by distance.
+
+Imagine that in the previous example, consumers 1 and 2 are both close to the first provider, but on opposite sides,
+such that consumer 2 is just within range of the second provider, and consumer 3 is only in range of the second
+provider:
+```{r}
+# say weights vary between 0 (out of range) and 1 (center of the catchment area)
+## |  Provider:     1             2
+## |  Consumer:  1     2              3
+## |            -----------------------
+## | P1 Weight: .9    .9              0
+## | P2 Weight:  0    .2             .9
+
+## consumers 1 and 2 are both close to provider 1
+weight_p1 <- c(.9, .9, 0)
+
+## consumer 2 is just in-range of provider 2, and consumer 3 is close
+weight_p2 <- c(0, .2, .9)
+
+# now we can perform the same vector-wise calculations as before
+(ratio_p1 <- providers[1] / sum(weight_p1 * consumers))
+(access_p1 <- weight_p1 * consumers * ratio_p1)
+
+(ratio_p2 <- providers[2] / sum(weight_p2 * consumers))
+(access_p2 <- weight_p2 * consumers * ratio_p2)
+
+access_p1 + access_p2
+
+# or use a weight matrix
+(weight <- matrix(c(weight_p1, weight_p2), 3))
+weight %*% (providers / crossprod(weight, consumers))
+```
+
+Compared to the uniformly weighted scores, consumer 3 gets a much higher score since there is less competition
+from the more distant consumer 2, and consumer 2 gets a dampened score because of that distance.
+
+Adjusting weights like this results in an enhanced 2-step floating catchment area [E2SFCA\; @luo09].
+
+Note that we are still just distributing providers to consumers, so access scores still sum up to the
+number of providers:
+```{r}
+sum(consumers * access_p1 + access_p2)
+```
+
+Because weights are applied in both steps, or to both sides of the ratio, the absolute scale of weights is arbitrary.
+For example, you could multiply weights by 100 and get the same result:
+```{r}
+catchment_ratio(consumers, providers, weight = weight * 100)
+```
+
+# Normalized Weights
+An interesting way to think about weights is as probabilities that the consumer will utilize the give provider.
+This makes good sense with distance weighting, where, all else being equal, a consumer is less likely to make use
+of a distant provider if a nearer one is available.
+
+Thinking of weights in this way highlights a potential issue with the way we have being applying weights: The more
+providers a consumer has in range, the more overall weight they get, which doesn't make sense if consumer's consumption
+is actually the same (say, each consumer is a patient visiting only one doctor).
+
+To account for this, we might normalize each consumer's weights by redistributing them:
+```{r}
+# get each consumer's total weight
+(consumer_weight <- rowSums(weight))
+
+# then multiply original weights by the proportion of those totals;
+# that is, each original weight gets a portion their consumer's total weight
+(weight_normed <- weight * weight / consumer_weight)
+
+# and get the new access scores
+weight_normed %*% (providers / crossprod(weight_normed, consumers))
+
+# this is what the `normalize_weight` argument does
+catchment_ratio(consumers, providers, weight = weight, normalize_weight = TRUE)
+```
+
+With these normalized weights, consumers 1 and 3 get higher access score because
+consumer 2 is now (more appropriately) spread across the 2 providers in range -- consumer 1 or 3
+may be the only ones using their only provider, depending on where consumer 2 goes.
+
+As always, these are still just redistributions of the same number of providers:
+```{r}
+sum(catchment_ratio(
+  consumers, providers, weight = weight,
+  normalize_weight = TRUE, return_type = "region"
+))
+```
+
+When weights are normalized in this way, it is called a 3-step floating catchment area [3SFCA\; @wan12].
+
+Note that, though the original 3-step floating catchment area used enhanced 2-step floating catchment area weights,
+it can be applied to any weighting scheme.
+
+It is also notable that this sort of normalization might slightly over-correct -- in this case, consumer 2
+gets less total weight than 1 or 3. It might make more sense to give everyone a weight of 1 by using the weight
+proportions:
+```{r}
+# total normed weight
+rowSums(weight_normed)
+
+# total proportional weights
+rowSums(weight / rowSums(weight))
+
+# scores with weight proportions
+catchment_ratio(consumers, providers, weight = weight / rowSums(weight))
+```
+
+On one hand, this appreciates that consumer 2 has access to 2 providers rather than just 1 (better access).
+On the other, it doesn't appreciate that consumer 2 is always sharing providers with another consumer
+(worse access).
+
+# Expanding Weights
+The most commonly applied weights are those based on physical distance, but thinking of weights as generally
+describing the probability that a consumer will use a particular provider, we might imagine any number of
+other weight sources.
+
+For example, relating to doctors and patients, health insurance networks may quite strictly condition
+consumer to provider pairings. Things like this can be added as weights arbitrarily:
+```{r}
+# lets say our consumers and providers are all associated with one of two networks
+provider_networks <- c("a", "b")
+consumer_networks <- c("b", "a", "b")
+
+# we can assign weights based on matches
+(insurance_weight <- vapply(provider_networks, '==', logical(3), consumer_networks) * .9 + .1)
+
+# then incorporate them with our distance-based weights
+catchment_ratio(consumers, providers, weight = weight * insurance_weight, normalize_weight = TRUE)
+```
+
+With added insurance weights, consumer 1's access score goes down quite a lot because they have no in-network
+providers in range.
+
+Another relevant point of consumer decision might be cost versus income:
+```{r}
+# say we had some sort of price associated with each provider
+provider_price <- c(400, 250)
+
+# and the monthly income of each consumer
+consumer_income <- c(7, 3, 5) * 1e4 / 12
+
+# we can use this to get at a price weight --
+# the higher the proportion of monthly income their price is,
+# the less likely a consumer is to use that provider
+(monetary_cost <- 1 - vapply(provider_price, '/', numeric(3), consumer_income))
+
+# then incorporate that with distance weights
+catchment_ratio(consumers, providers, weight = weight * monetary_cost, normalize_weight = TRUE)
+```
+
+This is a subtler weighting, but consumer 1's score goes up a bit in particular because consumer 2
+is pushed more toward provider 2 based on monetary cost, even though that travel cost is greater.
+
+What information might be useful to incorporate and how much relative weight it should get are
+questions that will probably want to be explored on a case by case basis.
+
+# References

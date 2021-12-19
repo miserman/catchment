@@ -5,8 +5,8 @@
 \title{Extract Connections Within Catchment Areas}
 \usage{
 catchment_connections(from, to, cost = NULL, weight = 1, ...,
-  as_sf = TRUE, from_id = "GEOID", from_coords = c("X", "Y"),
-  to_id = "GEOID", to_coords = c("X", "Y"))
+  return_type = "data.frame", from_id = "GEOID", from_coords = c("X",
+  "Y"), to_id = "GEOID", to_coords = c("X", "Y"))
 }
 \arguments{
 \item{from}{Consumer locations; a matrix-like object with columns containing latitudes and longitudes
@@ -27,15 +27,15 @@ IDs of \code{to}.}
 
 \item{...}{Passes arguments to \code{catchment_weight} if \code{weight} is not a weight matrix.}
 
-\item{as_sf}{Logical; if \code{FALSE}, will return a GeoJSON-formatted list rather than
-an \code{sf} object.}
+\item{return_type}{Specify whether to return a \code{data.frame} (default) with connection ids, weights, and costs,
+an \code{sf} \code{data.frame} (\code{"sf"}) with linestring geometries added for each connection,
+or a GeoJSON-formatted list (\code{"list"}).}
 
 \item{from_id, from_coords, to_id, to_coords}{Names of ID and coordinate columns in \code{from} and \code{to},
 or vectors of IDs and matrices of coordinates.}
 }
 \value{
-An \code{sf} \code{data.frame} with connections as LINESTRING geometries, or
-(if \code{as_sf} is \code{FALSE}) a GeoJSON-formatted list.
+An object with connection, weight, and cost information, with a format depending on \code{return_type}.
 }
 \description{
 Extract connected consumer (\code{from}) and provider (\code{to}) locations within a catchment area,
@@ -45,7 +45,8 @@ as defined by cost and weights.
 pop <- simulate_catchments()
 connections <- catchment_connections(
   pop$consumers, pop$providers,
-  weight = "gaussian", max_cost = 1
+  weight = "gaussian", max_cost = 1,
+  return_type = "sf"
 )
 if (require("leaflet", quiet = TRUE)) {
   leaflet() |>

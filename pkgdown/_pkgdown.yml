@@ -12,4 +12,5 @@ reference:
   desc: These functions can help assess parameters or results.
   contents:
   - catchment_connections
+  - catchment_network
   - simulate_catchments

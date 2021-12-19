@@ -16,15 +16,17 @@
 #' @param weight A weight matrix with the same dimensions as \code{cost}, such as returned from
 #' \code{\link{catchment_weight}}.
 #' @param ... Passes arguments to \code{catchment_weight} if \code{weight} is not a weight matrix.
-#' @param as_sf Logical; if \code{FALSE}, will return a GeoJSON-formatted list rather than
-#' an \code{sf} object.
+#' @param return_type Specify whether to return a \code{data.frame} (default) with connection ids, weights, and costs,
+#' an \code{sf} \code{data.frame} (\code{"sf"}) with linestring geometries added for each connection,
+#' or a GeoJSON-formatted list (\code{"list"}).
 #' @param from_id,from_coords,to_id,to_coords Names of ID and coordinate columns in \code{from} and \code{to},
 #' or vectors of IDs and matrices of coordinates.
 #' @examples
 #' pop <- simulate_catchments()
 #' connections <- catchment_connections(
 #'   pop$consumers, pop$providers,
-#'   weight = "gaussian", max_cost = 1
+#'   weight = "gaussian", max_cost = 1,
+#'   return_type = "sf"
 #' )
 #' if (require("leaflet", quiet = TRUE)) {
 #'   leaflet() |>
@@ -40,12 +42,12 @@
 #'       data = pop$providers, color = "#000", label = ~ paste("Provider", id)
 #'     )
 #' }
-#' @return An \code{sf} \code{data.frame} with connections as LINESTRING geometries, or
-#' (if \code{as_sf} is \code{FALSE}) a GeoJSON-formatted list.
+#' @return An object with connection, weight, and cost information, with a format depending on \code{return_type}.
 #' @export
 
-catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., as_sf = TRUE, from_id = "GEOID",
-                                  from_coords = c("X", "Y"), to_id = "GEOID", to_coords = c("X", "Y")) {
+catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return_type = "data.frame",
+                                  from_id = "GEOID", from_coords = c("X", "Y"), to_id = "GEOID",
+                                  to_coords = c("X", "Y")) {
   if (missing(from)) from <- from_coords
   if (missing(to)) to <- from_coords
   from_ids <- if (length(from_id) != 1) {
@@ -88,26 +90,42 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., as_sf 
   } else if (any(dim(cost) != dim(weight))) cli_abort("{.arg weight} does not align with {.arg cost}")
   fcoords <- split(from, from_ids)[from_ids]
   tcoords <- split(to, to_ids)[to_ids]
-  res <- list(
-    type = "FeatureCollection",
-    features = unlist(lapply(unname(which(rowSums(weight != 0) != 0)), function(r) {
-      su <- which(weight[r, ] != 0)
-      np <- names(su)
-      w <- weight[r, su]
-      wc <- cost[r, su] * w
-      fc <- as.numeric(fcoords[[r]])
-      tc <- tcoords[to_ids %in% np]
-      lapply(seq_along(np), function(i) {
-        list(
-          type = "Feature",
-          properties = list(from = from_ids[[r]], to = np[[i]], weight = w[[i]], cost = wc[[i]]),
-          geometry = list(
-            type = "LineString",
-            coordinates = list(fc, as.numeric(tc[[np[[i]]]]))
+  if (grepl("^[slg]", return_type, TRUE)) {
+    res <- list(
+      type = "FeatureCollection",
+      features = unlist(lapply(unname(which(rowSums(weight != 0) != 0)), function(r) {
+        su <- which(weight[r, ] != 0)
+        np <- names(su)
+        w <- weight[r, su]
+        wc <- cost[r, su]
+        fc <- as.numeric(fcoords[[r]])
+        tc <- tcoords[to_ids %in% np]
+        lapply(seq_along(np), function(i) {
+          list(
+            type = "Feature",
+            properties = list(from = from_ids[[r]], to = np[[i]], weight = w[[i]], cost = wc[[i]]),
+            geometry = list(
+              type = "LineString",
+              coordinates = list(fc, as.numeric(tc[[np[[i]]]]))
+            )
           )
-        )
-      })
-    }), FALSE)
-  )
-  if (as_sf) read_sf(toJSON(res, auto_unbox = TRUE), as_tibble = FALSE) else res
+        })
+      }), FALSE)
+    )
+    if (!length(res$features)) cli_abort("there are no connections")
+    if (grepl("^s", return_type, TRUE)) {
+      read_sf(toJSON(res, auto_unbox = TRUE), as_tibble = FALSE)
+    } else {
+      res
+    }
+  } else {
+    su <- unname(which(rowSums(weight != 0) != 0))
+    if (!length(su)) cli_abort("there are no connections")
+    do.call(rbind, lapply(su, function(r) {
+      su <- which(weight[r, ] != 0)
+      data.frame(
+        from = from_ids[[r]], to = names(su), weight = weight[r, su], cost = cost[r, su]
+      )
+    }))
+  }
 }

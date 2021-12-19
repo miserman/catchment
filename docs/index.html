@@ -53,6 +53,18 @@
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/introduction.html">Introduction to Floating Catchment Areas</a>
+    </li>
+  </ul>
+</li>
       </ul>
 <ul class="nav navbar-nav navbar-right"></ul>
 </div>
@@ -70,7 +82,9 @@
 <div class="page-header"><h1 id="catchment">Catchment<a class="anchor" aria-label="anchor" href="#catchment"></a>
 </h1></div>
 <p>An R package to calculate spatial access and availability metrics.</p>
+<p><img src="https://raw.githubusercontent.com/uva-bi-sdad/catchment/main/logo.svg" width="70px"></p>
 <p>Catchments (catchment areas) are regions defined by the effective range of a catching entity (or the result of its catching). For example, a basin might catch water, a hospital patients, a school students, or a store or restaurant customers. Each of these entities might have any number of conceptual catchments, such as those externally defined (like a school district), those realized (as by the origin of actual customers), and those projected (such as a travel-time radius).</p>
+<p><a href="https://uva-bi-sdad.github.io/catchment/articles/introduction.html" class="external-link">Introduction to Floating Catchment Areas</a> walks through tractable examples.</p>
 <p><a href="https://uva-bi-sdad.github.io/catchment/reference/catchment_ratio.html" class="external-link">catchment_ratio</a> is the main function, used to define catchments by a travel-cost matrix with bounds and/or a decay function, and calculate supply to demand ratios within them. It is a generalized implementation of a range of 2- and 3-step floating catchment area models, which is generally meant to align with those of the <a href="https://access.readthedocs.io" class="external-link">access</a> Python package.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
