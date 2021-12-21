@@ -24,7 +24,7 @@ Extract an interconnected set of consumers and providers from a set of connectio
 pop <- simulate_catchments()
 connections <- catchment_connections(
   pop$consumers, pop$providers,
-  weight = 1, max_cost = 1,
+  weight = 1, max_cost = .5,
 )
 catchment_network(connections, 1)
 }

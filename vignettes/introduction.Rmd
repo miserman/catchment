@@ -62,44 +62,39 @@ of catchment areas between doctors.
 The most basic case where floating catchment areas differ from simple ratios is when multiple providers have differing
 but overlapping coverage of consumers.
 
-In simpler cases, a single ratio applies equally to all consumers:
+Lets make a small set of providers and consumers:
 ```{r}
-# one provider to many consumers (which are summed within the same region)
-providers <- 1
-consumers <- 10
+# each entry in the vector represents a location, and its value is
+# its quantity (e.g., number of doctors and possible patients)
+(providers <- c(5, 5))
+(consumers <- c(10, 10, 10))
+```
 
-## this is a single score that applies to all consumers;
-## number of providers per consumer
-providers / consumers
-
-# many providers to one consumer
-providers <- 10
-consumers <- 1
-
-providers / consumers
+If these were all in the same catchment area (like a city), we could just sum them up for their ratio:
+```{r}
+sum(providers) / sum(consumers)
 ```
 
 But imagine we had providers with differing consumer bases:
 ```{r}
-providers <- c(1, 1)
-consumers <- rep(1, 3)
+# we can represent consumer bases with binary vectors,
+# where 1 means in range and 0 means out of range
+in_range_p1 <- c(1, 1, 0) # provider 1 is in range of consumers 1 and 2
+in_range_p2 <- c(0, 1, 1) # provider 2 is in range of consumers 2 and 3
 
-# here, provider 1 is in range of consumers 1 and 2,
-# and provider 2 is in range of consumers 2 and 3
-
-## this is represented by binary weight vectors
-in_range_p1 <- c(1, 1, 0)
-in_range_p2 <- c(0, 1, 1)
-
-## this is the ratio for provider 1
+## this is the ratio for provider 1 --
+## provider / sum of consumers in range
 (ratio_p1 <- providers[1] / sum(in_range_p1 * consumers))
 
+### same as
+providers[1] / (consumers[1] + consumers[2])
+
 ## which applies to consumers 1 and 2, again represented by the weight vector
-(access_p1 <- in_range_p1 * consumers * ratio_p1)
+(access_p1 <- in_range_p1 * ratio_p1)
 
 ## same for provider 2
 (ratio_p2 <- providers[2] / sum(in_range_p2 * consumers))
-(access_p2 <- in_range_p2 * consumers * ratio_p2)
+(access_p2 <- in_range_p2 * ratio_p2)
 
 ## and now we can combine them for individualized access scores
 access_p1 + access_p2
@@ -111,7 +106,7 @@ we applied weights vector by vector manually, but an easier way to do this in bi
 # we can add both `in_range` vectors to a matrix
 (weight <- matrix(c(in_range_p1, in_range_p2), 3))
 
-# then multiply and sum in one line for the same result
+# then do everything in one line for the same result
 weight %*% (providers / crossprod(weight, consumers))
 ```
 
@@ -128,10 +123,10 @@ areas around both providers (step 1) and consumers (step 2).
 Binary weight vectors denote which consumers fall within a catchment area, but they imply that all
 consumers fall within the catchment area to the same degree -- all consumers get a weight of 1. But when providers
 are singular physical location which consumers must travel to, consumers might differ in distance, and this intuitively
-related to how well they fall into the catchment area; someone on the edge of a catchment area is not as well caught
+relates to how well they fall into the catchment area; someone on the edge of a catchment area is not as well caught
 as someone nearer its center. To appreciate this difference, we can adjust weights by distance.
 
-Imagine that in the previous example, consumers 1 and 2 are both close to the first provider, but on opposite sides,
+In the previous example, imagine consumers 1 and 2 are both close to the first provider, but on opposite sides,
 such that consumer 2 is just within range of the second provider, and consumer 3 is only in range of the second
 provider:
 ```{r}
@@ -150,10 +145,10 @@ weight_p2 <- c(0, .2, .9)
 
 # now we can perform the same vector-wise calculations as before
 (ratio_p1 <- providers[1] / sum(weight_p1 * consumers))
-(access_p1 <- weight_p1 * consumers * ratio_p1)
+(access_p1 <- weight_p1 * ratio_p1)
 
 (ratio_p2 <- providers[2] / sum(weight_p2 * consumers))
-(access_p2 <- weight_p2 * consumers * ratio_p2)
+(access_p2 <- weight_p2 * ratio_p2)
 
 access_p1 + access_p2
 
@@ -170,7 +165,7 @@ Adjusting weights like this results in an enhanced 2-step floating catchment are
 Note that we are still just distributing providers to consumers, so access scores still sum up to the
 number of providers:
 ```{r}
-sum(consumers * access_p1 + access_p2)
+sum(consumers * (access_p1 + access_p2))
 ```
 
 Because weights are applied in both steps, or to both sides of the ratio, the absolute scale of weights is arbitrary.
@@ -201,7 +196,7 @@ To account for this, we might normalize each consumer's weights by redistributin
 weight_normed %*% (providers / crossprod(weight_normed, consumers))
 
 # this is what the `normalize_weight` argument does
-catchment_ratio(consumers, providers, weight = weight, normalize_weight = TRUE)
+(access <- catchment_ratio(consumers, providers, weight = weight, normalize_weight = TRUE))
 ```
 
 With these normalized weights, consumers 1 and 3 get higher access score because
@@ -210,6 +205,10 @@ may be the only ones using their only provider, depending on where consumer 2 go
 
 As always, these are still just redistributions of the same number of providers:
 ```{r}
+# original ratios are providers per person, so multiplying by consumers gives providers per location
+sum(access * consumers)
+
+# this is what the "region" `return_type` gives
 sum(catchment_ratio(
   consumers, providers, weight = weight,
   normalize_weight = TRUE, return_type = "region"
@@ -225,14 +224,17 @@ It is also notable that this sort of normalization might slightly over-correct -
 gets less total weight than 1 or 3. It might make more sense to give everyone a weight of 1 by using the weight
 proportions:
 ```{r}
-# total normed weight
+# total normed weights
 rowSums(weight_normed)
 
 # total proportional weights
 rowSums(weight / rowSums(weight))
 
 # scores with weight proportions
-catchment_ratio(consumers, providers, weight = weight / rowSums(weight))
+(access_propnorm <- catchment_ratio(consumers, providers, weight = weight / rowSums(weight)))
+
+# compare with originals
+access_propnorm - access
 ```
 
 On one hand, this appreciates that consumer 2 has access to 2 providers rather than just 1 (better access).
@@ -252,10 +254,18 @@ provider_networks <- c("a", "b")
 consumer_networks <- c("b", "a", "b")
 
 # we can assign weights based on matches
-(insurance_weight <- vapply(provider_networks, '==', logical(3), consumer_networks) * .9 + .1)
+(insurance_weight <- matrix(c(
+  consumer_networks == provider_networks[1],
+  consumer_networks == provider_networks[2]
+), 3) * .9 + .1)
 
 # then incorporate them with our distance-based weights
-catchment_ratio(consumers, providers, weight = weight * insurance_weight, normalize_weight = TRUE)
+(access_insurance <- catchment_ratio(
+  consumers, providers, weight = weight * insurance_weight, normalize_weight = TRUE
+))
+
+## compare with originals
+access_insurance - access
 ```
 
 With added insurance weights, consumer 1's access score goes down quite a lot because they have no in-network
@@ -263,19 +273,27 @@ providers in range.
 
 Another relevant point of consumer decision might be cost versus income:
 ```{r}
-# say we had some sort of price associated with each provider
+# say we had some sort of price associated with each provider location
 provider_price <- c(400, 250)
 
-# and the monthly income of each consumer
-consumer_income <- c(7, 3, 5) * 1e4 / 12
+# and the average monthly income of each consumer location
+consumer_income <- c(70, 30, 50) * 1000 / 12
 
 # we can use this to get at a price weight --
 # the higher the proportion of monthly income their price is,
 # the less likely a consumer is to use that provider
-(monetary_cost <- 1 - vapply(provider_price, '/', numeric(3), consumer_income))
+(monetary_cost <- 1 - matrix(c(
+  provider_price[1] / consumer_income,
+  provider_price[2] / consumer_income
+), 3))
 
 # then incorporate that with distance weights
-catchment_ratio(consumers, providers, weight = weight * monetary_cost, normalize_weight = TRUE)
+(access_monetary <- catchment_ratio(
+  consumers, providers, weight = weight * monetary_cost, normalize_weight = TRUE
+))
+
+## compare with originals
+access_monetary - access
 ```
 
 This is a subtler weighting, but consumer 1's score goes up a bit in particular because consumer 2

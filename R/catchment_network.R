@@ -10,7 +10,7 @@
 #' pop <- simulate_catchments()
 #' connections <- catchment_connections(
 #'   pop$consumers, pop$providers,
-#'   weight = 1, max_cost = 1,
+#'   weight = 1, max_cost = .5,
 #' )
 #' catchment_network(connections, 1)
 #' @return A subsetted version of \code{connections} containing only connections traceable from \code{from_start}
