@@ -8,14 +8,17 @@
 
 catchment_weight <- function(cost, weight = NULL, max_cost = NULL, scale = 2,
                              normalize_weight = FALSE, verbose = FALSE) {
-  if (is.null(dim(cost))) cost <- t(cost)
+  if (is.null(dim(cost))) cost <- matrix(cost, ncol = 1)
+  if (is.numeric(weight) && is.null(dim(weight)) && length(weight) > 1) {
+    weight <- matrix(weight, ncol = ncol(cost))
+  }
   if (is.null(weight) && !is.null(max_cost)) {
     weight <- max_cost
     max_cost <- NULL
   }
   if (is.null(weight)) {
-    if (verbose) cli_alert_info("weight: cost over {.feild 0}")
-    w <- as(cost > 0, "lgCMatrix") * 1
+    if (verbose) cli_alert_info("weight: cost")
+    w <- as(cost, "dgCMatrix")
   } else if (is.null(dim(weight))) {
     if (is.numeric(weight)) {
       # single buffer value means a uniformly weighted catchment area (original)

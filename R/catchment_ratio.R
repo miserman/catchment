@@ -15,19 +15,20 @@
 #' If \code{NULL}, coordinate information will be looked for in \code{consumers} and \code{providers} (based on
 #' \code{consumers_location} and \code{providers_location}), from which to calculate Euclidean distances.
 #' Costs equal to \code{0} are treated as missing, so any truly \code{0} costs should be set to some minimal value.
-#' @param weight Means of defining catchment areas and their topology / friction. The simplest is a single number
-#' representing a maximum distance between \code{consumers} and \code{providers} (2-step floating catchment area).
+#' @param weight Means of defining catchment areas and their topology / friction / impedance. The simplest is a single
+#' number representing a maximum distance between \code{consumers} and \code{providers} (2-step floating catchment area;
+#' 2SFCA; Luo & Wang, 2003).
 #' An enhancement of this is a list of vectors with two values each: the first is a distance, and the second a weight
 #' to associate with that distance (e.g., \code{list(c(10, 1), c(20, .5))}, which will give consumers within a
 #' \code{cost} of 10 full weight, and those within a \code{cost} of 20 half weight; enhanced 2-step floating catchment
-#' area). If a character, refers to a weighting function (kernel density 2-step floating catchment area; in order
-#' from most gradual to steepest between costs of \code{1} and \code{6}):
+#' area; E2SFCA; Lou & Qi 2009). If a character, refers to a weighting function (kernel density 2-step floating
+#' catchment area; KD2SFCA; Dai, 2010; in order from most gradual to steepest between costs of \code{1} and \code{6}):
 #' \tabular{ll}{
 #'   \code{gaussian} (\code{ga}) \tab \code{exp(-cost^2 / (2 * scale ^ 2))}\cr
 #'   \code{d*} (name of a density function; e.g., \code{"dnorm"}) \tab
 #'     \code{weight(cost, 0, scale)}
 #'   \cr
-#'   \code{p*} (name of a distribution function; e.g., \code{"pnorm"}) \tab \code{weight(cost, 0, scale)}\cr
+#'   \code{p*} (name of a distribution function; e.g., \code{"pnorm"}) \tab \code{weight(-cost, 0, scale)}\cr
 #'   \code{gravity} / \code{normal} (\code{gr} or \code{n}) \tab \code{sqrt(1 / cost^scale)}\cr
 #'   \code{logarithmic} (\code{loga}) \tab \code{1 / (1 + log(cost, scale))}\cr
 #'   \code{logistic} (\code{l}) \tab \code{1 / (1 + exp(scale * cost))}\cr
@@ -39,17 +40,30 @@
 #' @param normalize_weight Logical; if \code{TRUE}, weight is row-normalized such that \code{consumers} weights
 #' are spread across \code{providers} in range. This can help correct for the increased weight of \code{consumers}
 #' when they are in range of multiple \code{providers}. Selection weights like this make the difference between 2-
-#' and 3-step floating catchment areas.
+#' and 3-step floating catchment areas (3SFCA; Wan, Zou, & Sternberg, 2012).
 #' @param scale Numeric scaling factor if \code{weight} is the name of a decay function.
 #' @param max_cost Numeric limit on \code{cost}. This is the same as setting \code{weight} to a single value,
 #' or specifying a list of steps as \code{weight} (where the most distant step is effectively \code{max_cost}),
 #' although a single-value weight is exclusive (\code{cost < weight}) where steps are inclusive. This is most useful
 #' when \code{weight} is a weighing function, where \code{max_cost} will trim the tail of the weight distribution.
+#' @param adjust_consumers,adjust_providers A function to adjust weights when applied to \code{consumers} or
+#' \code{providers}; should take the sparse weight matrix as its first argument, and return an adjusted matrix of the
+#' same type. For example, you could square provider weights for the modified 2-step floating catchment area
+#' (M2SFCA; Delamater, 2013) with \code{adjust_providers = function(w) w ^ 2}, or standardize both weights for the
+#' balanced floating catchment area (BFCA; Paez, Higgins, & Vivona, 2019) with \code{adjust_consumers = }
+#' \code{function(w) w / rowSums(w)} and \code{adjust_providers = function(w) sweep(w, 2, colSums(w), "/")}.
+#' When weights are adjusted independently in this way, region scores will likely no longer sum to the sum
+#' of \code{providers} (fewer than the total number of providers will be distributed).
 #' @param return_type Determines the values that are returned: \code{"original"} (default) for \code{providers}
 #' per \code{consumers} (e.g., how many, likely fractional, doctors are accessible by each person within each region),
 #' \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
 #' how many doctors are accessible within each region), or \code{"normalized"} for \code{original} divided by
 #' \code{sum(region) / sum(consumers)}.
+#' @param consumers_commutes A square, consumers source x consumers origin matrix with counts of origins,
+#' used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
+#' may work in locations 1 and 3, so the first row of \code{consumers_commutes} should have values in columns 1 and 3).
+#' This can also be entered in place of \code{consumers}, assuming it includes all consumers (e.g., in a worker commute
+#' matrix, you may need to add non-workers to the diagonal, if they are also consumers).
 #' @param consumers_id,consumers_value,consumers_location,providers_id,providers_value,providers_location Column
 #' names in \code{consumers} and/or \code{providers} to extract IDs, values, and location data (referring to a single
 #' \code{sf} geometry column, or multiple columns with coordinates). These can also be used to directly enter
@@ -67,10 +81,21 @@
 #' catchment_ratio(pop, doc, travel_time, "gaussian")
 #'
 #' # enhanced 2-step floating catchment area
-#' catchment_ratio(pop, doc, travel_time, list(c(60, .22), c(40, .68), c(20, 1)))
+#' step_weights <- list(c(60, .22), c(40, .68), c(20, 1))
+#' catchment_ratio(pop, doc, travel_time, step_weights)
+#'
+#' # modified 2-step floating catchment area
+#' catchment_ratio(pop, doc, travel_time, step_weights, adjust_providers = function(m) m^2)
+#'
+#' # balanced 2-step floating catchment area
+#' catchment_ratio(
+#'   pop, doc, travel_time, step_weights,
+#'   adjust_consumers = function(w) sweep(w, 1, rowSums(w), "/", FALSE),
+#'   adjust_providers = function(w) sweep(w, 2, colSums(w), "/", FALSE),
+#' )
 #'
 #' # 3-step floating catchment area
-#' catchment_ratio(pop, doc, travel_time, list(c(60, .22), c(40, .68), c(20, 1)), TRUE)
+#' catchment_ratio(pop, doc, travel_time, step_weights, normalize_weight = TRUE)
 #'
 #' # visualized weight functions
 #' if (require("splot", quietly = TRUE)) {
@@ -93,6 +118,10 @@
 #' late-stage breast cancer diagnosis in metropolitan Detroit. \emph{Health & place, 16}, 1038-1052.
 #' doi: \href{https://doi.org/10.1016/j.healthplace.2010.06.012}{10.1016/j.healthplace.2010.06.012}
 #'
+#' Delamater, P. L. (2013). Spatial accessibility in suboptimally configured health care systems: a modified
+#' two-step floating catchment area (M2SFCA) metric. \emph{Health & place, 24}, 30-43.
+#' doi: \href{https://doi.org/10.1016/j.healthplace.2013.07.012}{10.1016/j.healthplace.2013.07.012}
+#'
 #' Lou, W. & Qi, Y. (2009). An enhanced two-step floating catchment area (E2SFCA) method for measuring spatial
 #' accessibility to primary care physicians. \emph{Health & Place, 15}, 1100-1107.
 #' doi: \href{https://doi.org/10.1016/j.healthplace.2009.06.002}{10.1016/j.healthplace.2009.06.002}
@@ -101,17 +130,37 @@
 #' and a case study in the Chicago region. \emph{Environment and Planning B: Planning and Design, 30}, 865-884.
 #' doi: \href{https://doi.org/10.1068/b29120}{10.1068/b29120}
 #'
+#' Paez, A., Higgins, C. D., & Vivona, S. F. (2019). Demand and level of service inflation in Floating Catchment
+#' Area (FCA) methods. \emph{Plos one, 14}, e0218773. doi:
+#' \href{https://doi.org/10.1371/journal.pone.0218773}{10.1371/journal.pone.0218773}
+#'
 #' Wan, N., Zou, B., & Sternberg, T. (2012). A three-step floating catchment area method for analyzing spatial
 #' access to health services. \emph{International Journal of Geographical Information Science, 26}, 1073-1089.
 #' doi: \href{https://doi.org/10.1080/13658816.2011.624987}{10.1080/13658816.2011.624987}
 #' @export
 
 catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, weight = NULL, normalize_weight = FALSE,
-                            scale = 2, max_cost = NULL, return_type = "original", consumers_id = "GEOID",
+                            scale = 2, max_cost = NULL, adjust_consumers = NULL, adjust_providers = NULL,
+                            return_type = "original", consumers_commutes = NULL, consumers_id = "GEOID",
                             consumers_value = "count", consumers_location = c("X", "Y"), providers_id = "GEOID",
                             providers_value = "count", providers_location = c("X", "Y"), verbose = FALSE) {
   if (verbose) cli_rule("Calculating a Floating Catchment Area Ratio")
   type <- ""
+  if (is.null(consumers_commutes)) {
+    if (!missing(consumers_value)) {
+      dims <- dim(consumers_value)
+      if (!is.null(dims) && dims[1] == dims[2]) {
+        consumers_commutes <- consumers_value
+        if (is.null(consumers)) consumers <- rowSums(consumers_commutes)
+      }
+    } else {
+      dims <- dim(consumers)
+      if (missing(consumers_id) && missing(consumers_location) && !is.null(dims) && dims[1] == dims[2]) {
+        consumers_commutes <- consumers
+        consumers <- rowSums(consumers)
+      }
+    }
+  }
   input_data <- c(is.null(dim(providers)), is.null(dim(consumers)))
   # getting provider and consumer value vectors
   cv <- if (input_data[2]) {
@@ -157,7 +206,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     if (!is.null(names(consumers))) {
       if (verbose) cli_alert_info("consumers id: {.arg consumers} names")
       names(consumers)
-    } else if (length(consumers) == length(consumers_id)) {
+    } else if (!missing(consumers_id) && length(cv) == length(consumers_id)) {
       if (verbose) cli_alert_info("consumers id: {.arg consumers_id} vector")
       consumers_id
     } else if (!is.null(colnames(cost))) {
@@ -179,7 +228,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     if (!is.null(names(providers))) {
       if (verbose) cli_alert_info("providers id: {.arg providers} names")
       names(providers)
-    } else if (length(providers) == length(providers_id)) {
+    } else if (!missing(providers_id) && length(pv) == length(providers_id)) {
       if (verbose) cli_alert_info("providers id: {.arg providers_id} vector")
       providers_id
     } else if (!is.null(colnames(cost))) {
@@ -271,10 +320,35 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
       cost[] <- TRUE
     }
   } else if (is.null(dim(cost))) {
-    cli_abort("{.arg cost} must be a matrix-like object")
+    cost <- t(cost)
+    if (length(pv) == 1) cost <- t(cost)
+    if (identical(dim(cost), c(length(cv), length(pv)))) {
+      if (verbose) cli_alert_info("cost: {.arg cost} vector")
+    } else {
+      cli_abort("{.arg cost} must be a matrix-like object")
+    }
   } else if (verbose) cli_alert_info("cost: {.arg cost} matrix")
   if (is.data.frame(cost)) cost <- as.matrix(cost)
   w <- catchment_weight(cost, weight, max_cost = max_cost, scale = scale, normalize_weight = FALSE, verbose = verbose)
+  if (!is.null(consumers_commutes)) {
+    dims <- dim(consumers_commutes)
+    if (dims[1] != dims[2]) cli_abort("{.arg consumers_commutes} must be a square matrix")
+    if (dims[1] != length(cv)) {
+      if (all(cid %in% colnames(consumers_commutes)) || (is.numeric(cid) && dims[1] <= max(cid))) {
+        consumers_commutes <- consumers_commutes[cid, cid]
+      } else {
+        cli_abort("{.arg consumers_commutes} could not be resolved with {.arg consumers}")
+      }
+    }
+    noncommuters <- diag(consumers_commutes) / cv
+    if (any(cv == 0)) noncommuters[cv == 0] <- 1
+    diag(consumers_commutes) <- 0
+    diag(consumers_commutes) <- rowSums(consumers_commutes)
+    consumers_commutes <- consumers_commutes / rowSums(consumers_commutes)
+    w_total <- rowSums(w)
+    w_commutes <- consumers_commutes %*% (w / w_total) * w_total
+    w <- w_commutes * (1 - noncommuters) + weight * noncommuters
+  }
   wr <- rowSums(w)
   if (!is.null(rownames(w)) && !all(cid == rownames(w)) && all(cid %in% rownames(w))) {
     if (verbose) cli_alert_info("selected weight rows by consumers id names")
@@ -301,13 +375,23 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     type <- paste0(type, "3-step floating catchment area")
     if (!is.null(rownames(w)) && all(rownames(w) %in% names(wr))) wr <- wr[rownames(w)]
     wr[wr == 0] <- 1
-    w <- w * sweep(w, 1, wr, "/")
+    w <- w * sweep(w, 1, wr, "/", FALSE)
   } else {
     type <- paste0(type, "2-step floating catchment area")
   }
-  wd <- crossprod(w, cv)
+  wd <- crossprod(if (is.function(adjust_consumers)) {
+    environment(adjust_consumers) <- environment()
+    adjust_consumers(w)
+  } else {
+    w
+  }, cv)
   wd[abs(wd) < .Machine$double.eps] <- 1
-  r <- as.numeric(w %*% (pv / wd))
+  r <- as.numeric((if (is.function(adjust_providers)) {
+    environment(adjust_providers) <- environment()
+    adjust_providers(w)
+  } else {
+    w
+  }) %*% (pv / wd))
   if (!missing(return_type)) {
     return_type <- tolower(substr(return_type, 1, 1))
     if ("n" == return_type) {
