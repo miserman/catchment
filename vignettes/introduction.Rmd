@@ -237,8 +237,8 @@ An interesting and potentially clarifying way to think about weights is as relat
 utilize one provider over another. This makes good sense with distance weighting, where, all else being equal, a
 consumer is less likely to make use of a distant provider if a nearer one is available.
 
-Thinking of weights in this way highlights a potential issue with the way we have being applying weights: The more
-providers a consumer has in range, the more overall weight they get, which doesn't make sense if consumer's consumption
+Thinking of weights in this way highlights a potential issue with the way we have been applying weights: The more
+providers a consumer has in range, the more overall weight they get, which doesn't make sense if consumers' consumption
 is actually the same (say, each consumer is a patient visiting only one doctor).
 
 To account for this, we might normalize each consumer's weights by proportionally redistributing them:
@@ -316,7 +316,7 @@ farther from the set of providers.
 
 Proportional weighting is similar to an adjustment proposed by @paez19, except they also propose
 independently adjusting the provider-side weights such that weights across providers also sum to 1.
-This may not be advisable for two reasons: Fist is that independently adjusting weights may result in a
+This may not be advisable for two reasons: First is that independently adjusting weights may result in a
 different number of providers being distributed (see the Imperfect Distribution section). Second is that
 column standardization on its own doesn't seem to make a difference to the final access scores:
 ```{r}
@@ -345,6 +345,8 @@ describing the probability that a consumer will use a particular provider, we mi
 other weight sources.
 
 ## Provider-Consumer Fit
+
+### Categorical
 For example, relating to doctors and patients, health insurance networks may quite strictly condition
 consumer to provider pairings. Things like this can be added as weights arbitrarily:
 ```{r}
@@ -368,6 +370,7 @@ access_insurance - access
 With added insurance weights, the access score for consumers 1 goes down quite a lot because they have no in-network
 providers in range.
 
+### Continuous
 Another relevant point of consumer decision might be cost versus income:
 ```{r}
 # say we had some sort of price associated with each provider location
@@ -397,7 +400,9 @@ is pushed more toward providers 2 based on monetary cost, even though that trave
 What information might be useful to incorporate and how much relative weight it should get are
 questions that will probably want to be explored on a case by case basis.
 
-## Multiple Consumer Origins
+## Consumer Flexibility
+
+### Multiple Origins
 So far, we have considered consumers to have a single location (where they live) from which they
 will travel to providers. If consumers regularly travel to other locations, however, they might
 end up closer to a provider incidentally. For example, someone might visit a doctor that is close
@@ -462,6 +467,35 @@ weight_commute / max(weight_commute) - weight / max(weight)
 
 This is a very simplified, but conceptually similar version of the commuter-based 2-step floating catchment
 area [CB2SFCA\; @fransen15].
+
+### Multiple Modes
+We have also been assuming consumes all use the same mode of travel, such that their travel
+costs are all the same. We can incorporate multiple modes of travel in a similar way, this time with
+separate cost matrices.
+
+Say our original cost matrix was based on travel time by car, but we knew some proportion of each
+consumer location did not have access to a car, and would walk to their provider. We can combined these in the
+same way we incorporated multiple origins:
+```{r}
+# weight based on walking time
+(weight_walking <- matrix(c(1.5, 1.2, 0, 0, 0, 1.3), 3))
+
+# proportion of each consumer location with access to a car
+consumers_car <- c(.8, .4, .7)
+
+# proportionally combined weights
+(weight_multimode <- weight * consumers_car + weight_walking * (1 - consumers_car))
+
+# mutli-modal score
+(access_multimode <- catchment_ratio(consumers, providers, weight = weight_multimode))
+
+## compare with original
+access_multimode - access
+```
+
+Here, consumers 3 get slightly better access because more of consumers 2 are limited to providers 1.
+
+This is similar to the multi-modal 2-step floating catchment area proposed by @langford16.
 
 # Imperfect Distribution
 So far, we have been perfectly distributing consumers across providers, as indicated by the fact that region scores

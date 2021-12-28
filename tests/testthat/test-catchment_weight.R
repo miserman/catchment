@@ -12,6 +12,11 @@ test_that("weights align with manual", {
   expect_true(all(sqrt(1 / cost^2) == catchment_weight(cost, "gravity")))
   expect_true(all(sqrt(1 / cost^2) == catchment_weight(cost, "normal")))
   expect_true(all(1 / (1 + log2(cost)) == catchment_weight(cost, "logarithmic")))
+  expect_true(all({
+    tw <- (2 - cost) / 2
+    tw[tw < 0] <- 0
+    tw
+  } == catchment_weight(cost, "linear")))
   expect_true(all(1 / (1 + exp(cost * 2)) == catchment_weight(cost, "logistic")))
   expect_true(all(exp(-cost^2 / 8) == catchment_weight(cost, "gaussian")))
 })

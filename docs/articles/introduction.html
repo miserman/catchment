@@ -269,7 +269,7 @@
 <h1 id="normalized-weights">Normalized Weights<a class="anchor" aria-label="anchor" href="#normalized-weights"></a>
 </h1>
 <p>An interesting and potentially clarifying way to think about weights is as relative probabilities that the consumer will utilize one provider over another. This makes good sense with distance weighting, where, all else being equal, a consumer is less likely to make use of a distant provider if a nearer one is available.</p>
-<p>Thinking of weights in this way highlights a potential issue with the way we have being applying weights: The more providers a consumer has in range, the more overall weight they get, which doesn’t make sense if consumer’s consumption is actually the same (say, each consumer is a patient visiting only one doctor).</p>
+<p>Thinking of weights in this way highlights a potential issue with the way we have been applying weights: The more providers a consumer has in range, the more overall weight they get, which doesn’t make sense if consumers’ consumption is actually the same (say, each consumer is a patient visiting only one doctor).</p>
 <p>To account for this, we might normalize each consumer’s weights by proportionally redistributing them:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># get each consumer's total weight</span>
@@ -345,7 +345,7 @@
   laby <span class="op">=</span> <span class="st">"Catchment Ratio"</span>, labx <span class="op">=</span> <span class="st">"(would-be) Relative Difference"</span>
 <span class="op">)</span></code></pre></div>
 <p><img src="introduction_files/figure-html/unnamed-chunk-15-1.svg" width="960"> That is, with proportional weights, consumers can shift around between providers, but they cannot be nearer or farther from the set of providers.</p>
-<p>Proportional weighting is similar to an adjustment proposed by <span class="citation"><a href="#ref-paez19" role="doc-biblioref">Paez et al.</a> (<a href="#ref-paez19" role="doc-biblioref">2019</a>)</span>, except they also propose independently adjusting the provider-side weights such that weights across providers also sum to 1. This may not be advisable for two reasons: Fist is that independently adjusting weights may result in a different number of providers being distributed (see the Imperfect Distribution section). Second is that column standardization on its own doesn’t seem to make a difference to the final access scores:</p>
+<p>Proportional weighting is similar to an adjustment proposed by <span class="citation"><a href="#ref-paez19" role="doc-biblioref">Paez et al.</a> (<a href="#ref-paez19" role="doc-biblioref">2019</a>)</span>, except they also propose independently adjusting the provider-side weights such that weights across providers also sum to 1. This may not be advisable for two reasons: First is that independently adjusting weights may result in a different number of providers being distributed (see the Imperfect Distribution section). Second is that column standardization on its own doesn’t seem to make a difference to the final access scores:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># balanced floating catchment area (BFCS)</span>
 <span class="op">(</span><span class="va">access_balanced</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span>
@@ -376,6 +376,9 @@
 <div class="section level2">
 <h2 id="provider-consumer-fit">Provider-Consumer Fit<a class="anchor" aria-label="anchor" href="#provider-consumer-fit"></a>
 </h2>
+<div class="section level3">
+<h3 id="categorical">Categorical<a class="anchor" aria-label="anchor" href="#categorical"></a>
+</h3>
 <p>For example, relating to doctors and patients, health insurance networks may quite strictly condition consumer to provider pairings. Things like this can be added as weights arbitrarily:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># lets say our consumers and providers are all associated with one of two networks</span>
@@ -400,6 +403,10 @@
 <span class="va">access_insurance</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1] -0.20454545  0.12450593  0.08003953</span></code></pre></div>
 <p>With added insurance weights, the access score for consumers 1 goes down quite a lot because they have no in-network providers in range.</p>
+</div>
+<div class="section level3">
+<h3 id="continuous">Continuous<a class="anchor" aria-label="anchor" href="#continuous"></a>
+</h3>
 <p>Another relevant point of consumer decision might be cost versus income:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># say we had some sort of price associated with each provider location</span>
@@ -430,9 +437,13 @@
 <p>This is a subtler weighting, but the score for consumers 1 goes up a bit in particular because consumers 2 is pushed more toward providers 2 based on monetary cost, even though that travel cost is greater.</p>
 <p>What information might be useful to incorporate and how much relative weight it should get are questions that will probably want to be explored on a case by case basis.</p>
 </div>
+</div>
 <div class="section level2">
-<h2 id="multiple-consumer-origins">Multiple Consumer Origins<a class="anchor" aria-label="anchor" href="#multiple-consumer-origins"></a>
+<h2 id="consumer-flexibility">Consumer Flexibility<a class="anchor" aria-label="anchor" href="#consumer-flexibility"></a>
 </h2>
+<div class="section level3">
+<h3 id="multiple-origins">Multiple Origins<a class="anchor" aria-label="anchor" href="#multiple-origins"></a>
+</h3>
 <p>So far, we have considered consumers to have a single location (where they live) from which they will travel to providers. If consumers regularly travel to other locations, however, they might end up closer to a provider incidentally. For example, someone might visit a doctor that is close to where they work, even if the doctor is far from where they live.</p>
 <p>One way to try and account for this might be to simply calculate multiple ratios based on different locations:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
@@ -506,6 +517,40 @@
 <span class="co">#&gt; [3,]  0.2474747 -0.1363636</span></code></pre></div>
 <p>This is a very simplified, but conceptually similar version of the commuter-based 2-step floating catchment area <span class="citation">(CB2SFCA; <a href="#ref-fransen15" role="doc-biblioref">Fransen et al., 2015</a>)</span>.</p>
 </div>
+<div class="section level3">
+<h3 id="multiple-modes">Multiple Modes<a class="anchor" aria-label="anchor" href="#multiple-modes"></a>
+</h3>
+<p>We have also been assuming consumes all use the same mode of travel, such that their travel costs are all the same. We can incorporate multiple modes of travel in a similar way, this time with separate cost matrices.</p>
+<p>Say our original cost matrix was based on travel time by car, but we knew some proportion of each consumer location did not have access to a car, and would walk to their provider. We can combined these in the same way we incorporated multiple origins:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># weight based on walking time</span>
+<span class="op">(</span><span class="va">weight_walking</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">1.2</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1.3</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;      [,1] [,2]</span>
+<span class="co">#&gt; [1,]  1.5  0.0</span>
+<span class="co">#&gt; [2,]  1.2  0.0</span>
+<span class="co">#&gt; [3,]  0.0  1.3</span>
+
+<span class="co"># proportion of each consumer location with access to a car</span>
+<span class="va">consumers_car</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.8</span>, <span class="fl">.4</span>, <span class="fl">.7</span><span class="op">)</span>
+
+<span class="co"># proportionally combined weights</span>
+<span class="op">(</span><span class="va">weight_multimode</span> <span class="op">&lt;-</span> <span class="va">weight</span> <span class="op">*</span> <span class="va">consumers_car</span> <span class="op">+</span> <span class="va">weight_walking</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">consumers_car</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt;      [,1] [,2]</span>
+<span class="co">#&gt; [1,] 1.02 0.00</span>
+<span class="co">#&gt; [2,] 1.08 0.08</span>
+<span class="co">#&gt; [3,] 0.00 1.02</span>
+
+<span class="co"># mutli-modal score</span>
+<span class="op">(</span><span class="va">access_multimode</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="va">consumers</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight_multimode</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; [1] 0.2428571 0.2935065 0.4636364</span>
+
+<span class="co">## compare with original</span>
+<span class="va">access_multimode</span> <span class="op">-</span> <span class="va">access</span>
+<span class="co">#&gt; [1] -0.007142857 -0.047402597  0.054545455</span></code></pre></div>
+<p>Here, consumers 3 get slightly better access because more of consumers 2 are limited to providers 1.</p>
+<p>This is similar to the multi-modal 2-step floating catchment area proposed by <span class="citation"><a href="#ref-langford16" role="doc-biblioref">Langford et al.</a> (<a href="#ref-langford16" role="doc-biblioref">2016</a>)</span>.</p>
+</div>
+</div>
 </div>
 <div class="section level1">
 <h1 id="imperfect-distribution">Imperfect Distribution<a class="anchor" aria-label="anchor" href="#imperfect-distribution"></a>
@@ -513,7 +558,7 @@
 <p>So far, we have been perfectly distributing consumers across providers, as indicated by the fact that region scores always sum to the number of providers. The only time this relationship doesn’t hold with the methods we’ve reviewed so far is if a provider is not in range of any consumers – you could say region scores always sum to the number of providers <strong>in range</strong>.</p>
 <p>One way to see this sort of distribution is as an optimal distribution of providers, which is probably not very realistic (e.g., providers that are inconveniently located may not be perfectly utilized). To try and account for this <span class="citation"><a href="#ref-delamater13" role="doc-biblioref">Delamater</a> (<a href="#ref-delamater13" role="doc-biblioref">2013</a>)</span> proposed increasing provider-side weights, which would unbalance the ratio, allowing for some providers to be left out of the distribution. This is done by simply squaring provider-side distance weights, resulting in the modified 2-step floating catchment area (M2SFCA).</p>
 <p>We can do this with the <code>adjust_providers</code> argument:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">(</span><span class="va">access_modified</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span>
   <span class="va">consumers</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span>,
   adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="va">w</span> <span class="op">^</span> <span class="fl">2</span>
@@ -538,6 +583,9 @@ Delamater, P. L. (2013). Spatial accessibility in suboptimally configured health
 </div>
 <div id="ref-fransen15" class="csl-entry">
 Fransen, K., Neutens, T., De Maeyer, P., &amp; Deruyter, G. (2015). A commuter-based two-step floating catchment area method for measuring spatial accessibility of daycare centers. <em>Health &amp; Place</em>, <em>32</em>, 65–73. <a href="https://doi.org/10.1016/j.healthplace.2015.01.002" class="external-link">https://doi.org/10.1016/j.healthplace.2015.01.002</a>
+</div>
+<div id="ref-langford16" class="csl-entry">
+Langford, M., Higgs, G., &amp; Fry, R. (2016). Multi-modal two-step floating catchment area analysis of primary health care accessibility. <em>Health &amp; Place</em>, <em>38</em>, 70–81. <a href="https://doi.org/10.1016/j.healthplace.2015.11.007" class="external-link">https://doi.org/10.1016/j.healthplace.2015.11.007</a>
 </div>
 <div id="ref-luo09" class="csl-entry">
 Luo, W., &amp; Qi, Y. (2009). An enhanced two-step floating catchment area (E2SFCA) method for measuring spatial accessibility to primary care physicians. <em>Health &amp; Place</em>, <em>15</em>, 1100–1107. <a href="https://doi.org/10.1016/j.healthplace.2009.06.002" class="external-link">https://doi.org/10.1016/j.healthplace.2009.06.002</a>

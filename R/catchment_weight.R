@@ -50,6 +50,10 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, scale = 2,
       } else if (grepl("^loga", weight)) {
         # logarithmic kernel
         w <- as(1 / (1 + log(cost, scale)), "dgCMatrix")
+      } else if (grepl("^li", weight)) {
+        # linear kernel
+        w <- as((scale - cost) / scale, "dgCMatrix")
+        w[w < 0] <- 0
       } else if (grepl("^l", weight)) {
         # logistic kernel
         w <- as(1 / (1 + exp(scale * cost)), "dgCMatrix")

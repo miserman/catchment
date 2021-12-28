@@ -24,6 +24,7 @@
 #' area; E2SFCA; Lou & Qi 2009). If a character, refers to a weighting function (kernel density 2-step floating
 #' catchment area; KD2SFCA; Dai, 2010; in order from most gradual to steepest between costs of \code{1} and \code{6}):
 #' \tabular{ll}{
+#'   \code{linear} (\code{li}) \tab \code{{w <- (scale - cost) / scale; w[w < 0] <- 0; w}}\cr
 #'   \code{gaussian} (\code{ga}) \tab \code{exp(-cost^2 / (2 * scale ^ 2))}\cr
 #'   \code{d*} (name of a density function; e.g., \code{"dnorm"}) \tab
 #'     \code{weight(cost, 0, scale)}
@@ -102,6 +103,7 @@
 #'   cost <- 1:10
 #'   scale <- 2
 #'   splot(list(
+#'     linear = (10 - cost) / 10,
 #'     gaussian = exp(-cost^2 / (2 * scale^2)),
 #'     dnorm = dnorm(cost, 0, scale),
 #'     pnorm = pnorm(-cost, 0, scale),
