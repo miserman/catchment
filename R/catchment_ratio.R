@@ -346,10 +346,13 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     if (any(cv == 0)) noncommuters[cv == 0] <- 1
     diag(consumers_commutes) <- 0
     diag(consumers_commutes) <- rowSums(consumers_commutes)
-    consumers_commutes <- consumers_commutes / rowSums(consumers_commutes)
+    wr <- rowSums(consumers_commutes)
+    wr[wr == 0] <- 1
+    consumers_commutes <- consumers_commutes / wr
     w_total <- rowSums(w)
+    w_total[w_total == 0] <- 1
     w_commutes <- consumers_commutes %*% (w / w_total) * w_total
-    w <- w_commutes * (1 - noncommuters) + weight * noncommuters
+    w <- w_commutes * (1 - noncommuters) + w * noncommuters
   }
   wr <- rowSums(w)
   if (!is.null(rownames(w)) && !all(cid == rownames(w)) && all(cid %in% rownames(w))) {

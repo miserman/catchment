@@ -14,3 +14,4 @@ reference:
   - catchment_connections
   - catchment_network
   - simulate_catchments
+  - download_census_population
