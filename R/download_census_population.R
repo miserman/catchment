@@ -95,7 +95,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       unlink(paste0(tdir, f))
     }
   }
-
   if (!all(file.exists(final_files))) {
     if (verbose) cli_alert_info(paste("reformatting", display_state, "American Community Survey summary files"))
 
@@ -107,7 +106,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     title_id <- which(headers$Total.Cells.in.Table != "")
     names <- sub("^Universe:\\s*", "", headers$Table.Title)
     sub_id <- which(grepl(":", names, fixed = TRUE))
-
     headers$name <- sub("\\.$", "", sub("_\\w+_Total", "_Total", gsub("._", "_", paste0(
       rep(gsub("[;:(),\\s]+", ".", names[title_id], perl = TRUE), c(title_id[-1], nrow(headers)) - title_id),
       "_",
@@ -120,14 +118,12 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       headers[start_id, "Start.Position"],
       c(start_id[-1], nrow(headers) + 1) - start_id
     )
-
     ind_start <- which(!is.na(offset == min(offset, na.rm = TRUE)) & offset == min(offset, na.rm = TRUE))
     ind_end <- c(ind_start[-1], length(offset)) - ind_start
     inds <- lapply(seq_along(ind_start), function(i) {
       is <- seq(ind_start[i], ind_end[i])
       is[!is.na(offset[is]) & offset[is] %% 1 == 0]
     })
-
     subs <- as.numeric(sub("\\D.*$", "", headers$Total.Cells.in.Table))
     ind_start <- which(
       !is.na(headers$Start.Position) &
@@ -171,7 +167,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       }))
       margins[margins == "."] <- NA
     }
-
     su <- vapply(estimates, function(v) all(is.na(v)), TRUE)
     if (any(su)) {
       estimates <- estimates[, !su, drop = FALSE]
@@ -181,13 +176,11 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
         colnames(margins) <- sub("\\.1$", "", colnames(margins))
       }
     }
-
     su <- !is.na(estimates[, 2]) & estimates[, 2] == 0
     if (any(su)) {
       estimates <- estimates[!su, ]
       if (include_margins) margins <- margins[!su, ]
     }
-
     subsetter <- !c(is.null(blockgroups), is.null(tracts), is.null(counties))
     if (any(subsetter)) {
       su <- if (subsetter[1]) {
@@ -207,8 +200,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     estimates <- read.csv(final_files[1])
     if (include_margins) margins <- read.csv(final_files[2])
   }
-
-
   # commutes
   if (include_commutes) {
     file <- paste0(tdir, state_post, "_commutes.csv")
@@ -222,7 +213,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       ), filegz)
     }
     if (fresh <- file.exists(filegz)) system2("gzip", c("-df", filegz))
-
     check <- file.exists(file)
     if (check && fresh && Sys.which("openssl")[[1]] != "") {
       hashes <- paste(readLines(paste0(
@@ -262,7 +252,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       }
     }
   }
-
   if (!is.null(dir)) {
     files <- paste0(dir, state_post, "_", c(
       "population",
@@ -283,6 +272,9 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       }
     }
   }
-
-  invisible(list(estimates = estimates, margins = margins, commutes = commutes))
+  invisible(list(
+    estimates = estimates,
+    if(include_margins) margins = margins,
+    if(include_commutes) commutes = commutes
+  ))
 }
