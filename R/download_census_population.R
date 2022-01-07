@@ -274,7 +274,7 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
   }
   invisible(list(
     estimates = estimates,
-    if(include_margins) margins = margins,
-    if(include_commutes) commutes = commutes
+    margins = if(include_margins) margins,
+    commutes = if(include_commutes) commutes
   ))
 }
