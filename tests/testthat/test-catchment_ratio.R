@@ -92,3 +92,27 @@ test_that("alternative inputs work", {
     providers_id = supply$id, providers_value = supply$s
   ))
 })
+
+test_that("consumers and providers get aligned with cost and weights", {
+  co <- structure(sample(100:5000, 100), names = paste0("c", 1:100))
+  pr <- structure(sample(1:10, 50, TRUE), names = paste0("p", 1:50))
+  cost <- matrix(rpois(5e3, 4) * 10, 100, 50, dimnames = list(names(co), names(pr)))
+
+  ex <- 5:7
+  cost[, ex] <- 99
+  full <- catchment_ratio(co, pr, cost, 40)
+  expect_equal(full, catchment_ratio(co, pr, cost[, -ex], 40))
+  expect_equal(full, catchment_ratio(co, pr[-ex], cost, 40))
+  cost[ex, ] <- 0
+  full <- catchment_ratio(co, pr, cost, 40)
+  expect_equal(full, catchment_ratio(co, pr, cost[-ex, ], 40))
+  expect_equal(full, catchment_ratio(co, pr[-ex], cost, 40))
+
+  is <- c(1, 5, 10)
+  full <- catchment_ratio(co, pr[is], cost[, is], 40)
+  expect_equal(full, catchment_ratio(co, pr, cost[, is], 40))
+  expect_equal(full, catchment_ratio(co, pr[is], cost, 40))
+  full <- catchment_ratio(co[is], pr, cost[is, ], 40)
+  expect_equal(full, catchment_ratio(co, pr, cost[is, ], 40)[is])
+  expect_equal(full, catchment_ratio(co[is], pr, cost, 40))
+})

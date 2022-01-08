@@ -316,6 +316,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
       cost <- sparseMatrix(
         {},
         {},
+        x = 0,
         dims = c(length(cv), length(pv)),
         dimnames = list(cid, pid)
       )
@@ -355,12 +356,26 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     w <- w_commutes * (1 - noncommuters) + w * noncommuters
   }
   wr <- rowSums(w)
-  if (!is.null(rownames(w)) && !all(cid == rownames(w)) && all(cid %in% rownames(w))) {
+  if (!is.null(rownames(w)) && is.character(cid) &&
+    (!all(cid %in% rownames(w)) || length(cid) != nrow(w) || !all(cid == rownames(w)))) {
     if (verbose) cli_alert_info("selected weight rows by consumers id names")
-    w <- w[cid, ]
+    mcs <- cid[!cid %in% rownames(w)]
+    w <- rbind(
+      w, sparseMatrix(
+        {},
+        {},
+        x = 0,
+        dims = c(length(mcs), ncol(w)),
+        dimnames = list(mcs, pid)
+      )
+    )[cid, ]
   }
-  if (!is.null(colnames(w)) && !all(pid == colnames(w)) && all(pid %in% colnames(w))) {
+  if (!is.null(colnames(w)) && is.character(pid) &&
+    (!all(pid %in% colnames(w)) || length(pid) != ncol(w) || !all(pid == colnames(w)))) {
     if (verbose) cli_alert_info("selected weight columns by providers id names")
+    su <- pid %in% colnames(w)
+    pid <- pid[su]
+    pv <- pv[su]
     w <- w[, pid]
   }
   if (nrow(w) != length(cv) && is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) {
