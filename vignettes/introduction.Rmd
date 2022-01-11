@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
-bibliography: introduction.bib
+bibliography: citations.bib
 csl: apa.csl
 link-citations: true
 ---

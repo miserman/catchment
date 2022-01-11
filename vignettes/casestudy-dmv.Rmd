@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
-bibliography: introduction.bib
+bibliography: citations.bib
 csl: apa.csl
 link-citations: true
 ---
@@ -181,7 +181,8 @@ For doctor information, we will be using the [Center for Medicare & Medicaid Ser
 providers_url <- paste0(
   "https://data.cms.gov/data-api/v1/dataset/", # base url
   "a399e5c1-1cd1-4cbe-957f-d2cc8fe5d897/data/", # dataset id, which specifies year
-  "?filter[region][condition][path]=Rndrng_Prvdr_State_Abrvtn", # filter: state %in% c("DC", "MD", "VA")
+  # filter: state %in% c("DC", "MD", "VA")
+  "?filter[region][condition][path]=Rndrng_Prvdr_State_Abrvtn",
   "&filter[region][condition][operator]=IN",
   "&filter[region][condition][value][1]=DC",
   "&filter[region][condition][value][2]=MD",
@@ -201,7 +202,9 @@ providers <- as.data.frame(do.call(rbind, providers))
 
 # get the ZIP codes within the focal counties
 county_shapes <- read_sf(paste0(maindir, "counties.geojson"), as_tibble = FALSE)
-geography_ref <- read.csv("https://www2.census.gov/geo/docs/maps-data/data/rel/zcta_county_rel_10.txt")
+geography_ref <- read.csv(
+  "https://www2.census.gov/geo/docs/maps-data/data/rel/zcta_county_rel_10.txt"
+)
 zips <- unique(unlist(lapply(names(dmv_counties), function(state){
   GEOIDs <- county_shapes[county_shapes$NAME %in% dmv_counties[[state]], "GEOID", drop = TRUE]
   formatC(geography_ref[geography_ref$GEOID %in% GEOIDs, "ZCTA5"], width = 5, flag = 0)
@@ -219,9 +222,13 @@ address_parts <- c(
   "Rndrng_Prvdr_St1", "Rndrng_Prvdr_City", "Rndrng_Prvdr_State_Abrvtn", "Rndrng_Prvdr_Zip5"
 )
 
-providers$Rndrng_Prvdr_St1 <- sub("([nesw])\\.([nesw])\\.*", "\\1\\2", providers$Rndrng_Prvdr_St1, TRUE)
+providers$Rndrng_Prvdr_St1 <- sub(
+  "([nesw])\\.([nesw])\\.*", "\\1\\2", providers$Rndrng_Prvdr_St1, TRUE
+)
 providers$Rndrng_Prvdr_St1 <- sub("\\s*#\\s.*$", "", providers$Rndrng_Prvdr_St1)
-providers$Rndrng_Prvdr_St1 <- sub("\\s*([nesw]{2})\\s.*$", " \\1", providers$Rndrng_Prvdr_St1, TRUE)
+providers$Rndrng_Prvdr_St1 <- sub(
+  "\\s*([nesw]{2})\\s.*$", " \\1", providers$Rndrng_Prvdr_St1, TRUE
+)
 providers$address <- do.call(paste, c(unname(as.list(providers[, address_parts])), sep = ", "))
 
 # collapse to locations based on address
@@ -275,14 +282,17 @@ zip_cross <- zip_cross[duplicated(zip_cross)]
 ## check that those are actually in the focal counties
 potential_ex <- provider_locations[
   grepl(paste0("(?:", paste(zip_cross, collapse = "|"), ")$"), provider_locations$address) &
-    !grepl(paste0("(?:", paste(unlist(dmv_counties), collapse = "|"), "),"), provider_locations$address),
+    !grepl(
+      paste0("(?:", paste(unlist(dmv_counties), collapse = "|"), "),"),
+      provider_locations$address
+    ),
 ]
 potential_ex$county <- reverse_geo(potential_ex$Y, potential_ex$X, full_results = TRUE)$county
 provider_locations <- provider_locations[
   !provider_locations$address %in% potential_ex[
-    !is.na(potential_ex$county) &
-      !grepl(paste0("(?:", paste(unlist(dmv_counties), collapse = "|"), ")"), potential_ex$county),
-    "address"
+    !is.na(potential_ex$county) & !grepl(
+      paste0("(?:", paste(unlist(dmv_counties), collapse = "|"), ")"), potential_ex$county
+    ), "address"
   ],
 ]
 
@@ -298,10 +308,10 @@ write.csv(provider_locations, paste0(maindir, "providers.csv"), row.names = FALS
 If you have access to an OSRM server, you can get travel times between each block group and provider location:
 ```r
 library(osrm)
+options(osrm.server = Sys.getenv("OSRM_SERVER"))
 traveltimes <- osrmTable(
   src = data_combined[1:2, c("GEOID", "X", "Y")],
-  dst = provider_locations[1:2, c("ID", "X", "Y")],
-  osrm.server = Sys.getenv("OSRM_SERVER")
+  dst = provider_locations[1:2, c("ID", "X", "Y")]
 )$duration
 write.csv(
   cbind(GEOID = rownames(traveltimes), as.data.frame(as.matrix(traveltimes))),
@@ -348,8 +358,10 @@ files <- c(
 for(o in names(files)){
   path <- paste0(maindir, files[[o]])
   if(!file.exists(path)) download.file(
-    paste0("https://raw.githubusercontent.com/uva-bi-sdad/dmv_healthcare/main/docs/data/", files[[o]]),
-    path
+    paste0(
+      "https://raw.githubusercontent.com/uva-bi-sdad/dmv_healthcare/main/docs/data/",
+      files[[o]]
+    ), path
   )
   if(!exists(o)){
     if(grepl(".geojson", files[[o]], fixed = TRUE)){
@@ -382,7 +394,9 @@ map <- leaflet(blockgroup_shapes, options = leafletOptions(attributionControl = 
     fillOpacity = 1, stroke = FALSE, group = "Population", label = data_combined$population
   ) |>
   hideGroup("Population") |>
-  addLayersControl(position = "topleft", overlayGroups = c("Doctors", "Population", "Access")) |>
+  addLayersControl(
+    position = "topleft", overlayGroups = c("Doctors", "Population", "Access")
+  ) |>
   addCircles(
     data = provider_locations, color = "#000", lng = ~X, lat = ~Y,
     label = ~paste0("ID: ", ID, ", Doctors: ", doctors),
@@ -416,17 +430,20 @@ map |> addControl("Doctors Per 1,000 People (2-Step Floating Catchment Area)", "
   showGroup("Doctors") |>
   addLegend("bottomright", pal, data_combined$doctors_2sfca, opacity = 1) |>
   addPolygons(
-    fillColor = pal(data_combined$doctors_2sfca),
-    fillOpacity = 1, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
-    group = "Access", label = paste0("GEOID: ", data_combined$GEOID, ", Population: ",
-      data_combined$population, ", Per 1k People: ", round(data_combined$doctors_2sfca, 4),
-      ", In Region: ", round(data_combined$population * data_combined$doctors_2sfca / 1000, 4))
+    fillColor = pal(data_combined$doctors_2sfca), fillOpacity = 1, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste0(
+      "GEOID: ", data_combined$GEOID, ", Population: ", data_combined$population,
+      ", Per 1k People: ", round(data_combined$doctors_2sfca, 4), ", In Region: ",
+      round(data_combined$population * data_combined$doctors_2sfca / 1000, 4)
+    )
   )
 ```
 
 These results may look odd in some cases, where some regions have several doctors on top of them
 but have lower ratios than surrounding regions without doctors. This is because doctors are being
-distributed across all regions in range, and in this case, that distribution is uniform.
+distributed across all regions in range, and in this case, that distribution is uniform over
+distances.
 
 ## 2-Step Floating Catchment Area with Euclidean Distances
 
@@ -456,9 +473,9 @@ map |> addControl(paste(
   addProviderTiles("CartoDB.Positron") |> 
   addLegend("bottomright", pal, traveltime_vs_euclidean, opacity = .7) |>
   addPolygons(
-    fillColor = pal(traveltime_vs_euclidean),
-    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
-    group = "Access", label = paste("Travel Time - Euclidean:", traveltime_vs_euclidean)
+    fillColor = pal(traveltime_vs_euclidean), fillOpacity = .7, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste("Travel Time - Euclidean:", traveltime_vs_euclidean)
   )
 ```
 
@@ -489,16 +506,21 @@ map |> addControl(paste(
   addProviderTiles("CartoDB.Positron") |> 
   addLegend("bottomright", pal, binary_vs_step, opacity = .7) |>
   addPolygons(
-    fillColor = pal(binary_vs_step),
-    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
-    group = "Access", label = paste("Step - Binary:", binary_vs_step)
+    fillColor = pal(binary_vs_step), fillOpacity = .7, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste("Step - Binary:", binary_vs_step)
   )
 ```
+
+Between the binary and step-weighted variants, there is generally some redistribution away
+from larger, more distant regions (in red) toward smaller regions nearer to cluster of
+doctors (in blue), though this seems to mostly happen in Virginia regions, and nearly
+reverse in Maryland regions.
 
 ## Kernel Density 2-Step Floating Catchment Area
 
 Another enhanced 2-step floating catchment area can use continuous weights, rather than binned steps,
-which is sometimes called a kernel density 2-step floating catchment area.
+which is sometimes called a kernel density 2-step floating catchment area [KD2SFCA\; @dai10].
 Here, we will apply a Gaussian decay function within catchment areas, then compare with the
 step-weighted scores:
 ```{r}
@@ -518,14 +540,20 @@ map |> addControl(paste(
   addProviderTiles("CartoDB.Positron") |> 
   addLegend("bottomright", pal, step_vs_continuous, opacity = .7) |>
   addPolygons(
-    fillColor = pal(step_vs_continuous),
-    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
-    group = "Access", label = paste("Continuous - Step:", step_vs_continuous)
+    fillColor = pal(step_vs_continuous), fillOpacity = .7, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste("Continuous - Step:", step_vs_continuous)
   )
 ```
 
+At least in this case, continuous weights seem to better reflect the absence of doctors in
+the larger regions to the north and south of the main metropolitan area (which have mostly
+negative values, showing they get lower scores with continuous weights).
+
 ## 3-Step Floating Catchment Area
 
+3-step floating catchment areas [3SFCA\; @wan12] incorporate normalized weights to try and
+account for potential over-influence of regions in range of multiple providers:
 ```{r}
 data_combined$doctors_3sfca <- catchment_ratio(
   data_combined, provider_locations, traveltimes, step_weights, normalize_weight = TRUE,
@@ -540,13 +568,17 @@ map |> addControl(
     "Difference Between 2- (lower) and 3- (higher) Step Floating Catchment Areas", "topright"
   ) |>
   addProviderTiles("CartoDB.Positron") |>
+  showGroup("Doctors") |>
   addLegend("bottomright", pal, two_vs_three, opacity = .7) |>
   addPolygons(
-    fillColor = pal(two_vs_three),
-    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
-    group = "Access", label = paste("three - enhanced two:", two_vs_three)
+    fillColor = pal(two_vs_three), fillOpacity = .7, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste("three - enhanced two:", two_vs_three)
   )
 ```
+
+Differences are clearest where regions fall between clusters of doctors, but are not very
+close to any of them.
 
 ## Commuter-Based 3-Step Floating Catchment Area
 
@@ -565,16 +597,41 @@ single_vs_multi <- data_combined$doctors_cb3sfca - data_combined$doctors_3sfca
 
 pal <- colorBin("RdYlBu", single_vs_multi)
 map |> addControl(
-    "Difference Between 3-Step Floating Catchment Areas with Single (lower) VS Multiple (higher) origins",
-    "topright"
+    paste("Difference Between 3-Step Floating Catchment Areas with Single (lower) VS",
+    "Multiple (higher) origins"), "topright"
   ) |>
   addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, single_vs_multi, opacity = .7) |>
   addPolygons(
-    fillColor = pal(single_vs_multi),
-    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
-    group = "Access", label = paste("Multiple - Single:", single_vs_multi)
+    fillColor = pal(single_vs_multi), fillOpacity = .7, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste("Multiple - Single:", single_vs_multi)
   )
 ```
+
+# Limitations
+One limitation that comes up with the commuter-based catchment area is the lack of data
+about home to work commutes that cross state lines, which is particularly relevant in the
+national capital region where a large urban area spans three states. This means that
+state populations are artificially biased toward providers within their state to the
+degree that they commute out-of-state far enough to reach other providers. 
+
+Consumers can still utilize providers in other states if they are close enough to the border,
+which highlights another limitation that affects all variants. First, there are two aspects
+of catchment areas to understand: One is that catchment areas form networks in that the
+connection between one consumer and one provider affects the connections between any other
+provider connected to that consumer, and any other consumers connected to that provider. In
+that sense, to fully account for distribution within a catchment area, you need to know
+about all connected areas. Two is that catchment areas are models, which means they are
+overly simplified, but become more realistic with added information. With these aspects in
+mind, consider what happens at the edges of our general region of interest. We are only
+including consumers and providers that fall within the counties that make up the
+national capital region, but just beyond these largely arbitrary boundaries, there are
+consumers and providers that would likely enter into the network. Artificially cutting off
+consideration beyond these boundaries creates a sort of warping, as parts of the catchment
+areas around consumers and providers are effectively cut off. Fully addressing this limitation
+might require calculating ratios globally, but enough practical benefit might be gained
+by including surrounding states, or even just parts of those states that fall within a buffer
+around the focal region.
 
 # References
