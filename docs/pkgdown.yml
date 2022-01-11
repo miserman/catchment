@@ -2,6 +2,7 @@ pandoc: 2.14.0.3
 pkgdown: 2.0.1
 pkgdown_sha: ~
 articles:
+  casestudy-dmv: casestudy-dmv.html
   introduction: introduction.html
-last_built: 2022-01-04T08:57Z
+last_built: 2022-01-11T14:33Z
 

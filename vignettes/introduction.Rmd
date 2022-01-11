@@ -23,8 +23,8 @@ on
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.height = 5,
-  fig.width = 10,
+  fig.height = 4.5,
+  fig.width = 9,
   dev = "CairoSVG",
   fig.ext = "svg"
 )

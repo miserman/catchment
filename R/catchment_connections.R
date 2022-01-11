@@ -58,6 +58,7 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     rownames(from)
   }
   if (is.null(from_ids)) cli_abort("failed to resolve {.arg from} ids")
+  if (is.numeric(from_ids) && max(from_ids) > nrow(from)) from_ids <- as.character(from_ids)
   to_ids <- if (length(to_id) != 1) {
     to_id
   } else if (to_id %in% colnames(to)) {
@@ -66,6 +67,7 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     rownames(to)
   }
   if (is.null(to_id)) cli_abort("failed to resolve {.arg to} ids")
+  if (is.numeric(to_ids) && max(to_ids) > nrow(to)) to_ids <- as.character(to_ids)
   if (is.character(from_coords) && all(from_coords %in% colnames(from))) {
     from <- from[, from_coords, drop = TRUE]
   } else if (any(grepl("^sfc?$", class(from)))) {
@@ -74,6 +76,9 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     from <- from[, 1:2, drop = TRUE]
   }
   if (is.null(dim(from)) || ncol(from) != 2) cli_abort("{.arg from} must have 2 columns")
+  if (!is.numeric(from[, 1]) || !is.numeric(from[, 2])) {
+    cli_abort("{.arg from} columns must all be numeric")
+  }
   if (length(from_ids) != nrow(from)) cli_abort("From IDs and coordinates do not align")
   if (is.character(to_coords) && all(to_coords %in% colnames(to))) {
     to <- to[, to_coords, drop = TRUE]
@@ -83,6 +88,9 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     to <- to[, 1:2, drop = TRUE]
   }
   if (is.null(dim(to)) || ncol(to) != 2) cli_abort("{.arg to} must have 2 columns")
+  if (!is.numeric(to[, 1]) || !is.numeric(to[, 2])) {
+    cli_abort("{.arg to} columns must all be numeric")
+  }
   if (length(to_ids) != nrow(to)) cli_abort("To IDs and coordinates do not align")
   if (is.null(cost)) cost <- 1 / lma_simets(from, to, "euclidean", symmetrical = TRUE) - 1
   if (is.null(dim(weight)) || length(substitute(...()))) {
@@ -119,9 +127,9 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
       res
     }
   } else {
-    su <- unname(which(rowSums(weight != 0) != 0))
-    if (!length(su)) cli_abort("there are no connections")
-    do.call(rbind, lapply(su, function(r) {
+    rs <- unname(which(rowSums(weight != 0) != 0))
+    if (!length(rs)) cli_abort("there are no connections")
+    do.call(rbind, lapply(rs, function(r) {
       su <- which(weight[r, ] != 0)
       data.frame(
         from = from_ids[[r]], to = names(su), weight = weight[r, su], cost = cost[r, su]

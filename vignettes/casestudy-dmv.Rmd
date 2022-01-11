@@ -1,0 +1,580 @@
+---
+title: "Case Study - National Capital Region"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Case Study - National Capital Region}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+bibliography: introduction.bib
+csl: apa.csl
+link-citations: true
+---
+
+*Built with R 
+`r getRversion()`
+on 
+`r format(Sys.time(),'%B %d %Y')`*
+
+***
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.height = 5,
+  fig.width = 8.84,
+  dev = "CairoSVG",
+  fig.ext = "svg"
+)
+maindir <- "../../dmv_healthcare/docs/data/"
+library(sf)
+library(rmapshaper)
+library(Matrix)
+library(leaflet)
+library(catchment)
+```
+
+This is an applied example of calculating and interpreting floating catchment areas. It walks through the data
+collection and preparation process, then calculates and analyses different variants of floating catchment area ratios.
+See the [introduction](https://uva-bi-sdad.github.io/catchment/articles/introduction.html) for more
+about floating catchment areas themselves.
+
+In this case study, providers are doctors in the National Capital Region (Washington metropolitan area;
+Washington D.C., Maryland, Virginia area; DMV), and consumers are populations of Census block groups. 
+
+In addition to visualization in R, this example built an
+[interactive data site](https://uva-bi-sdad.github.io/dmv_healthcare) using the
+[community](https://github.com/uva-bi-sdad/community) package to explore the results.
+
+The first section walks through data collection and preprocessing. The result will be a set of files that will
+actually go into the floating catchment area calculations, and these have already been made, so you can
+skip to the [next section](#calculations) if you want to get right to those.
+
+All of the components in that section are also collected in a single script in the data site's
+repository: [uva-bi-sdad/dmv_healthcare/build.R](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/build.R).
+
+# Data Collection
+
+The first step will be to create the basic directory structure of the site, which we will also use to
+organize our data collection and preprocessing.
+
+This will create a `dmv_healthcare` folder in the parent of your current working directory, and open a `site.R` file:
+```r
+library(community)
+init_site("../dmv_healthcare", "dmv_healthcare")
+
+# specify the main directory for final files
+maindir <- "../dmv_healthcare/docs/data/"
+
+# make a directory to store working data files in
+oridir <- paste0(maindir, "original/")
+dir.create(oridir, FALSE, TRUE)
+```
+
+Calculating any catchment area ratio requires at least these two pieces of information:
+
+1. Number and location of **consumers**; here, total population of Census block groups.
+2. Number and location of **providers**; here, number of doctors within healthcare facility.
+
+## Consumers
+
+We will be using population data from the [U.S. Census Bureau](https://www.census.gov)'s
+[American Community Survey (ACS)](https://www.census.gov/programs-surveys/acs) 5-year estimates.
+These are provided by state, so we will need to collect for all three states (D.C., Maryland, and Virginia),
+then subset to our counties of interest.
+
+We will also download [cartographic boundary files](https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html)
+for mapping, and [origin-destination employment data](https://lehd.ces.census.gov/data) for the a
+commuter-based catchment area.
+
+```r
+library(catchment)
+
+# define counties that are part of the capital region
+dmv_counties <- list(
+  dc = "District of Columbia",
+  md = c("Charles", "Frederick", "Montgomery", "Prince George's"),
+  va = c(
+    "Alexandria", "Arlington", "Fairfax", "Falls Church", "Loudoun", "Manassas",
+    "Manassas Park", "Prince William"
+  )
+)
+data <- list()
+shapes <- list()
+
+# download / load
+for(state in c("dc", "md", "va")){
+  # shapes
+  counties <- download_census_shapes(oridir, state, "county", paste0(state, "_counties"))
+  tracts <- download_census_shapes(oridir, state, "tract", paste0(state, "_tracts"))
+  blockgroups <- download_census_shapes(oridir, state, "bg", paste0(state, "_blockgroups"))
+  
+  ## store subsets to combine later
+  counties <- counties[counties$NAME %in% dmv_counties[[state]],]
+  counties[counties$NAME == "Fairfax", "NAME"] <- c("Fairfax City", "Fairfax")
+  shapes[[state]] <- list(
+    counties = counties,
+    tracts = tracts[substr(tracts$GEOID, 1, 5) %in% counties$GEOID,],
+    blockgroups = blockgroups[substr(blockgroups$GEOID, 1, 5) %in% counties$GEOID,]
+  )
+  
+  # population data
+  data[[state]] <- download_census_population(
+    oridir, state, 2019, include_margins = TRUE, include_commutes = TRUE,
+    counties = counties$GEOID, verbose = TRUE
+  )
+}
+
+## create and save combined shapes
+library(sf)
+library(rmapshaper)
+
+for(level in names(shapes$dc)){
+  st_write(
+    ms_simplify(do.call(rbind, lapply(shapes, "[[", level)), keep_shapes = TRUE),
+    paste0(maindir, paste0(level, ".geojson"))
+  )
+}
+
+## create and save square commutes matrix
+library(Matrix)
+commutes <- sparseMatrix(
+  {}, {}, x = 0,
+  dims = rowSums(vapply(data, function(d) dim(d$commutes), numeric(2))),
+  dimnames = rep(list(do.call(c, unname(lapply(data, function(d) colnames(d$commutes))))), 2)
+)
+for(d in data) commutes[rownames(d$commutes), colnames(d$commutes)] <- d$commutes
+write.csv(
+  cbind(GEOID = rownames(commutes), as.data.frame(as.matrix(unname(commutes)))),
+  paste0(maindir, "commutes.csv"), row.names = FALSE
+)
+system2("bzip2", shQuote(paste0(maindir, "commutes.csv")))
+
+## create and save combined population data file
+data_combined <- do.call(rbind, lapply(names(data), function(state){
+  d <- data[[state]]$estimates
+  s <- shapes[[state]]$blockgroups
+  rownames(s) <- s$GEOID
+  total <- d$TOTAL.POPULATION_Total
+  total[total == 0] <- 1
+  data.frame(
+    GEOID = d$GEOID,
+    population = d$TOTAL.POPULATION_Total,
+    percent_female = d$SEX.BY.AGE_Female_Female / total * 100,
+    percent_white = d$RACE_Total_White.alone / total * 100,
+    percent_over_49 = rowSums(d[, grep("[5-8][05]", colnames(d))]) / total * 100,
+    st_coordinates(st_centroid(st_geometry(s[d$GEOID,])))
+  )
+}))
+write.csv(data_combined, paste0(maindir, "data.csv"), row.names = FALSE)
+```
+
+## Providers
+
+For doctor information, we will be using the [Center for Medicare & Medicaid Services](https://data.cms.gov)'s
+[Medicare Physician & Other Practitioners - by Provider](https://data.cms.gov/provider-summary-by-type-of-service/medicare-physician-other-practitioners/medicare-physician-other-practitioners-by-provider) dataset.
+
+```r
+# set up the url to download from the API
+providers_url <- paste0(
+  "https://data.cms.gov/data-api/v1/dataset/", # base url
+  "a399e5c1-1cd1-4cbe-957f-d2cc8fe5d897/data/", # dataset id, which specifies year
+  "?filter[region][condition][path]=Rndrng_Prvdr_State_Abrvtn", # filter: state %in% c("DC", "MD", "VA")
+  "&filter[region][condition][operator]=IN",
+  "&filter[region][condition][value][1]=DC",
+  "&filter[region][condition][value][2]=MD",
+  "&filter[region][condition][value][3]=VA",
+  "&offset=" # pagination, as only 1000 rows are returned at a time
+)
+
+# retrieve the data in steps
+providers <- list()
+offset <- 0
+while(length(raw <- jsonlite::read_json(paste0(providers_url, offset)))){
+  cat("\rdownloading file", offset / 1000 + 1, "     ")
+  providers[[length(providers) + 1]] <- do.call(rbind, lapply(raw, unlist))
+  offset <- offset + 1000
+}
+providers <- as.data.frame(do.call(rbind, providers))
+
+# get the ZIP codes within the focal counties
+county_shapes <- read_sf(paste0(maindir, "counties.geojson"), as_tibble = FALSE)
+geography_ref <- read.csv("https://www2.census.gov/geo/docs/maps-data/data/rel/zcta_county_rel_10.txt")
+zips <- unique(unlist(lapply(names(dmv_counties), function(state){
+  GEOIDs <- county_shapes[county_shapes$NAME %in% dmv_counties[[state]], "GEOID", drop = TRUE]
+  formatC(geography_ref[geography_ref$GEOID %in% GEOIDs, "ZCTA5"], width = 5, flag = 0)
+}), use.names = FALSE))
+
+# focus only on medical doctors who aren't also dentists, within the selected counties
+providers <- providers[
+  grepl("\\bm\\.?d(?:\\W|$)", providers$Rndrng_Prvdr_Crdntls, TRUE) &
+    !grepl("d\\.?d\\.?s", providers$Rndrng_Prvdr_Crdntls, TRUE) &
+    providers$Rndrng_Prvdr_Zip5 %in% zips,
+]
+
+# format address strings, and get the coordinates of each unique entry
+address_parts <- c(
+  "Rndrng_Prvdr_St1", "Rndrng_Prvdr_City", "Rndrng_Prvdr_State_Abrvtn", "Rndrng_Prvdr_Zip5"
+)
+
+providers$Rndrng_Prvdr_St1 <- sub("([nesw])\\.([nesw])\\.*", "\\1\\2", providers$Rndrng_Prvdr_St1, TRUE)
+providers$Rndrng_Prvdr_St1 <- sub("\\s*#\\s.*$", "", providers$Rndrng_Prvdr_St1)
+providers$Rndrng_Prvdr_St1 <- sub("\\s*([nesw]{2})\\s.*$", " \\1", providers$Rndrng_Prvdr_St1, TRUE)
+providers$address <- do.call(paste, c(unname(as.list(providers[, address_parts])), sep = ", "))
+
+# collapse to locations based on address
+vars <- c(
+  "address", "X", "Y", "Rndrng_Prvdr_Gndr",
+  grep("^(tot|drug|med|bene)_", colnames(providers), TRUE, value = TRUE)
+)
+vars <- vars[!vars %in% c("Drug_Sprsn_Ind", "Med_Sprsn_Ind")]
+addresses <- unique(providers$address)
+
+# geocode addresses; takes a while
+library(parallel)
+library(tidygeocoder)
+cl <- makeCluster(detectCores() - 2)
+address_coords <- as.data.frame(do.call(rbind, parLapply(cl, addresses, function(a){
+  coords <- geo(a, progress_bar = FALSE, quiet = TRUE, method = "arcgis")
+  if(is.na(coords$long)) coords <- geo(a, progress_bar = FALSE, quiet = TRUE)
+  coords
+})))
+rownames(address_coords) <- address_coords$address
+stopCluster(cl)
+
+# add coordinates to providers data
+providers[, c("Y", "X")] <- address_coords[providers$address, c("lat", "long")]
+providers <- providers[!is.na(providers$X),]
+providers$locid <- paste0(providers$X, ",", providers$Y)
+
+provider_locations <- do.call(rbind, lapply(unique(providers$locid), function(l){
+  d <- providers[providers$locid == l, vars]
+  d[d == ""] <- NA
+  as.data.frame(list(
+    address = d[1, "address"],
+    X = d[1, "X"],
+    Y = d[1, "Y"],
+    doctors = nrow(d),
+    prop_women = mean(d$Rndrng_Prvdr_Gndr == "F"),
+    as.list(colMeans(matrix(
+      as.numeric(as.matrix(d[, -(1:4)])), nrow(d),
+      dimnames = list(NULL, vars[-(1:4)])
+    ), na.rm = TRUE))
+  ))
+}))
+provider_locations[is.na(provider_locations)] <- NA
+
+# identify zip codes that cross counties
+zip_cross <- substr(unique(do.call(paste0,
+  geography_ref[geography_ref$ZCTA5 %in% zips, c("ZCTA5", "GEOID")]
+)), 1, 5)
+zip_cross <- zip_cross[duplicated(zip_cross)]
+
+## check that those are actually in the focal counties
+potential_ex <- provider_locations[
+  grepl(paste0("(?:", paste(zip_cross, collapse = "|"), ")$"), provider_locations$address) &
+    !grepl(paste0("(?:", paste(unlist(dmv_counties), collapse = "|"), "),"), provider_locations$address),
+]
+potential_ex$county <- reverse_geo(potential_ex$Y, potential_ex$X, full_results = TRUE)$county
+provider_locations <- provider_locations[
+  !provider_locations$address %in% potential_ex[
+    !is.na(potential_ex$county) &
+      !grepl(paste0("(?:", paste(unlist(dmv_counties), collapse = "|"), ")"), potential_ex$county),
+    "address"
+  ],
+]
+
+# make unique IDs for each provider location
+provider_locations$ID <- paste0("l", seq_len(nrow(provider_locations)))
+
+# save provider locations dataset
+write.csv(provider_locations, paste0(maindir, "providers.csv"), row.names = FALSE)
+```
+
+## Travel Times
+
+If you have access to an OSRM server, you can get travel times between each block group and provider location:
+```r
+library(osrm)
+traveltimes <- osrmTable(
+  src = data_combined[1:2, c("GEOID", "X", "Y")],
+  dst = provider_locations[1:2, c("ID", "X", "Y")],
+  osrm.server = Sys.getenv("OSRM_SERVER")
+)$duration
+write.csv(
+  cbind(GEOID = rownames(traveltimes), as.data.frame(as.matrix(traveltimes))),
+  paste0(maindir, "traveltimes.csv"), row.names = FALSE
+)
+system2("bzip2", shQuote(paste0(maindir, "traveltimes.csv")))
+```
+
+Here, `Sys.getenv("OSRM_SERVER")` is pointing to a local server. Instructions to set up your own server
+are available on the [Project-OSRM/osrm-backend](https://github.com/Project-OSRM/osrm-backend#quick-start) repository.
+
+# Calculating Floating Catchment Areas {#calculations}
+
+These are files were create in the previous section:
+
+1. [data.csv](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/data.csv); population data.
+2. [blockgroups.geojson](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/blockgroups.geojson);
+block group shapes for mapping.
+3. [commutes.csv.bz2](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/commutes.csv.bz2);
+data on home and work block-groups.
+4. [providers.csv](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/providers.csv); doctor data.
+5. [traveltimes.csv.bz2](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/traveltimes.csv.bz2);
+travel times between each provider location and block group.
+
+If you did not create these files, you can download and load them like this:
+```{r}
+library(sf)
+library(Matrix)
+
+# could set this to a temporary directory if you'd like with
+# maindir <- paste0(tempdir(), "/")
+if(!exists("maindir")) maindir <- "../dmv_healthcare/docs/data/"
+
+# define files with associated object names
+files <- c(
+  data_combined = "data.csv",
+  blockgroup_shapes = "blockgroups.geojson",
+  commutes = "commutes.csv.bz2",
+  provider_locations = "providers.csv",
+  traveltimes = "traveltimes.csv.bz2"
+)
+
+# then download and read in those files as necessary
+for(o in names(files)){
+  path <- paste0(maindir, files[[o]])
+  if(!file.exists(path)) download.file(
+    paste0("https://raw.githubusercontent.com/uva-bi-sdad/dmv_healthcare/main/docs/data/", files[[o]]),
+    path
+  )
+  if(!exists(o)){
+    if(grepl(".geojson", files[[o]], fixed = TRUE)){
+      assign(o, st_transform(read_sf(path, as_tibble = FALSE), 4326))
+    }else if(o %in% c("commutes", "traveltimes")){
+      assign(o, as(as.matrix(read.csv(bzfile(path), row.names = 1)), "dgCMatrix"))
+    }else{
+      assign(o, read.csv(path))
+    }
+  }
+}
+```
+
+Before getting to the calculations, we can prepare a base map to be added to:
+```{r}
+library(leaflet)
+
+# if you worked through the first section, you may need to load in the shapes:
+if(!exists("blockgroup_shapes")) blockgroup_shapes <- st_transform(read_sf(
+  paste0(maindir, "blockgroups.geojson"), as_tibble = FALSE
+), 4326)
+
+map <- leaflet(blockgroup_shapes, options = leafletOptions(attributionControl = FALSE)) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addScaleBar("bottomleft") |>
+  addMapPane("lines", zIndex = 410) |>
+  addMapPane("points", zIndex = 411) |>
+  addPolygons(
+    fillColor = colorNumeric("RdYlBu", data_combined$population)(data_combined$population),
+    fillOpacity = 1, stroke = FALSE, group = "Population", label = data_combined$population
+  ) |>
+  hideGroup("Population") |>
+  addLayersControl(position = "topleft", overlayGroups = c("Doctors", "Population", "Access")) |>
+  addCircles(
+    data = provider_locations, color = "#000", lng = ~X, lat = ~Y,
+    label = ~paste0("ID: ", ID, ", Doctors: ", doctors),
+    group = "Doctors", options = pathOptions(pane = "points")
+  ) |>
+  hideGroup("Doctors")
+```
+
+## 2-Step Floating Catchment Area
+
+We can start with the most basic form of a floating catchment area ratio, the 2-step floating catchment
+area [2SFCA\; @luo03], which has binary weights in a set range:
+```{r}
+library(catchment)
+
+data_combined$doctors_2sfca <- catchment_ratio(
+  # this specifies consumers, providers, costs, and weights
+  data_combined, provider_locations, traveltimes, 60,
+  # this specifies where to find ids and values in the entered consumers and providers objects
+  consumers_value = "population", providers_id = "ID", providers_value = "doctors",
+  verbose = TRUE
+)
+
+# for better display, we will multiply scores by 1,000 for doctors per 1,000 people
+data_combined$doctors_2sfca <- data_combined$doctors_2sfca * 1000
+
+# now make a map of the results
+pal <- colorBin("RdYlBu", data_combined$doctors_2sfca)
+map |> addControl("Doctors Per 1,000 People (2-Step Floating Catchment Area)", "topright") |>
+  addProviderTiles("CartoDB.Positron") |> 
+  showGroup("Doctors") |>
+  addLegend("bottomright", pal, data_combined$doctors_2sfca, opacity = 1) |>
+  addPolygons(
+    fillColor = pal(data_combined$doctors_2sfca),
+    fillOpacity = 1, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
+    group = "Access", label = paste0("GEOID: ", data_combined$GEOID, ", Population: ",
+      data_combined$population, ", Per 1k People: ", round(data_combined$doctors_2sfca, 4),
+      ", In Region: ", round(data_combined$population * data_combined$doctors_2sfca / 1000, 4))
+  )
+```
+
+These results may look odd in some cases, where some regions have several doctors on top of them
+but have lower ratios than surrounding regions without doctors. This is because doctors are being
+distributed across all regions in range, and in this case, that distribution is uniform.
+
+## 2-Step Floating Catchment Area with Euclidean Distances
+
+The other variants of the 2- and 3-step floating catchment area all come down to differences in weight
+schemes, but before looking at those, we might compare differences in cost, between the travel times we
+pre-calculated, with simpler Euclidean distances:
+```{r}
+data_combined$doctors_2sfca_euclidean <- catchment_ratio(
+  # to get Euclidean distances between coordinates, we can just leave cost unspecified
+  # but since these are on a difference scale, we will need to set a different weight cutoff
+  data_combined, provider_locations, weight = .54,
+  consumers_value = "population", providers_id = "ID", providers_value = "doctors",
+  # if the coordinate columns were not the default (X = Longitude, Y = Latitude),
+  # you could specify them here, such as with providers_location = c("long", "lat")
+  verbose = TRUE
+) * 1000
+
+# to compare, we might look at the difference between values calculated with travel times versus
+# Euclidean distances
+traveltime_vs_euclidean <- data_combined$doctors_2sfca - data_combined$doctors_2sfca_euclidean
+
+pal <- colorBin("RdYlBu", traveltime_vs_euclidean)
+map |> addControl(paste(
+    "Difference Between 2-Step Floating Catchment Areas Calculated with Euclidean Distance",
+    "(lower) VS Travel Times (higher)"
+  ), "topright") |>
+  addProviderTiles("CartoDB.Positron") |> 
+  addLegend("bottomright", pal, traveltime_vs_euclidean, opacity = .7) |>
+  addPolygons(
+    fillColor = pal(traveltime_vs_euclidean),
+    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
+    group = "Access", label = paste("Travel Time - Euclidean:", traveltime_vs_euclidean)
+  )
+```
+
+In this case, accounting for travel time within road networks affected catchment ratios differently in
+different areas. Scores are generally most different in smaller regions, but these are mostly higher
+northwest of D.C., and lower southwest of D.C..
+
+## Enhanced 2-Step Floating Catchment Area
+
+Enhanced 2-step floating catchment areas [E2SFCA\; @luo09] have some form of non-uniform weights,
+which were originally applied to travel-time-based bins, making for weights that decreased in
+steps away from the center of each catchment area:
+```{r}
+step_weights <- list(c(60, .042), c(30, .377), c(20, .704), c(10, .962))
+data_combined$doctors_e2sfca <- catchment_ratio(
+  data_combined, provider_locations, traveltimes, step_weights,
+  consumers_value = "population", providers_id = "ID", providers_value = "doctors",
+  verbose = TRUE
+) * 1000
+
+binary_vs_step <- data_combined$doctors_e2sfca - data_combined$doctors_2sfca
+
+pal <- colorBin("RdYlBu", binary_vs_step)
+map |> addControl(paste(
+    "Difference Between 2-Step Floating Catchment Areas Calculated with Binary",
+    "(lower) VS Step (higher) Weights"
+  ), "topright") |>
+  addProviderTiles("CartoDB.Positron") |> 
+  addLegend("bottomright", pal, binary_vs_step, opacity = .7) |>
+  addPolygons(
+    fillColor = pal(binary_vs_step),
+    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
+    group = "Access", label = paste("Step - Binary:", binary_vs_step)
+  )
+```
+
+## Kernel Density 2-Step Floating Catchment Area
+
+Another enhanced 2-step floating catchment area can use continuous weights, rather than binned steps,
+which is sometimes called a kernel density 2-step floating catchment area.
+Here, we will apply a Gaussian decay function within catchment areas, then compare with the
+step-weighted scores:
+```{r}
+data_combined$doctors_kd2sfca <- catchment_ratio(
+  data_combined, provider_locations, traveltimes, "gaussian", scale = 19,
+  consumers_value = "population", providers_id = "ID", providers_value = "doctors",
+  verbose = TRUE
+) * 1000
+
+step_vs_continuous <- data_combined$doctors_kd2sfca - data_combined$doctors_e2sfca
+
+pal <- colorBin("RdYlBu", step_vs_continuous)
+map |> addControl(paste(
+    "Difference Between 2-Step Floating Catchment Areas Calculated with Step",
+    "(lower) VS Continuous (higher) Weights"
+  ), "topright") |>
+  addProviderTiles("CartoDB.Positron") |> 
+  addLegend("bottomright", pal, step_vs_continuous, opacity = .7) |>
+  addPolygons(
+    fillColor = pal(step_vs_continuous),
+    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
+    group = "Access", label = paste("Continuous - Step:", step_vs_continuous)
+  )
+```
+
+## 3-Step Floating Catchment Area
+
+```{r}
+data_combined$doctors_3sfca <- catchment_ratio(
+  data_combined, provider_locations, traveltimes, step_weights, normalize_weight = TRUE,
+  consumers_value = "population", providers_id = "ID", providers_value = "doctors",
+  verbose = TRUE
+) * 1000
+
+two_vs_three <- data_combined$doctors_3sfca - data_combined$doctors_e2sfca
+
+pal <- colorBin("RdYlBu", two_vs_three)
+map |> addControl(
+    "Difference Between 2- (lower) and 3- (higher) Step Floating Catchment Areas", "topright"
+  ) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addLegend("bottomright", pal, two_vs_three, opacity = .7) |>
+  addPolygons(
+    fillColor = pal(two_vs_three),
+    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
+    group = "Access", label = paste("three - enhanced two:", two_vs_three)
+  )
+```
+
+## Commuter-Based 3-Step Floating Catchment Area
+
+The final variant will incorporate the commuter data we collected before [along the same lines as
+the commuter-based 2-step floating catchment area; CB2SFCA\; @fransen15], which will allow
+portions of some population centers to access doctors that would only be in-range of others, if
+that other population center is one they work in:
+```{r}
+data_combined$doctors_cb3sfca <- catchment_ratio(
+  data_combined, provider_locations, traveltimes, step_weights, normalize_weight = TRUE,
+  consumers_value = "population", providers_id = "ID", providers_value = "doctors",
+  consumers_commutes = commutes
+) * 1000
+
+single_vs_multi <- data_combined$doctors_cb3sfca - data_combined$doctors_3sfca
+
+pal <- colorBin("RdYlBu", single_vs_multi)
+map |> addControl(
+    "Difference Between 3-Step Floating Catchment Areas with Single (lower) VS Multiple (higher) origins",
+    "topright"
+  ) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addLegend("bottomright", pal, single_vs_multi, opacity = .7) |>
+  addPolygons(
+    fillColor = pal(single_vs_multi),
+    fillOpacity = .7, weight = 1, color = "#000", highlightOptions = highlightOptions(color = "#fff"),
+    group = "Access", label = paste("Multiple - Single:", single_vs_multi)
+  )
+```
+
+# References
