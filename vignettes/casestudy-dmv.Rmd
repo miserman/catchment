@@ -343,7 +343,7 @@ library(Matrix)
 
 # could set this to a temporary directory if you'd like with
 # maindir <- paste0(tempdir(), "/")
-if(!exists("maindir")) maindir <- "../dmv_healthcare/docs/data/"
+if (!exists("maindir")) maindir <- "../dmv_healthcare/docs/data/"
 
 # define files with associated object names
 files <- c(
@@ -355,20 +355,22 @@ files <- c(
 )
 
 # then download and read in those files as necessary
-for(o in names(files)){
+for (o in names(files)) {
   path <- paste0(maindir, files[[o]])
-  if(!file.exists(path)) download.file(
-    paste0(
-      "https://raw.githubusercontent.com/uva-bi-sdad/dmv_healthcare/main/docs/data/",
-      files[[o]]
-    ), path
-  )
-  if(!exists(o)){
-    if(grepl(".geojson", files[[o]], fixed = TRUE)){
+  if (!file.exists(path)) {
+    download.file(
+      paste0(
+        "https://raw.githubusercontent.com/uva-bi-sdad/dmv_healthcare/main/docs/data/",
+        files[[o]]
+      ), path
+    )
+  }
+  if (!exists(o)) {
+    if (grepl(".geojson", files[[o]], fixed = TRUE)) {
       assign(o, st_transform(read_sf(path, as_tibble = FALSE), 4326))
-    }else if(o %in% c("commutes", "traveltimes")){
+    } else if (o %in% c("commutes", "traveltimes")) {
       assign(o, as(as.matrix(read.csv(bzfile(path), row.names = 1)), "dgCMatrix"))
-    }else{
+    } else {
       assign(o, read.csv(path))
     }
   }
@@ -380,9 +382,12 @@ Before getting to the calculations, we can prepare a base map to be added to:
 library(leaflet)
 
 # if you worked through the first section, you may need to load in the shapes:
-if(!exists("blockgroup_shapes")) blockgroup_shapes <- st_transform(read_sf(
-  paste0(maindir, "blockgroups.geojson"), as_tibble = FALSE
-), 4326)
+if (!exists("blockgroup_shapes")) {
+  blockgroup_shapes <- st_transform(read_sf(
+    paste0(maindir, "blockgroups.geojson"),
+    as_tibble = FALSE
+  ), 4326)
+}
 
 map <- leaflet(blockgroup_shapes, options = leafletOptions(attributionControl = FALSE)) |>
   addProviderTiles("CartoDB.Positron") |>
@@ -399,7 +404,7 @@ map <- leaflet(blockgroup_shapes, options = leafletOptions(attributionControl = 
   ) |>
   addCircles(
     data = provider_locations, color = "#000", lng = ~X, lat = ~Y,
-    label = ~paste0("ID: ", ID, ", Doctors: ", doctors),
+    label = ~ paste0("ID: ", ID, ", Doctors: ", doctors),
     group = "Doctors", options = pathOptions(pane = "points")
   ) |>
   hideGroup("Doctors")
@@ -425,8 +430,9 @@ data_combined$doctors_2sfca <- data_combined$doctors_2sfca * 1000
 
 # now make a map of the results
 pal <- colorBin("RdYlBu", data_combined$doctors_2sfca)
-map |> addControl("Doctors Per 1,000 People (2-Step Floating Catchment Area)", "topright") |>
-  addProviderTiles("CartoDB.Positron") |> 
+map |>
+  addControl("Doctors Per 1,000 People (2-Step Floating Catchment Area)", "topright") |>
+  addProviderTiles("CartoDB.Positron") |>
   showGroup("Doctors") |>
   addLegend("bottomright", pal, data_combined$doctors_2sfca, opacity = 1) |>
   addPolygons(
@@ -454,7 +460,8 @@ pre-calculated, with simpler Euclidean distances:
 data_combined$doctors_2sfca_euclidean <- catchment_ratio(
   # to get Euclidean distances between coordinates, we can just leave cost unspecified
   # but since these are on a difference scale, we will need to set a different weight cutoff
-  data_combined, provider_locations, weight = .54,
+  data_combined, provider_locations,
+  weight = .54,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   # if the coordinate columns were not the default (X = Longitude, Y = Latitude),
   # you could specify them here, such as with providers_location = c("long", "lat")
@@ -466,11 +473,12 @@ data_combined$doctors_2sfca_euclidean <- catchment_ratio(
 traveltime_vs_euclidean <- data_combined$doctors_2sfca - data_combined$doctors_2sfca_euclidean
 
 pal <- colorBin("RdYlBu", traveltime_vs_euclidean)
-map |> addControl(paste(
+map |>
+  addControl(paste(
     "Difference Between 2-Step Floating Catchment Areas Calculated with Euclidean Distance",
     "(lower) VS Travel Times (higher)"
   ), "topright") |>
-  addProviderTiles("CartoDB.Positron") |> 
+  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, traveltime_vs_euclidean, opacity = .7) |>
   addPolygons(
     fillColor = pal(traveltime_vs_euclidean), fillOpacity = .7, weight = 1, color = "#000",
@@ -499,11 +507,12 @@ data_combined$doctors_e2sfca <- catchment_ratio(
 binary_vs_step <- data_combined$doctors_e2sfca - data_combined$doctors_2sfca
 
 pal <- colorBin("RdYlBu", binary_vs_step)
-map |> addControl(paste(
+map |>
+  addControl(paste(
     "Difference Between 2-Step Floating Catchment Areas Calculated with Binary",
     "(lower) VS Step (higher) Weights"
   ), "topright") |>
-  addProviderTiles("CartoDB.Positron") |> 
+  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, binary_vs_step, opacity = .7) |>
   addPolygons(
     fillColor = pal(binary_vs_step), fillOpacity = .7, weight = 1, color = "#000",
@@ -525,7 +534,8 @@ Here, we will apply a Gaussian decay function within catchment areas, then compa
 step-weighted scores:
 ```{r}
 data_combined$doctors_kd2sfca <- catchment_ratio(
-  data_combined, provider_locations, traveltimes, "gaussian", scale = 19,
+  data_combined, provider_locations, traveltimes, "gaussian",
+  scale = 19,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   verbose = TRUE
 ) * 1000
@@ -533,11 +543,12 @@ data_combined$doctors_kd2sfca <- catchment_ratio(
 step_vs_continuous <- data_combined$doctors_kd2sfca - data_combined$doctors_e2sfca
 
 pal <- colorBin("RdYlBu", step_vs_continuous)
-map |> addControl(paste(
+map |>
+  addControl(paste(
     "Difference Between 2-Step Floating Catchment Areas Calculated with Step",
     "(lower) VS Continuous (higher) Weights"
   ), "topright") |>
-  addProviderTiles("CartoDB.Positron") |> 
+  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, step_vs_continuous, opacity = .7) |>
   addPolygons(
     fillColor = pal(step_vs_continuous), fillOpacity = .7, weight = 1, color = "#000",
@@ -556,7 +567,8 @@ negative values, showing they get lower scores with continuous weights).
 account for potential over-influence of regions in range of multiple providers:
 ```{r}
 data_combined$doctors_3sfca <- catchment_ratio(
-  data_combined, provider_locations, traveltimes, step_weights, normalize_weight = TRUE,
+  data_combined, provider_locations, traveltimes, step_weights,
+  normalize_weight = TRUE,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   verbose = TRUE
 ) * 1000
@@ -564,7 +576,8 @@ data_combined$doctors_3sfca <- catchment_ratio(
 two_vs_three <- data_combined$doctors_3sfca - data_combined$doctors_e2sfca
 
 pal <- colorBin("RdYlBu", two_vs_three)
-map |> addControl(
+map |>
+  addControl(
     "Difference Between 2- (lower) and 3- (higher) Step Floating Catchment Areas", "topright"
   ) |>
   addProviderTiles("CartoDB.Positron") |>
@@ -588,7 +601,8 @@ portions of some population centers to access doctors that would only be in-rang
 that other population center is one they work in:
 ```{r}
 data_combined$doctors_cb3sfca <- catchment_ratio(
-  data_combined, provider_locations, traveltimes, step_weights, normalize_weight = TRUE,
+  data_combined, provider_locations, traveltimes, step_weights,
+  normalize_weight = TRUE,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   consumers_commutes = commutes
 ) * 1000
@@ -596,9 +610,12 @@ data_combined$doctors_cb3sfca <- catchment_ratio(
 single_vs_multi <- data_combined$doctors_cb3sfca - data_combined$doctors_3sfca
 
 pal <- colorBin("RdYlBu", single_vs_multi)
-map |> addControl(
-    paste("Difference Between 3-Step Floating Catchment Areas with Single (lower) VS",
-    "Multiple (higher) origins"), "topright"
+map |>
+  addControl(
+    paste(
+      "Difference Between 3-Step Floating Catchment Areas with Single (lower) VS",
+      "Multiple (higher) origins"
+    ), "topright"
   ) |>
   addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, single_vs_multi, opacity = .7) |>
