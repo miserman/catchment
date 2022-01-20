@@ -165,7 +165,7 @@ data_combined <- do.call(rbind, lapply(names(data), function(state){
     percent_female = d$SEX.BY.AGE_Female_Female / total * 100,
     percent_white = d$RACE_Total_White.alone / total * 100,
     percent_over_49 = rowSums(d[, grep("[5-8][05]", colnames(d))]) / total * 100,
-    st_coordinates(st_centroid(st_geometry(s[d$GEOID,])))
+    st_coordinates(st_centroid(st_geometry(s[as.character(d$GEOID),])))
   )
 }))
 write.csv(data_combined, paste0(maindir, "data.csv"), row.names = FALSE)
@@ -354,7 +354,7 @@ files <- c(
   traveltimes = "traveltimes.csv.bz2"
 )
 
-# then download and read in those files as necessary
+# then download and read in those files as needed
 for (o in names(files)) {
   path <- paste0(maindir, files[[o]])
   if (!file.exists(path)) {
@@ -388,6 +388,10 @@ if (!exists("blockgroup_shapes")) {
     as_tibble = FALSE
   ), 4326)
 }
+
+# make sure shapes are in the same order as data
+rownames(blockgroup_shapes) <- blockgroup_shapes$GEOID
+blockgroup_shapes <- blockgroup_shapes[as.character(data_combined$GEOID), ]
 
 map <- leaflet(blockgroup_shapes, options = leafletOptions(attributionControl = FALSE)) |>
   addProviderTiles("CartoDB.Positron") |>
@@ -432,7 +436,6 @@ data_combined$doctors_2sfca <- data_combined$doctors_2sfca * 1000
 pal <- colorBin("RdYlBu", data_combined$doctors_2sfca)
 map |>
   addControl("Doctors Per 1,000 People (2-Step Floating Catchment Area)", "topright") |>
-  addProviderTiles("CartoDB.Positron") |>
   showGroup("Doctors") |>
   addLegend("bottomright", pal, data_combined$doctors_2sfca, opacity = 1) |>
   addPolygons(
@@ -447,9 +450,11 @@ map |>
 ```
 
 These results may look odd in some cases, where some regions have several doctors on top of them
-but have lower ratios than surrounding regions without doctors. This is because doctors are being
-distributed across all regions in range, and in this case, that distribution is uniform over
-distances.
+but have lower ratios than surrounding regions without doctors. In most cases, this is simply because
+doctors are being distributed across all regions in range, and in this case, that distribution is uniform
+over distances. Of course, it could also be the case that travel is particularly difficult in a region,
+making everything effectively more distant, or an issue with the routing engine may make it appear
+that way.
 
 ## 2-Step Floating Catchment Area with Euclidean Distances
 
@@ -478,7 +483,6 @@ map |>
     "Difference Between 2-Step Floating Catchment Areas Calculated with Euclidean Distance",
     "(lower) VS Travel Times (higher)"
   ), "topright") |>
-  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, traveltime_vs_euclidean, opacity = .7) |>
   addPolygons(
     fillColor = pal(traveltime_vs_euclidean), fillOpacity = .7, weight = 1, color = "#000",
@@ -487,9 +491,57 @@ map |>
   )
 ```
 
-In this case, accounting for travel time within road networks affected catchment ratios differently in
-different areas. Scores are generally most different in smaller regions, but these are mostly higher
-northwest of D.C., and lower southwest of D.C..
+Differences here reflect travel difficulty relative to uniform, which highlights regions
+with particularly difficult terrain (within road networks; at least as estimated by the routing machine).
+
+We can use the `catchment_connections` function to more directly inspect regions of particular difficulty:
+```{r}
+# identify a few block groups of interest
+IDs <- c("240178504003", "240178505001", "240178505002", "240178511002")
+rownames(data_combined) <- data_combined$GEOID
+
+# extract connections between each of them and providers in range
+connections <- catchment_connections(
+  data_combined[IDs, ], provider_locations, traveltimes, 60,
+  to_id = "ID",
+  return_type = "sf"
+)
+
+map |>
+  setView(-77, 38.5, 11) |>
+  addTiles() |>
+  addPolygons(
+    fillColor = pal(traveltime_vs_euclidean), fillOpacity = .5, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    label = paste("Travel Time - Euclidean:", traveltime_vs_euclidean)
+  ) |>
+  addPolylines(
+    data = connections, weight = 3, color = "#777", options = pathOptions(pane = "lines"),
+    highlightOptions = highlightOptions(color = "#fff", weight = 4),
+    label = ~ paste0("From: ", from, ", To: ", to, ", Weight: ", weight, ", Cost: ", cost)
+  ) |>
+  addCircles(
+    data = data_combined[IDs, ], weight = 10, lng = ~X, lat = ~Y,
+    label = ~ paste0("GEOID: ", GEOID, ", Population: ", population),
+    options = pathOptions(pane = "points")
+  ) |>
+  showGroup("Doctors")
+```
+
+From this, it seems the routing machine had some trouble with the regions nearest the cluster of
+providers, considering more distant block groups were in range. It also looks like provider `l820`
+should be in range but isn't by travel time. This is reflected in the difference between travel-time-
+and Euclidean-based costs, which we can check directly to see an inverse relationship:
+```{r}
+data.frame(
+  travel_time = traveltimes[IDs, "l820"],
+  euclidean = sqrt(rowSums((
+    data_combined[IDs, c("Y", "X")] - rep(as.numeric(
+      provider_locations[provider_locations$ID == "l820", c("Y", "X")]
+    ), each = 4)
+  )^2)) * 1000
+)
+```
 
 ## Enhanced 2-Step Floating Catchment Area
 
@@ -512,7 +564,6 @@ map |>
     "Difference Between 2-Step Floating Catchment Areas Calculated with Binary",
     "(lower) VS Step (higher) Weights"
   ), "topright") |>
-  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, binary_vs_step, opacity = .7) |>
   addPolygons(
     fillColor = pal(binary_vs_step), fillOpacity = .7, weight = 1, color = "#000",
@@ -523,8 +574,8 @@ map |>
 
 Between the binary and step-weighted variants, there is generally some redistribution away
 from larger, more distant regions (in red) toward smaller regions nearer to cluster of
-doctors (in blue), though this seems to mostly happen in Virginia regions, and nearly
-reverse in Maryland regions.
+doctors (in blue), though this seems to mostly happen in the D.C. area, and is nearly
+the reverse in northern Maryland regions.
 
 ## Kernel Density 2-Step Floating Catchment Area
 
@@ -534,8 +585,7 @@ Here, we will apply a Gaussian decay function within catchment areas, then compa
 step-weighted scores:
 ```{r}
 data_combined$doctors_kd2sfca <- catchment_ratio(
-  data_combined, provider_locations, traveltimes, "gaussian",
-  scale = 19,
+  data_combined, provider_locations, traveltimes, "gaussian", scale = 19,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   verbose = TRUE
 ) * 1000
@@ -548,7 +598,6 @@ map |>
     "Difference Between 2-Step Floating Catchment Areas Calculated with Step",
     "(lower) VS Continuous (higher) Weights"
   ), "topright") |>
-  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, step_vs_continuous, opacity = .7) |>
   addPolygons(
     fillColor = pal(step_vs_continuous), fillOpacity = .7, weight = 1, color = "#000",
@@ -558,8 +607,10 @@ map |>
 ```
 
 At least in this case, continuous weights seem to better reflect the absence of doctors in
-the larger regions to the north and south of the main metropolitan area (which have mostly
-negative values, showing they get lower scores with continuous weights).
+the larger regions at the extremities of the main metropolitan area (which have mostly
+negative values, showing they get lower scores with continuous weights). But there is also
+some redistribution from the most densely populated areas, perhaps due to the smoother drop-off with
+distance.
 
 ## 3-Step Floating Catchment Area
 
@@ -580,7 +631,6 @@ map |>
   addControl(
     "Difference Between 2- (lower) and 3- (higher) Step Floating Catchment Areas", "topright"
   ) |>
-  addProviderTiles("CartoDB.Positron") |>
   showGroup("Doctors") |>
   addLegend("bottomright", pal, two_vs_three, opacity = .7) |>
   addPolygons(
@@ -590,15 +640,15 @@ map |>
   )
 ```
 
-Differences are clearest where regions fall between clusters of doctors, but are not very
-close to any of them.
+This has the expected general reduction in the main metropolitan area, but these providers are
+more selectively redistributed than you might see from simply increasing the size of catchment areas
+or homogenizing weights, which would work to make scores more uniform.
 
 ## Commuter-Based 3-Step Floating Catchment Area
 
 The final variant will incorporate the commuter data we collected before [along the same lines as
-the commuter-based 2-step floating catchment area; CB2SFCA\; @fransen15], which will allow
-portions of some population centers to access doctors that would only be in-range of others, if
-that other population center is one they work in:
+the commuter-based 2-step floating catchment area; CB2SFCA\; @fransen15], which will give
+portions of some population centers a wider range of options:
 ```{r}
 data_combined$doctors_cb3sfca <- catchment_ratio(
   data_combined, provider_locations, traveltimes, step_weights,
@@ -617,7 +667,6 @@ map |>
       "Multiple (higher) origins"
     ), "topright"
   ) |>
-  addProviderTiles("CartoDB.Positron") |>
   addLegend("bottomright", pal, single_vs_multi, opacity = .7) |>
   addPolygons(
     fillColor = pal(single_vs_multi), fillOpacity = .7, weight = 1, color = "#000",

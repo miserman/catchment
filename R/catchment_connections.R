@@ -96,6 +96,26 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
   if (is.null(dim(weight)) || length(substitute(...()))) {
     weight <- catchment_weight(cost = cost, weight = weight, ...)
   } else if (any(dim(cost) != dim(weight))) cli_abort("{.arg weight} does not align with {.arg cost}")
+  if(is.null(rownames(cost))){
+    if(nrow(cost) != length(from_ids))
+      cli_abort("{.arg cost} does not have row names, and is not the same length as {.arg from}'s ids")
+  }else if(!identical(from_ids, rownames(cost))){
+    if(!all(from_ids %in% rownames(cost)))
+      cli_abort("not all {.arg from} ids are in {.arg cost}'s rownames")
+    if(!identical(rownames(cost), rownames(weight))) rownames(weight) <- rownames(cost)
+    cost <- cost[as.character(from_ids),]
+    weight <- weight[as.character(from_ids),]
+  }
+  if(is.null(colnames(cost))){
+    if(ncol(cost) != length(to_ids))
+      cli_abort("{.arg cost} does not have column names, and is not the same length as {.arg to}'s ids")
+  }else if(!identical(to_ids, colnames(cost))){
+    if(!all(to_ids %in% colnames(cost)))
+      cli_abort("not all {.arg to} ids are in {.arg cost}'s colnames")
+    if(!identical(colnames(cost), colnames(weight))) colnames(weight) <- colnames(cost)
+    cost <- cost[, as.character(to_ids)]
+    weight <- weight[, as.character(to_ids)]
+  }
   fcoords <- split(from, from_ids)[from_ids]
   tcoords <- split(to, to_ids)[to_ids]
   if (grepl("^[slg]", return_type, TRUE)) {
