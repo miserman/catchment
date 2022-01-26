@@ -241,11 +241,11 @@ addresses <- unique(providers$address)
 
 # geocode addresses; takes a while
 library(parallel)
-library(tidygeocoder)
+
 cl <- makeCluster(detectCores() - 2)
 address_coords <- as.data.frame(do.call(rbind, parLapply(cl, addresses, function(a){
-  coords <- geo(a, progress_bar = FALSE, quiet = TRUE, method = "arcgis")
-  if(is.na(coords$long)) coords <- geo(a, progress_bar = FALSE, quiet = TRUE)
+  coords <- tidygeocoder::geo(a, progress_bar = FALSE, quiet = TRUE, method = "arcgis")
+  if(is.na(coords$long)) coords <- tidygeocoder::geo(a, progress_bar = FALSE, quiet = TRUE)
   coords
 })))
 rownames(address_coords) <- address_coords$address
@@ -287,7 +287,7 @@ potential_ex <- provider_locations[
       provider_locations$address
     ),
 ]
-potential_ex$county <- reverse_geo(potential_ex$Y, potential_ex$X, full_results = TRUE)$county
+potential_ex$county <- tidygeocoder::reverse_geo(potential_ex$Y, potential_ex$X, full_results = TRUE)$county
 provider_locations <- provider_locations[
   !provider_locations$address %in% potential_ex[
     !is.na(potential_ex$county) & !grepl(
@@ -511,8 +511,8 @@ map |>
   setView(-77, 38.5, 11) |>
   addTiles() |>
   addPolygons(
-    fillColor = pal(traveltime_vs_euclidean), fillOpacity = .5, weight = 1, color = "#000",
-    highlightOptions = highlightOptions(color = "#fff"), group = "Access",
+    fillColor = pal(traveltime_vs_euclidean), fillOpacity = .5, weight = 1,
+    color = "#000", highlightOptions = highlightOptions(color = "#fff"), group = "Access",
     label = paste("Travel Time - Euclidean:", traveltime_vs_euclidean)
   ) |>
   addPolylines(

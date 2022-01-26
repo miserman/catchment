@@ -88,7 +88,7 @@
 
     
     
-<p><em>Built with R 4.1.2 on January 15 2022</em></p>
+<p><em>Built with R 4.1.2 on January 26 2022</em></p>
 <hr>
 <p><strong>Floating catchment areas</strong> can be thought of as a means of distributing consumers across providers, or allocating providers to consumers.</p>
 <p><strong>Providers</strong> and <strong>consumers</strong> are locations with some quantity. At most granular, these might be individuals, such as a single doctor as provider, and single patient as consumer. In this case, each would have a quantity of 1, and if they are within range of each other, and there are no other providers or consumers in range, their floating catchment area ratio would be 1 (<code>providers / consumers</code>).</p>
@@ -96,9 +96,9 @@
 <p>So far, these are simple ratios, and that holds in discrete cases. <strong>Catchment areas</strong> define the range of providers, such that we can make cases discrete; that is, given a large region with many spread-out provider and consumer locations, we can define sub-regions (catchment areas) in which to calculate ratios. A catchment is the result of the provider’s catching (attracting, serving), which, when applied spatially, defines an area.</p>
 <p>A simple means of defining a catchment area could be by city. Say there are two doctors in a region, but they are in different cities; it might make sense to define each doctor’s catchment area as their city, and then we have two discrete ratios to work with (each doctor divided by the population of their city). It would remain discrete to add doctors in each city, as this would simply increase the numerator of the ratio – as long as they are in the same city, they are not differentiated by this catchment area definition.</p>
 <p>This might make sense in some cases, but what if the cities are close enough that the population of one might visit doctors in the other? The <strong>floating</strong> part of floating catchment areas come in when each provider location gets their own catchment area. For example, say we define each doctor’s catchment area as a range of 5 miles, rather than the city’s boundaries. This might exclude some portion of the population (those in the same city but far away), and include others (those in another city that is close), and it might result in some overlap of catchment areas between doctors.</p>
-<div class="section level1">
-<h1 id="basic-example">Basic Example<a class="anchor" aria-label="anchor" href="#basic-example"></a>
-</h1>
+<div class="section level2">
+<h2 id="basic-example">Basic Example<a class="anchor" aria-label="anchor" href="#basic-example"></a>
+</h2>
 <p>The most basic case where floating catchment areas differ from simple ratios is when multiple providers have differing but overlapping coverage of consumers.</p>
 <p>Lets make a small set of providers and consumers:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -152,7 +152,7 @@
 <span class="co">#&gt; [3,]    0    1</span>
 
 <span class="co"># then do everything in one line for the same result</span>
-<span class="va">weight</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">providers</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">weight</span>, <span class="va">consumers</span><span class="op">)</span><span class="op">)</span>
+<span class="va">weight</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">providers</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">weight</span>, <span class="va">consumers</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;      [,1]</span>
 <span class="co">#&gt; [1,] 0.25</span>
 <span class="co">#&gt; [2,] 0.50</span>
@@ -164,9 +164,9 @@
 <span class="co">#&gt; [1] 0.25 0.50 0.25</span></code></pre></div>
 <p>This is called a 2-step floating catchment area <span class="citation">(2SFCA; <a href="#ref-luo03" role="doc-biblioref">Luo &amp; Wang, 2003</a>)</span> because we are effectively combining catchment areas around both providers (step 1) and consumers (step 2).</p>
 </div>
-<div class="section level1">
-<h1 id="variable-weights">Variable Weights<a class="anchor" aria-label="anchor" href="#variable-weights"></a>
-</h1>
+<div class="section level2">
+<h2 id="variable-weights">Variable Weights<a class="anchor" aria-label="anchor" href="#variable-weights"></a>
+</h2>
 <p>Binary weight vectors denote which consumers fall within a catchment area, but they imply that all consumers fall within the catchment area to the same degree – all consumers get a weight of 1. But providers tend to be in physical locations that consumers must travel to, which creates variability of access within catchment areas; consumers closer to the provider location have an easier time getting to the provider, and are more likely to go to that provider than a more distant alternative. To appreciate this difference, we can adjust weights by distance.</p>
 <p>From the previous example, imagine we separated providers more, keeping consumers 2 close to providers 1: <img src="introduction_files/figure-html/unnamed-chunk-9-1.svg" width="864"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -194,7 +194,7 @@
 <span class="co">#&gt; [1,]  0.9  0.0</span>
 <span class="co">#&gt; [2,]  0.9  0.2</span>
 <span class="co">#&gt; [3,]  0.0  0.9</span>
-<span class="va">weight</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">providers</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">weight</span>, <span class="va">consumers</span><span class="op">)</span><span class="op">)</span>
+<span class="va">weight</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">providers</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">weight</span>, <span class="va">consumers</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;           [,1]</span>
 <span class="co">#&gt; [1,] 0.2500000</span>
 <span class="co">#&gt; [2,] 0.3409091</span>
@@ -267,15 +267,15 @@
 <span class="op">)</span>
 <span class="co">#&gt; [1] 5.00e-100  1.00e+00  2.25e-99</span></code></pre></div>
 </div>
-<div class="section level1">
-<h1 id="normalized-weights">Normalized Weights<a class="anchor" aria-label="anchor" href="#normalized-weights"></a>
-</h1>
+<div class="section level2">
+<h2 id="normalized-weights">Normalized Weights<a class="anchor" aria-label="anchor" href="#normalized-weights"></a>
+</h2>
 <p>An interesting and potentially clarifying way to think about weights is as relative probabilities that the consumer will utilize one provider over another. This makes good sense with distance weighting, where, all else being equal, a consumer is less likely to make use of a distant provider if a nearer one is available.</p>
 <p>Thinking of weights in this way highlights a potential issue with the way we have been applying weights: The more providers a consumer has in range, the more overall weight they get, which doesn’t make sense if consumers’ consumption is actually the same (say, each consumer is a patient visiting only one doctor).</p>
 <p>To account for this, we might normalize each consumer’s weights by proportionally redistributing them:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># get each consumer's total weight</span>
-<span class="op">(</span><span class="va">consumer_weight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span><span class="op">)</span>
+<span class="op">(</span><span class="va">consumer_weight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.9 1.1 0.9</span>
 
 <span class="co"># then calculate proportional weights</span>
@@ -293,7 +293,7 @@
 <span class="co">#&gt; [3,] 0.0000000 0.90000000</span>
 
 <span class="co"># now just replace the original weights with the normalized ones</span>
-<span class="va">weight_normed</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">providers</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">weight_normed</span>, <span class="va">consumers</span><span class="op">)</span><span class="op">)</span>
+<span class="va">weight_normed</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span> <span class="op">(</span><span class="va">providers</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">weight_normed</span>, <span class="va">consumers</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;           [,1]</span>
 <span class="co">#&gt; [1,] 0.2750000</span>
 <span class="co">#&gt; [2,] 0.2444175</span>
@@ -316,11 +316,11 @@
 <p>It is also notable that this sort of normalization might slightly over-correct – in this case, consumers 2 gets less total weight than 1 or 3. It might make more sense to give everyone a weight of 1 by using the weight proportions directly:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># total normed weights</span>
-<span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight_normed</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight_normed</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.9000000 0.7727273 0.9000000</span>
 
 <span class="co"># total proportional weights</span>
-<span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight_prop</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight_prop</span><span class="op">)</span>
 <span class="co">#&gt; [1] 1 1 1</span>
 
 <span class="co"># scores with weight proportions</span>
@@ -356,8 +356,8 @@
 <span class="op">(</span><span class="va">access_balanced</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span>
   <span class="va">consumers</span>, <span class="va">providers</span>,
   weight <span class="op">=</span> <span class="va">weight</span>,
-  adjust_consumers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="va">w</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>,
-  adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="st">"/"</span><span class="op">)</span>
+  adjust_consumers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="va">w</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>,
+  adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="st">"/"</span><span class="op">)</span>
 <span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.1375000 0.2144231 0.3461538</span>
 
@@ -368,7 +368,7 @@
 <span class="co"># with only column-standardized weights</span>
 <span class="op">(</span><span class="va">access_colnorm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span>
   <span class="va">consumers</span>, <span class="va">providers</span>,
-  weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">weight</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span>, <span class="st">"/"</span><span class="op">)</span>
+  weight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">weight</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span>, <span class="st">"/"</span><span class="op">)</span>
 <span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.2500000 0.3409091 0.4090909</span>
 
@@ -376,16 +376,16 @@
 <span class="va">access_colnorm</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1] 0 0 0</span></code></pre></div>
 </div>
-<div class="section level1">
-<h1 id="expanding-weights">Expanding Weights<a class="anchor" aria-label="anchor" href="#expanding-weights"></a>
-</h1>
-<p>The most commonly applied weights are those based on physical distance, but thinking of weights as generally describing the probability that a consumer will use a particular provider, we might imagine any number of other weight sources.</p>
 <div class="section level2">
-<h2 id="provider-consumer-fit">Provider-Consumer Fit<a class="anchor" aria-label="anchor" href="#provider-consumer-fit"></a>
+<h2 id="expanding-weights">Expanding Weights<a class="anchor" aria-label="anchor" href="#expanding-weights"></a>
 </h2>
+<p>The most commonly applied weights are those based on physical distance, but thinking of weights as generally describing the probability that a consumer will use a particular provider, we might imagine any number of other weight sources.</p>
 <div class="section level3">
-<h3 id="categorical">Categorical<a class="anchor" aria-label="anchor" href="#categorical"></a>
+<h3 id="provider-consumer-fit">Provider-Consumer Fit<a class="anchor" aria-label="anchor" href="#provider-consumer-fit"></a>
 </h3>
+<div class="section level4">
+<h4 id="categorical">Categorical<a class="anchor" aria-label="anchor" href="#categorical"></a>
+</h4>
 <p>For example, relating to doctors and patients, health insurance networks may quite strictly condition consumer to provider pairings. Things like this can be added as weights arbitrarily:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># lets say our consumers and providers are all associated with one of two networks</span>
@@ -411,9 +411,9 @@
 <span class="co">#&gt; [1] -0.20454545  0.12450593  0.08003953</span></code></pre></div>
 <p>With added insurance weights, the access score for consumers 1 goes down quite a lot because they have no in-network providers in range.</p>
 </div>
-<div class="section level3">
-<h3 id="continuous">Continuous<a class="anchor" aria-label="anchor" href="#continuous"></a>
-</h3>
+<div class="section level4">
+<h4 id="continuous">Continuous<a class="anchor" aria-label="anchor" href="#continuous"></a>
+</h4>
 <p>Another relevant point of consumer decision might be cost versus income:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># say we had some sort of price associated with each provider location</span>
@@ -445,12 +445,12 @@
 <p>What information might be useful to incorporate and how much relative weight it should get are questions that will probably want to be explored on a case by case basis.</p>
 </div>
 </div>
-<div class="section level2">
-<h2 id="consumer-flexibility">Consumer Flexibility<a class="anchor" aria-label="anchor" href="#consumer-flexibility"></a>
-</h2>
 <div class="section level3">
-<h3 id="multiple-origins">Multiple Origins<a class="anchor" aria-label="anchor" href="#multiple-origins"></a>
+<h3 id="consumer-flexibility">Consumer Flexibility<a class="anchor" aria-label="anchor" href="#consumer-flexibility"></a>
 </h3>
+<div class="section level4">
+<h4 id="multiple-origins">Multiple Origins<a class="anchor" aria-label="anchor" href="#multiple-origins"></a>
+</h4>
 <p>So far, we have considered consumers to have a single location (where they live) from which they will travel to providers. If consumers regularly travel to other locations, however, they might end up closer to a provider incidentally. For example, someone might visit a doctor that is close to where they work, even if the doctor is far from where they live.</p>
 <p>One way to try and account for this might be to simply calculate multiple ratios based on different locations:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
@@ -462,15 +462,15 @@
 <span class="co">#&gt; [3,]    2    3    5</span>
 
 <span class="co"># row sums would give the same (home-origin) scores as before</span>
-<span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>
 <span class="co">#&gt; [1] 10 10 10</span>
-<span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span><span class="op">)</span>
+<span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.2500000 0.3409091 0.4090909</span>
 
 <span class="co"># and column sums would be the work-origin scores</span>
-<span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>
 <span class="co">#&gt; [1]  7 11 12</span>
-<span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span><span class="op">)</span>
+<span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.2777778 0.3547009 0.3461538</span></code></pre></div>
 <p>But this does not reflect the choice some consumers now have. For example, consumers in location 1 only have access to providers 1 from home, but 50% of them also have access to providers 2 from work, and so could choose to go to either provider. Since these providers are the same distance from 1 and 3 respectively (both have a weight of .9), our best guess at these consumers’ decisions is 50% for each. We could represent this in a combine set of weights, where 50% of consumers get 100% weight for consumer location 1, and the other 50% get 50% weight for consumer location 1 and 50% for consumer location 3, resulting in a 75% weight (<code>.9 * .75</code>) for providers 1 and 25% weight (<code>.9 * .25</code>) for providers 2. We can do this for all consumers, then calculate the ratios in the same way as before:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
@@ -482,17 +482,17 @@
 <span class="co"># all who commute from that home location</span>
 <span class="va">commuters</span> <span class="op">&lt;-</span> <span class="va">consumers_work</span>
 <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fl">0</span>
-<span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span>
 
 <span class="co"># calculate proportional distribution of commuters</span>
-<span class="op">(</span><span class="va">commuters</span> <span class="op">&lt;-</span> <span class="va">commuters</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span><span class="op">)</span>
+<span class="op">(</span><span class="va">commuters</span> <span class="op">&lt;-</span> <span class="va">commuters</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">commuters</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;      [,1] [,2] [,3]</span>
 <span class="co">#&gt; [1,]  0.5  0.0  0.5</span>
 <span class="co">#&gt; [2,]  0.0  0.5  0.5</span>
 <span class="co">#&gt; [3,]  0.2  0.3  0.5</span>
 
 <span class="co"># use this and proportional weights to calculate commuter weights</span>
-<span class="op">(</span><span class="va">weight_commute</span> <span class="op">&lt;-</span> <span class="va">commuters</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">weight_prop</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span><span class="op">)</span>
+<span class="op">(</span><span class="va">weight_commute</span> <span class="op">&lt;-</span> <span class="va">commuters</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span> <span class="va">weight_prop</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;           [,1]      [,2]</span>
 <span class="co">#&gt; [1,] 0.4500000 0.4500000</span>
 <span class="co">#&gt; [2,] 0.4500000 0.6500000</span>
@@ -526,9 +526,9 @@
 <span class="co">#&gt; [3,]  0.2474747 -0.1363636</span></code></pre></div>
 <p>This is a very simplified, but conceptually similar version of the commuter-based 2-step floating catchment area <span class="citation">(CB2SFCA; <a href="#ref-fransen15" role="doc-biblioref">Fransen et al., 2015</a>)</span>.</p>
 </div>
-<div class="section level3">
-<h3 id="multiple-modes">Multiple Modes<a class="anchor" aria-label="anchor" href="#multiple-modes"></a>
-</h3>
+<div class="section level4">
+<h4 id="multiple-modes">Multiple Modes<a class="anchor" aria-label="anchor" href="#multiple-modes"></a>
+</h4>
 <p>We have also been assuming consumes all use the same mode of travel, such that their travel costs are all the same. We can incorporate multiple modes of travel in a similar way, this time with separate cost matrices.</p>
 <p>Say our original cost matrix was based on travel time by car, but we knew some proportion of each consumer location did not have access to a car, and would walk to their provider. We can combined these in the same way we incorporated multiple origins:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
@@ -561,9 +561,9 @@
 </div>
 </div>
 </div>
-<div class="section level1">
-<h1 id="imperfect-distribution">Imperfect Distribution<a class="anchor" aria-label="anchor" href="#imperfect-distribution"></a>
-</h1>
+<div class="section level2">
+<h2 id="imperfect-distribution">Imperfect Distribution<a class="anchor" aria-label="anchor" href="#imperfect-distribution"></a>
+</h2>
 <p>So far, we have been perfectly distributing consumers across providers, as indicated by the fact that region scores always sum to the number of providers. The only time this relationship doesn’t hold with the methods we’ve reviewed so far is if a provider is not in range of any consumers – you could say region scores always sum to the number of providers <strong>in range</strong>.</p>
 <p>One way to see this sort of distribution is as an optimal distribution of providers, which is probably not very realistic (e.g., providers that are inconveniently located may not be perfectly utilized). To try and account for this <span class="citation"><a href="#ref-delamater13" role="doc-biblioref">Delamater</a> (<a href="#ref-delamater13" role="doc-biblioref">2013</a>)</span> proposed increasing provider-side weights, which would unbalance the ratio, allowing for some providers to be left out of the distribution. This is done by simply squaring provider-side distance weights, resulting in the modified 2-step floating catchment area (M2SFCA).</p>
 <p>We can do this with the <code>adjust_providers</code> argument:</p>
@@ -584,9 +584,9 @@
 <span class="co">#&gt; [1] -0.02500000 -0.09772727 -0.04090909</span></code></pre></div>
 <p>Naturally, this will almost always result in lower access scores, particularly when providers are more distant (as in the case of consumers 2).</p>
 </div>
-<div class="section level1 unnumbered">
-<h1 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h1>
+<div class="section level2">
+<h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
 <div id="refs" class="references csl-bib-body hanging-indent" line-spacing="2">
 <div id="ref-delamater13" class="csl-entry">
 Delamater, P. L. (2013). Spatial accessibility in suboptimally configured health care systems: A modified two-step floating catchment area (M2SFCA) metric. <em>Health &amp; Place</em>, <em>24</em>, 30–43. <a href="https://doi.org/10.1016/j.healthplace.2013.07.012" class="external-link">https://doi.org/10.1016/j.healthplace.2013.07.012</a>
@@ -630,7 +630,7 @@ Wan, N., Zou, B., &amp; Sternberg, T. (2012). A three-step floating catchment ar
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
 </div>
 
       </footer>
