@@ -48,8 +48,14 @@
 catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return_type = "data.frame",
                                   from_id = "GEOID", from_coords = c("X", "Y"), to_id = "GEOID",
                                   to_coords = c("X", "Y")) {
-  if (missing(from)) from <- from_coords
-  if (missing(to)) to <- from_coords
+  if (missing(from) && !missing(from_coords)) {
+    from <- from_coords
+    from_coords <- c("X", "Y")
+  }
+  if (missing(to) && !missing(to_coords)) {
+    to <- to_coords
+    to_coords <- c("X", "Y")
+  }
   from_ids <- if (length(from_id) != 1) {
     from_id
   } else if (from_id %in% colnames(from)) {
@@ -92,7 +98,8 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     cli_abort("{.arg to} columns must all be numeric")
   }
   if (length(to_ids) != nrow(to)) cli_abort("To IDs and coordinates do not align")
-  if (is.null(cost)) cost <- 1 / lma_simets(from, to, "euclidean", symmetrical = TRUE) - 1
+  if (is.null(cost)) cost <- 1 / lma_simets(from, to, "euclidean", symmetrical = TRUE, pairwise = TRUE) - 1
+  if (is.null(dim(cost))) cost <- matrix(cost, nrow(from))
   if (is.null(dim(weight)) || length(substitute(...()))) {
     weight <- catchment_weight(cost = cost, weight = weight, ...)
   } else if (any(dim(cost) != dim(weight))) cli_abort("{.arg weight} does not align with {.arg cost}")
@@ -155,9 +162,11 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     if (!length(rs)) cli_abort("there are no connections")
     do.call(rbind, lapply(rs, function(r) {
       su <- which(weight[r, ] != 0)
-      data.frame(
+      res <- data.frame(
         from = from_ids[[r]], to = names(su), weight = weight[r, su], cost = cost[r, su]
       )
+      rownames(res) <- NULL
+      res
     }))
   }
 }

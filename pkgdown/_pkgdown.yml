@@ -1,6 +1,5 @@
 template:
-  params:
-    bootswatch: flatly
+  bootswatch: flatly
 
 reference:
 - title: Main Functions
@@ -15,3 +14,8 @@ reference:
   - catchment_network
   - simulate_catchments
   - download_census_population
+
+home:
+  links:
+  - text: Test Coverage
+    href: coverage.html

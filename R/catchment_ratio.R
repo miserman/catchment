@@ -332,6 +332,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     }
   } else if (verbose) cli_alert_info("cost: {.arg cost} matrix")
   if (is.data.frame(cost)) cost <- as.matrix(cost)
+  if (anyNA(cost)) cost[is.na(cost)] <- 0
   w <- catchment_weight(cost, weight, max_cost = max_cost, scale = scale, normalize_weight = FALSE, verbose = verbose)
   if (!is.null(consumers_commutes)) {
     dims <- dim(consumers_commutes)

@@ -325,7 +325,7 @@ are available on the [Project-OSRM/osrm-backend](https://github.com/Project-OSRM
 
 # Calculating Floating Catchment Areas {#calculations}
 
-These are files were create in the previous section:
+These files were created in the previous section:
 
 1. [data.csv](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/data.csv); population data.
 2. [blockgroups.geojson](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/blockgroups.geojson);
@@ -336,7 +336,7 @@ data on home and work block-groups.
 5. [traveltimes.csv.bz2](https://github.com/uva-bi-sdad/dmv_healthcare/blob/main/docs/data/traveltimes.csv.bz2);
 travel times between each provider location and block group.
 
-If you did not create these files, you can download and load them like this:
+If you did not create these files, you can download and load them with this:
 ```{r}
 library(sf)
 library(Matrix)
@@ -684,7 +684,7 @@ degree that they commute out-of-state far enough to reach other providers.
 
 Consumers can still utilize providers in other states if they are close enough to the border,
 which highlights another limitation that affects all variants. First, there are two aspects
-of catchment areas to understand: One is that catchment areas form networks in that the
+of catchment areas to understand: One is that catchment areas form networks, in that the
 connection between one consumer and one provider affects the connections between any other
 provider connected to that consumer, and any other consumers connected to that provider. In
 that sense, to fully account for distribution within a catchment area, you need to know

@@ -9,6 +9,8 @@
 catchment_weight <- function(cost, weight = NULL, max_cost = NULL, scale = 2,
                              normalize_weight = FALSE, verbose = FALSE) {
   if (is.null(dim(cost))) cost <- matrix(cost, ncol = 1)
+  if (is.data.frame(cost)) cost <- as.matrix(cost)
+  if (anyNA(cost)) cost[is.na(cost)] <- 0
   if (is.numeric(weight) && is.null(dim(weight)) && length(weight) > 1) {
     weight <- matrix(weight, ncol = ncol(cost))
   }
