@@ -266,9 +266,9 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         consumers_location
       }
       if (any(grepl("^sf", class(ccords)))) {
-        if (ncol(consumers_location) == 2 && is.numeric(consumers_location[, 1]) && is.numeric(consumers_location[, 2])) {
+        if (!is.null(ncol(ccords)) && ncol(ccords) == 2 && is.numeric(ccords[, 1]) && is.numeric(ccords[, 2])) {
           if (verbose) cli_alert_info("dropping {.arg consumers_location} geometry")
-          consumers_location <- consumers_location[, 1:2, drop = TRUE]
+          ccords <- ccords[, 1:2, drop = TRUE]
         } else {
           if (any(grepl("POLY", class(ccords), fixed = TRUE))) {
             if (verbose) cli_alert_info("calculating centroids of consumers location geometry")
@@ -286,9 +286,9 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         providers_location
       }
       if (any(grepl("^sf", class(pcords)))) {
-        if (ncol(providers_location) == 2 && is.numeric(providers_location[, 1]) && is.numeric(providers_location[, 2])) {
+        if (!is.null(ncol(pcords)) && ncol(pcords) == 2 && is.numeric(pcords[, 1]) && is.numeric(pcords[, 2])) {
           if (verbose) cli_alert_info("dropping {.arg providers_location} geometry")
-          providers_location <- providers_location[, 1:2, drop = FALSE]
+          pcords <- pcords[, 1:2, drop = FALSE]
         } else {
           if (any(grepl("POLY", class(pcords), fixed = TRUE))) {
             if (verbose) cli_alert_info("calculating centroids of providers location geometry")
@@ -305,6 +305,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
           cost <- t(cost)
           if (nrow(pcords) == 1) cost <- t(cost)
         }
+        dimnames(cost) <- list(cid, pid)
       } else {
         cli_abort(
           "{.arg cost} is NULL, and failed to calculate it from provided locations (differing number of columns)"

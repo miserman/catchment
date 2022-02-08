@@ -1,3 +1,6 @@
+library(lingmatch)
+library(sf)
+
 test_that("example results align with manual", {
   demand <- c(5, 10, 50)
   supply <- c(5, 10)
@@ -27,6 +30,22 @@ test_that("example results align with manual", {
   access <- as.numeric(weight %*% (supply / crossprod(weight, demand)))
   expect_equal(catchment_ratio(demand, supply, cost, list(c(60, .22), c(40, .68), c(20, 1))), access)
 
+  # commuter-based 2-step floating catchment area
+  consumers_work <- matrix(abs(rnorm(length(demand) * length(demand))), length(demand))
+  consumers_work <- consumers_work / rowSums(consumers_work) * demand
+  nonworker_prop <- diag(consumers_work) / demand
+  commuters <- consumers_work
+  diag(commuters) <- 0
+  diag(commuters) <- rowSums(commuters)
+  commuters <- commuters / rowSums(commuters)
+  consumer_weight <- rowSums(weight)
+  weight_prop <- weight / consumer_weight
+  weight_commute <- commuters %*% weight_prop * consumer_weight
+  weight_commute <- weight_commute * (1 - nonworker_prop) + weight * nonworker_prop
+  access <- catchment_ratio(demand, supply, weight = weight_commute)
+  expect_equal(access, catchment_ratio(consumers_work, supply, weight = weight), tolerance = 1e13)
+  expect_identical(access, catchment_ratio(demand, supply, weight = weight, consumers_commutes = consumers_work))
+
   # 3-step floating catchment area
   weight <- weight * weight / rowSums(weight)
   access <- as.numeric(weight %*% (supply / crossprod(weight, demand)))
@@ -34,7 +53,6 @@ test_that("example results align with manual", {
 })
 
 test_that("alternative inputs work", {
-  library(lingmatch)
   demand <- data.frame(
     id = as.character(1:50),
     d = sample(10:50, 50, TRUE),
@@ -91,6 +109,28 @@ test_that("alternative inputs work", {
     consumers_id = demand$id, consumers_value = demand$d,
     providers_id = supply$id, providers_value = supply$s
   ))
+
+  demand <- st_as_sf(demand, coords = c("lat", "long"), remove = FALSE)
+  supply <- st_as_sf(supply, coords = c("lat", "long"), remove = FALSE)
+  expect_equal(m, catchment_ratio(
+    demand, supply, weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s"
+  ))
+  expect_equal(m, catchment_ratio(
+    demand, supply, weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s",
+    consumers_location = c("lat", "long"),
+    providers_location = c("lat", "long")
+  ))
+  expect_equal(m, catchment_ratio(
+    demand, supply, weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s",
+    consumers_location = demand[, c("lat", "long")],
+    providers_location = supply[, c("lat", "long")]
+  ))
 })
 
 test_that("consumers and providers get aligned with cost and weights", {
@@ -115,4 +155,60 @@ test_that("consumers and providers get aligned with cost and weights", {
   full <- catchment_ratio(co[is], pr, cost[is, ], 40)
   expect_equal(full, catchment_ratio(co, pr, cost[is, ], 40)[is])
   expect_equal(full, catchment_ratio(co[is], pr, cost, 40))
+})
+
+test_that("verbose works", {
+  demand <- data.frame(
+    id = as.character(1:50),
+    d = sample(10:50, 50, TRUE),
+    lat = rnorm(50),
+    long = rnorm(50)
+  )
+  rownames(demand) <- demand$id
+  supply <- data.frame(
+    id = as.character(100:109),
+    s = sample(0:10, 10, TRUE),
+    lat = rnorm(10),
+    long = rnorm(10)
+  )
+  rownames(supply) <- supply$id
+
+  expect_identical(
+    sub("^(?:[^\\s]{1}|[^a-z]+)\\s", "", capture.output(
+      catchment_ratio(supply, demand, verbose = TRUE),
+      type = "message"
+    ))[2:8],
+    c(
+      "consumers value: 1",
+      "providers value: 1",
+      "consumers id: sequence along consumers value",
+      "providers id: sequence along providers value",
+      "cost: 1",
+      "weight: cost",
+      "calculated 2-step floating catchment area (resources per consumer)"
+    )
+  )
+  expect_identical(
+    sub("^(?:[^\\s]{1}|[^a-z]+)\\s", "", capture.output(
+      catchment_ratio(
+        demand, supply, verbose = TRUE, normalize_weight = TRUE,
+        consumers_id = "id", consumers_value = "d", consumers_location = c("lat", "long"),
+        providers_id = "id", providers_value = "s", providers_location = c("lat", "long"),
+      ),
+      type = "message"
+    ))[2:12],
+    c(
+      "consumers value: `d` column",
+      "providers value: `s` column",
+      "consumers id: `id` column",
+      "providers id: `id` column",
+      "calculating cost from locations...",
+      "consumers location: `consumers` columns (lat and long)",
+      "providers location: `providers` columns (lat and long)",
+      "cost: calculated Euclidean distances",
+      "weight: cost",
+      "normalizing weight",
+      "calculated 3-step floating catchment area (resources per consumer)"
+    )
+  )
 })
