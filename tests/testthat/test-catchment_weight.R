@@ -30,7 +30,7 @@ test_that("weights align with manual", {
   wr[wr == 0] <- 1
   expect_true(all(
     w * sweep(w, 1, wr, "/") ==
-    catchment_weight(cost, list(c(1, .5), c(.5, 1)), normalize_weight = TRUE)
+      catchment_weight(cost, list(c(1, .5), c(.5, 1)), normalize_weight = TRUE)
   ))
 
   w[cost > 3] <- 0
@@ -39,7 +39,7 @@ test_that("weights align with manual", {
 
 test_that("alternate inputs are handled", {
   x <- abs(rnorm(100))
-  wg <- sqrt(1 / x ^ 2)
+  wg <- sqrt(1 / x^2)
   expect_identical(wg, as.numeric(catchment_weight(x, "gravity")))
   expect_identical(
     wg,

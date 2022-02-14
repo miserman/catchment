@@ -59,7 +59,8 @@
 #' per \code{consumers} (e.g., how many, likely fractional, doctors are accessible by each person within each region),
 #' \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
 #' how many doctors are accessible within each region), or \code{"normalized"} for \code{original} divided by
-#' \code{sum(region) / sum(consumers)}.
+#' \code{sum(region) / sum(consumers)}. Can also be a number by which to multiply the original values (e.g., \code{1000}
+#' for \code{providers} per 1,000 \code{consumers}).
 #' @param consumers_commutes A square, consumers source x consumers origin matrix with counts of origins,
 #' used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
 #' may work in locations 1 and 3, so the first row of \code{consumers_commutes} should have values in columns 1 and 3).
@@ -415,15 +416,20 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     w
   }) %*% (pv / wd))
   if (!missing(return_type)) {
-    return_type <- tolower(substr(return_type, 1, 1))
-    if ("n" == return_type) {
-      type <- paste(type, "(normalized)")
-      if (verbose) cli_alert_info("normalizing ratios")
-      r <- r / (sum(r * cv) / sum(cv))
-    } else if ("r" == return_type) {
-      type <- paste(type, "(resources per region)")
-      if (verbose) cli_alert_info("multiplying ratios by consumers value")
-      r <- r * cv
+    if (is.numeric(return_type)) {
+      r <- r * return_type
+      type <- paste(type, "(resources per", return_type, "consumers)")
+    } else {
+      return_type <- tolower(substr(return_type, 1, 1))
+      if ("n" == return_type) {
+        type <- paste(type, "(normalized)")
+        if (verbose) cli_alert_info("normalizing ratios")
+        r <- r / (sum(r * cv) / sum(cv))
+      } else if ("r" == return_type) {
+        type <- paste(type, "(resources per region)")
+        if (verbose) cli_alert_info("multiplying ratios by consumers value")
+        r <- r * cv
+      }
     }
   } else {
     type <- paste(type, "(resources per consumer)")

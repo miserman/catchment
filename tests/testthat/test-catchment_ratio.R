@@ -10,6 +10,7 @@ test_that("example results align with manual", {
   access <- as.numeric(weight %*% (supply / crossprod(weight, demand)))
   expect_equal(catchment_ratio(demand, supply, cost, 30), access)
   expect_equal(catchment_ratio(demand, supply, cost, 30, return_type = "region"), access * demand)
+  expect_equal(catchment_ratio(demand, supply, cost, 30, return_type = 1000), access * 1000)
   expect_equal(
     catchment_ratio(demand, supply, cost, 30, return_type = "norm"),
     access / (sum(access * demand) / sum(demand))
@@ -113,19 +114,22 @@ test_that("alternative inputs work", {
   demand <- st_as_sf(demand, coords = c("lat", "long"), remove = FALSE)
   supply <- st_as_sf(supply, coords = c("lat", "long"), remove = FALSE)
   expect_equal(m, catchment_ratio(
-    demand, supply, weight = 1,
+    demand, supply,
+    weight = 1,
     consumers_id = "id", consumers_value = "d",
     providers_id = "id", providers_value = "s"
   ))
   expect_equal(m, catchment_ratio(
-    demand, supply, weight = 1,
+    demand, supply,
+    weight = 1,
     consumers_id = "id", consumers_value = "d",
     providers_id = "id", providers_value = "s",
     consumers_location = c("lat", "long"),
     providers_location = c("lat", "long")
   ))
   expect_equal(m, catchment_ratio(
-    demand, supply, weight = 1,
+    demand, supply,
+    weight = 1,
     consumers_id = "id", consumers_value = "d",
     providers_id = "id", providers_value = "s",
     consumers_location = demand[, c("lat", "long")],
@@ -191,7 +195,8 @@ test_that("verbose works", {
   expect_identical(
     sub("^(?:[^\\s]{1}|[^a-z]+)\\s", "", capture.output(
       catchment_ratio(
-        demand, supply, verbose = TRUE, normalize_weight = TRUE,
+        demand, supply,
+        verbose = TRUE, normalize_weight = TRUE,
         consumers_id = "id", consumers_value = "d", consumers_location = c("lat", "long"),
         providers_id = "id", providers_value = "s", providers_location = c("lat", "long"),
       ),

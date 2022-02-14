@@ -83,7 +83,8 @@ of \code{providers} (fewer than the total number of providers will be distribute
 per \code{consumers} (e.g., how many, likely fractional, doctors are accessible by each person within each region),
 \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
 how many doctors are accessible within each region), or \code{"normalized"} for \code{original} divided by
-\code{sum(region) / sum(consumers)}.}
+\code{sum(region) / sum(consumers)}. Can also be a number by which to multiply the original values (e.g., \code{1000}
+for \code{providers} per 1,000 \code{consumers}).}
 
 \item{consumers_commutes}{A square, consumers source x consumers origin matrix with counts of origins,
 used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
