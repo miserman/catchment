@@ -33,7 +33,8 @@
 #'   pop = c(50, 10, 100, 40, 30)
 #' )
 #' catchment_aggregate(
-#'   lower, higher, consumers = "pop", id = "id", value = "value",
+#'   lower, higher,
+#'   consumers = "pop", id = "id", value = "value",
 #'   to_id = "id", verbose = TRUE
 #' )
 #' @return A vector with an aggregate value (determined by \code{return_type})
@@ -62,7 +63,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     if (verbose) cli_alert_info("from IDs: {.var {id}} column")
     from[[id]]
   }
-  if (is.null(fid)) cli_abort("failed to resolve from ids")
+  if (is.null(fid)) cli_abort("failed to resolve from IDs")
   fv <- if (length(value) > 1) {
     if (verbose) cli_alert_info("from values: {.arg value} vector")
     value
@@ -75,7 +76,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
   } else {
     NULL
   }
-  if (is.null(fv)) cli_abort("failed to resolve {.arg from}")
+  if (is.null(fv)) cli_abort("failed to resolve {.arg from} values")
 
   n <- length(fv)
   if (length(fid) != n) cli_abort("IDs and values were not the same length")
@@ -83,7 +84,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     if (verbose) cli_alert_info("consumers: {.arg consumers} vector")
     consumers
   } else if (!is.null(consumers) && consumers %in% colnames(from)) {
-    if (verbose) cli_alert_info("consumers: {.var {id}} column")
+    if (verbose) cli_alert_info("consumers: {.var {consumers}} column")
     from[[consumers]]
   } else {
     NULL
@@ -115,6 +116,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     if (verbose) cli_alert_info("to IDs: {.arg to} vector")
     to
   }
+  if (is.null(tid)) cli_abort("failed to resolve {.arg to} IDs")
 
   tcv <- if (length(to_consumers) > 1) {
     if (verbose) cli_alert_info("to consumers: {.arg to_consumers} vector")
@@ -125,7 +127,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
   } else {
     NULL
   }
-  aggregate_consumers <- is.null(tcv) || length(tcv) != length(tid)
+  aggregate_consumers <- is.null(tcv)
   fv <- cbind(fv, if (!aggregate_consumers || is.null(cv)) 1 else cv)
 
   if (is.list(map)) {
@@ -140,10 +142,14 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
       if (is.null(l) || !length(su)) {
         return(c(NA, NA))
       }
-      colSums(fv[su, ], na.rm = TRUE)
+      colSums(fv[su, , drop = FALSE], na.rm = TRUE)
     }, numeric(2))
   } else {
-    if (length(tid) != n) {
+    if (length(tid) == n) {
+      if (verbose) cli_alert_info("mapping: by {.arg to} ID")
+      fid <- tid
+      tid <- unique(tid)
+    } else {
       tnc <- nchar(tid[1])
       if (tnc > nchar(fid[1]) || any(nchar(tid) != tnc)) {
         if (!any(fid %in% tid)) cli_abort("failed to figure out how to map {.arg from} ids to {.arg to} ids")
@@ -156,7 +162,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     utid <- as.character(unique(tid))
     av <- vapply(utid, function(h) {
       su <- fid == h
-      if (any(su)) colSums(fv[su, ], na.rm = TRUE) else c(NA, NA)
+      if (any(su)) colSums(fv[su, , drop = FALSE], na.rm = TRUE) else c(NA, NA)
     }, numeric(2))
   }
   if (length(utid) != length(tid)) {
@@ -172,6 +178,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     if (verbose) cli_bullets(c(v = "returning sum per {.arg to} ID"))
     av[1, ]
   } else {
+    if (aggregate_consumers && ncol(av) != length(tcv)) aggregate_consumers < FALSE
     if (verbose) {
       cli_bullets(c(v = paste0(
         "returning sum of value over total {.arg ",

@@ -59,7 +59,8 @@ lower <- data.frame(
   pop = c(50, 10, 100, 40, 30)
 )
 catchment_aggregate(
-  lower, higher, consumers = "pop", id = "id", value = "value",
+  lower, higher,
+  consumers = "pop", id = "id", value = "value",
   to_id = "id", verbose = TRUE
 )
 }
