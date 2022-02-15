@@ -6,6 +6,7 @@ reference:
   desc: These functions are used to calculate 2- or 3-step floating catchment area ratios.
   contents:
   - catchment_ratio
+  - catchment_aggregate
 
 - title: Utils
   desc: These functions can help assess parameters or results.
