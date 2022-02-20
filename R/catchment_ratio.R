@@ -267,17 +267,12 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         consumers_location
       }
       if (any(grepl("^sf", class(ccords)))) {
-        if (!is.null(ncol(ccords)) && ncol(ccords) == 2 && is.numeric(ccords[, 1]) && is.numeric(ccords[, 2])) {
-          if (verbose) cli_alert_info("dropping {.arg consumers_location} geometry")
-          ccords <- ccords[, 1:2, drop = TRUE]
-        } else {
-          if (any(grepl("POLY", class(ccords), fixed = TRUE))) {
-            if (verbose) cli_alert_info("calculating centroids of consumers location geometry")
-            ccords <- st_centroid(ccords)
-          }
-          if (verbose) cli_alert_info("using coordinates from consumers location geometry")
-          ccords <- st_coordinates(ccords)
+        if (any(grepl("POLY", class(ccords), fixed = TRUE))) {
+          if (verbose) cli_alert_info("calculating centroids of consumers location geometry")
+          ccords <- st_centroid(ccords)
         }
+        if (verbose) cli_alert_info("using coordinates from consumers location geometry")
+        ccords <- st_coordinates(ccords)
       }
       pcords <- if (is.character(providers_location)) {
         if (verbose) cli_alert_info("providers location: {.arg providers} columns ({.field {providers_location}})")
@@ -287,17 +282,12 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         providers_location
       }
       if (any(grepl("^sf", class(pcords)))) {
-        if (!is.null(ncol(pcords)) && ncol(pcords) == 2 && is.numeric(pcords[, 1]) && is.numeric(pcords[, 2])) {
-          if (verbose) cli_alert_info("dropping {.arg providers_location} geometry")
-          pcords <- pcords[, 1:2, drop = FALSE]
-        } else {
-          if (any(grepl("POLY", class(pcords), fixed = TRUE))) {
-            if (verbose) cli_alert_info("calculating centroids of providers location geometry")
-            pcords <- st_centroid(pcords)
-          }
-          if (verbose) cli_alert_info("using coordinates from providers location geometry")
-          pcords <- st_coordinates(pcords)
+        if (any(grepl("POLY", class(pcords), fixed = TRUE))) {
+          if (verbose) cli_alert_info("calculating centroids of providers location geometry")
+          pcords <- st_centroid(pcords)
         }
+        if (verbose) cli_alert_info("using coordinates from providers location geometry")
+        pcords <- st_coordinates(pcords)
       }
       if (ncol(pcords) == ncol(ccords)) {
         if (verbose) cli_alert_info("cost: calculated Euclidean distances")
@@ -322,12 +312,12 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         dims = c(length(cv), length(pv)),
         dimnames = list(cid, pid)
       )
-      cost[] <- TRUE
+      cost[] <- 1
     }
   } else if (is.null(dim(cost))) {
-    cost <- t(cost)
-    if (length(pv) == 1) cost <- t(cost)
+    cost <- matrix(cost, length(cv))
     if (identical(dim(cost), c(length(cv), length(pv)))) {
+      dimnames(cost) <- list(cid, pid)
       if (verbose) cli_alert_info("cost: {.arg cost} vector")
     } else {
       cli_abort("{.arg cost} must be a matrix-like object")
@@ -339,8 +329,10 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   if (!is.null(consumers_commutes)) {
     dims <- dim(consumers_commutes)
     if (dims[1] != dims[2]) cli_abort("{.arg consumers_commutes} must be a square matrix")
-    if (dims[1] != length(cv)) {
+    if (dims[1] != length(cv) || (!is.null(colnames(consumers_commutes)) && !identical(pid, colnames(consumers_commutes)))) {
       if (all(cid %in% colnames(consumers_commutes)) || (is.numeric(cid) && dims[1] <= max(cid))) {
+        if (verbose) cli_alert_info("ordering and/or trimming {.arg consumers_commutes} by {.arg consumers} IDs")
+        if (is.numeric(cid) || (min(cid) > 0 && max(cid) > nrow(consumers_commutes))) cid <- as.character(cid)
         consumers_commutes <- consumers_commutes[cid, cid]
       } else {
         cli_abort("{.arg consumers_commutes} could not be resolved with {.arg consumers}")

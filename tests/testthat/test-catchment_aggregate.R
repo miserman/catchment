@@ -99,4 +99,17 @@ test_that("verbose works", {
       "returning sum of value over total `from` consumers per `to` ID"
     )
   )
+  expect_identical(
+    sub("^(?:[^\\s]{1}|[^a-z]+)\\s", "", capture.output(
+      catchment_aggregate(lower, higher, "id", verbose = TRUE, return_type = "r"),
+      type = "message"
+    )[2:6]),
+    c(
+      "from IDs: `id` column",
+      "from values: 1",
+      "to IDs: `id` column",
+      "mapping: by first 3 character match",
+      "returning sum of value per `to` ID"
+    )
+  )
 })

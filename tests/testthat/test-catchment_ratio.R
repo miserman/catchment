@@ -45,7 +45,29 @@ test_that("example results align with manual", {
   weight_commute <- weight_commute * (1 - nonworker_prop) + weight * nonworker_prop
   access <- catchment_ratio(demand, supply, weight = weight_commute)
   expect_equal(access, catchment_ratio(consumers_work, supply, weight = weight), tolerance = 1e13)
+  expect_equal(access, catchment_ratio(consumers_value = consumers_work, providers_value = supply, weight = weight), tolerance = 1e13)
   expect_identical(access, catchment_ratio(demand, supply, weight = weight, consumers_commutes = consumers_work))
+
+  names(demand) <- 1:3
+  names(supply) <- 1:2
+  dimnames(weight) <- list(1:3, 1:2)
+  dimnames(consumers_work) <- list(1:3, 1:3)
+  expect_identical(access, catchment_ratio(
+    demand, supply,
+    weight = weight,
+    consumers_commutes = consumers_work[sample(1:3), sample(1:3)]
+  ))
+
+  # balanced 2-step floating catchment area
+  access <- as.numeric(sweep(weight, 2, colSums(weight), "/", FALSE) %*% (supply / crossprod(sweep(weight, 1, rowSums(weight), "/", FALSE), demand)))
+  expect_equal(
+    access,
+    catchment_ratio(
+      demand, supply, cost, weight,
+      adjust_consumers = function(w) sweep(w, 1, rowSums(w), "/", FALSE),
+      adjust_providers = function(w) sweep(w, 2, colSums(w), "/", FALSE),
+    )
+  )
 
   # 3-step floating catchment area
   weight <- weight * weight / rowSums(weight)
@@ -75,6 +97,12 @@ test_that("alternative inputs work", {
     consumers_id = "id", consumers_value = "d",
     providers_id = "id", providers_value = "s"
   )
+  expect_equal(m, catchment_ratio(
+    demand, supply, as.numeric(cost),
+    weight = 1,
+    consumers_id = "id", consumers_value = "d",
+    providers_id = "id", providers_value = "s"
+  ))
   expect_equal(m, catchment_ratio(
     demand, supply[sample(supply$id), ], cost,
     weight = 1,

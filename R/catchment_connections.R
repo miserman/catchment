@@ -98,16 +98,21 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     cli_abort("{.arg to} columns must all be numeric")
   }
   if (length(to_ids) != nrow(to)) cli_abort("To IDs and coordinates do not align")
-  if (is.null(cost)) cost <- 1 / lma_simets(from, to, "euclidean", symmetrical = TRUE, pairwise = TRUE) - 1
-  if (is.null(dim(cost))) cost <- matrix(cost, nrow(from))
-  if (is.null(dim(weight)) || length(substitute(...()))) {
+  if (is.null(cost)) {
+    cost <- 1 / lma_simets(from, to, "euclidean", symmetrical = TRUE, pairwise = TRUE) - 1
+    dimnames(cost) <- list(from_ids, to_ids)
+  }
+  if (is.null(dim(cost))) cost <- matrix(cost, nrow(from), dimnames = list(from_ids, to_ids))
+  if ((is.null(dim(weight)) && length(weight) != length(cost)) || length(substitute(...()))) {
     weight <- catchment_weight(cost = cost, weight = weight, ...)
+  } else if (is.null(dim(weight))) {
+    weight <- matrix(weight, nrow(from), dimnames = list(from_ids, to_ids))
   } else if (any(dim(cost) != dim(weight))) cli_abort("{.arg weight} does not align with {.arg cost}")
   if (is.null(rownames(cost))) {
     if (nrow(cost) != length(from_ids)) {
       cli_abort("{.arg cost} does not have row names, and is not the same length as {.arg from}'s ids")
     }
-  } else if (!identical(from_ids, rownames(cost))) {
+  } else if (!identical(as.character(from_ids), rownames(cost))) {
     if (!all(from_ids %in% rownames(cost))) {
       cli_abort("not all {.arg from} ids are in {.arg cost}'s rownames")
     }
@@ -119,7 +124,7 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
     if (ncol(cost) != length(to_ids)) {
       cli_abort("{.arg cost} does not have column names, and is not the same length as {.arg to}'s ids")
     }
-  } else if (!identical(to_ids, colnames(cost))) {
+  } else if (!identical(as.character(to_ids), colnames(cost))) {
     if (!all(to_ids %in% colnames(cost))) {
       cli_abort("not all {.arg to} ids are in {.arg cost}'s colnames")
     }
@@ -129,6 +134,8 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
   }
   fcoords <- split(from, from_ids)[from_ids]
   tcoords <- split(to, to_ids)[to_ids]
+  from_ids <- names(fcoords)
+  to_ids <- names(tcoords)
   if (grepl("^[slg]", return_type, TRUE)) {
     res <- list(
       type = "FeatureCollection",

@@ -74,9 +74,10 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     if (verbose) cli_alert_info("from values: {.var {value}} column")
     from[[value]]
   } else {
-    NULL
+    if (verbose) cli_alert_info("from values: {.feild 1}")
+    rep(1, length(fid))
   }
-  if (is.null(fv)) cli_abort("failed to resolve {.arg from} values")
+  if (is.null(fv) || length(fv) != length(fid)) cli_abort("failed to resolve {.arg from} values")
 
   n <- length(fv)
   if (length(fid) != n) cli_abort("IDs and values were not the same length")
@@ -99,7 +100,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     if (verbose) cli_alert_info("to IDs: {.arg to_id} vector")
     to_id
   } else if (!is.null(to_id) && to_id %in% colnames(to)) {
-    if (verbose) cli_alert_info("to IDs: {.var {to_id}} vector")
+    if (verbose) cli_alert_info("to IDs: {.var {to_id}} column")
     to[[to_id]]
   } else if (length(to) == 1) {
     if (is.function(to)) {
@@ -175,7 +176,7 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
     av[1, ] <- av[1, ] * return_type
   }
   if (is.character(return_type) && grepl("^r", return_type, TRUE)) {
-    if (verbose) cli_bullets(c(v = "returning sum per {.arg to} ID"))
+    if (verbose) cli_bullets(c(v = "returning sum of value per {.arg to} ID"))
     av[1, ]
   } else {
     if (aggregate_consumers && ncol(av) != length(tcv)) aggregate_consumers < FALSE

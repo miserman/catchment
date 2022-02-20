@@ -1,7 +1,7 @@
 #' @importFrom methods as
-#' @importFrom utils download.file read.csv write.csv
+#' @importFrom utils download.file read.csv write.csv unzip
 #' @importFrom stats rnorm
-#' @importFrom sf st_coordinates st_centroid read_sf st_as_sf
+#' @importFrom sf st_coordinates st_centroid read_sf st_as_sf st_read st_write
 #' @importFrom jsonlite toJSON
 #' @importFrom lingmatch lma_simets
 #' @importFrom cli cli_abort cli_warn cli_bullets cli_rule cli_alert_info
