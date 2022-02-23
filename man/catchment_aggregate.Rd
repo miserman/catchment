@@ -4,7 +4,7 @@
 \alias{catchment_aggregate}
 \title{Aggregate Floating Catchment Area Ratios}
 \usage{
-catchment_aggregate(from, to = from, id = "GEOID", value = "access",
+catchment_aggregate(from, to = NULL, id = "GEOID", value = "access",
   consumers = "population", to_id = id, to_consumers = consumers,
   map = NULL, original_from = TRUE, return_type = "original",
   verbose = FALSE)
@@ -16,7 +16,7 @@ of values. These are the lower-level entities to be aggregated up to entries in 
 \item{to}{A matrix-like object with IDs and total consumers. These are higher-level
 entities containing \code{from} entities.}
 
-\item{id}{The column name of IDs in \code{from} or a vector of IDs.}
+\item{id}{The column name of IDs in \code{from}, or a vector of IDs.}
 
 \item{value}{The column name of values in \code{from} or a vector of values to be aggregated.}
 
@@ -62,5 +62,12 @@ catchment_aggregate(
   lower, higher,
   consumers = "pop", id = "id", value = "value",
   to_id = "id", verbose = TRUE
+)
+
+# same thing with IDs specified in a map
+catchment_aggregate(
+  lower, higher,
+  consumers = "pop", id = "id", value = "value",
+  map = list("100" = c(1001, 1003, 1005), "110" = c(1102, 1104)), verbose = TRUE
 )
 }

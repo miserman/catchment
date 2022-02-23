@@ -57,7 +57,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">catchment_aggregate</span><span class="op">(</span><span class="va">from</span>, to <span class="op">=</span> <span class="va">from</span>, id <span class="op">=</span> <span class="st">"GEOID"</span>, value <span class="op">=</span> <span class="st">"access"</span>,
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">catchment_aggregate</span><span class="op">(</span><span class="va">from</span>, to <span class="op">=</span> <span class="cn">NULL</span>, id <span class="op">=</span> <span class="st">"GEOID"</span>, value <span class="op">=</span> <span class="st">"access"</span>,
   consumers <span class="op">=</span> <span class="st">"population"</span>, to_id <span class="op">=</span> <span class="va">id</span>, to_consumers <span class="op">=</span> <span class="va">consumers</span>,
   map <span class="op">=</span> <span class="cn">NULL</span>, original_from <span class="op">=</span> <span class="cn">TRUE</span>, return_type <span class="op">=</span> <span class="st">"original"</span>,
   verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
@@ -72,7 +72,7 @@ of values. These are the lower-level entities to be aggregated up to entries in 
 <dd><p>A matrix-like object with IDs and total consumers. These are higher-level
 entities containing <code>from</code> entities.</p></dd>
 <dt>id</dt>
-<dd><p>The column name of IDs in <code>from</code> or a vector of IDs.</p></dd>
+<dd><p>The column name of IDs in <code>from</code>, or a vector of IDs.</p></dd>
 <dt>value</dt>
 <dd><p>The column name of values in <code>from</code> or a vector of values to be aggregated.</p></dd>
 <dt>consumers</dt>
@@ -120,13 +120,30 @@ for each entry in <code>to</code>.</p>
 <span class="r-in">  to_id <span class="op">=</span> <span class="st">"id"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span class="r-in"><span class="op">)</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> -- Aggregating Values ----------------------------------------------------------</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from IDs: <span style="color: #262626; background-color: #DADADA;">`id`</span> column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from values: <span style="color: #262626; background-color: #DADADA;">`value`</span> column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> consumers: <span style="color: #262626; background-color: #DADADA;">`pop`</span> column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to IDs: <span style="color: #262626; background-color: #DADADA;">`id`</span> column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to consumers: <span style="color: #262626; background-color: #DADADA;">`pop`</span> column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from values: `value` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to consumers: `pop` column</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> mapping: by first 3 character match</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">v</span> returning sum of value over total <span style="color: #262626; background-color: #DADADA;">`to`</span> consumers per <span style="color: #262626; background-color: #DADADA;">`to`</span> ID</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">v</span> returning sum of value over total `to` consumers per `to` ID</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   100   110 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.100 0.036 </span>
+<span class="r-in"></span>
+<span class="r-in"><span class="co"># same thing with IDs specified in a map</span></span>
+<span class="r-in"><span class="fu">catchment_aggregate</span><span class="op">(</span></span>
+<span class="r-in">  <span class="va">lower</span>, <span class="va">higher</span>,</span>
+<span class="r-in">  consumers <span class="op">=</span> <span class="st">"pop"</span>, id <span class="op">=</span> <span class="st">"id"</span>, value <span class="op">=</span> <span class="st">"value"</span>,</span>
+<span class="r-in">  map <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"100"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1001</span>, <span class="fl">1003</span>, <span class="fl">1005</span><span class="op">)</span>, <span class="st">"110"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1102</span>, <span class="fl">1104</span><span class="op">)</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span class="r-in"><span class="op">)</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> -- Aggregating Values ----------------------------------------------------------</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from values: `value` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> mapping: by map list</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">v</span> returning sum of value over total `to` consumers per `to` ID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   100   110 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 0.100 0.036 </span>
 </code></pre></div>

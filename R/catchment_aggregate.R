@@ -6,7 +6,7 @@
 #' of values. These are the lower-level entities to be aggregated up to entries in \code{to}.
 #' @param to A matrix-like object with IDs and total consumers. These are higher-level
 #' entities containing \code{from} entities.
-#' @param id The column name of IDs in \code{from} or a vector of IDs.
+#' @param id The column name of IDs in \code{from}, or a vector of IDs.
 #' @param value The column name of values in \code{from} or a vector of values to be aggregated.
 #' @param consumers The column name of consumer totals in \code{from}, or a vector
 #' of said totals of the same length as \code{from} IDs.
@@ -37,11 +37,18 @@
 #'   consumers = "pop", id = "id", value = "value",
 #'   to_id = "id", verbose = TRUE
 #' )
+#'
+#' # same thing with IDs specified in a map
+#' catchment_aggregate(
+#'   lower, higher,
+#'   consumers = "pop", id = "id", value = "value",
+#'   map = list("100" = c(1001, 1003, 1005), "110" = c(1102, 1104)), verbose = TRUE
+#' )
 #' @return A vector with an aggregate value (determined by \code{return_type})
 #' for each entry in \code{to}.
 #' @export
 
-catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access", consumers = "population",
+catchment_aggregate <- function(from, to = NULL, id = "GEOID", value = "access", consumers = "population",
                                 to_id = id, to_consumers = consumers, map = NULL, original_from = TRUE,
                                 return_type = "original", verbose = FALSE) {
   if (verbose) cli_rule("Aggregating Values")
@@ -95,7 +102,8 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
   if (original_from && !is.null(cv) && length(cv) == n) fv <- fv * cv
   # `from` values should now be either per-region values or normalized
 
-  # mapping  `from` ids to `to` ids
+  # mapping `from` ids to `to` ids
+  if (is.null(to)) to <- if (!missing(to_id) && (!is.character(to_id) || length(to_id) > 1)) to_id else from
   tid <- if (length(to_id) > 1) {
     if (verbose) cli_alert_info("to IDs: {.arg to_id} vector")
     to_id
@@ -113,9 +121,11 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
       if (verbose) cli_alert_info("to IDs: {.var {to}} column of {.arg from}")
       from[[to]]
     }
-  } else {
+  } else if (is.null(dim(to))) {
     if (verbose) cli_alert_info("to IDs: {.arg to} vector")
     to
+  } else {
+    NULL
   }
   if (is.null(tid)) cli_abort("failed to resolve {.arg to} IDs")
 
@@ -134,7 +144,6 @@ catchment_aggregate <- function(from, to = from, id = "GEOID", value = "access",
   if (is.list(map)) {
     if (is.null(names(map))) cli_abort("{.arg map} must have names")
     if (verbose) cli_alert_info("mapping: by map list")
-    names(fv) <- fid
     if (is.null(tid)) tid <- names(map)
     utid <- as.character(unique(tid))
     av <- vapply(utid, function(h) {

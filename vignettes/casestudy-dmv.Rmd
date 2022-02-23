@@ -430,6 +430,7 @@ data_combined$doctors_2sfca <- catchment_ratio(
 )
 
 # for better display, we will multiply scores by 1,000 for doctors per 1,000 people
+## this can also be done with the return_type argument
 data_combined$doctors_2sfca <- data_combined$doctors_2sfca * 1000
 
 # now make a map of the results
@@ -470,8 +471,8 @@ data_combined$doctors_2sfca_euclidean <- catchment_ratio(
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   # if the coordinate columns were not the default (X = Longitude, Y = Latitude),
   # you could specify them here, such as with providers_location = c("long", "lat")
-  verbose = TRUE
-) * 1000
+  verbose = TRUE, return_type = 1000
+)
 
 # to compare, we might look at the difference between values calculated with travel times versus
 # Euclidean distances
@@ -553,8 +554,8 @@ step_weights <- list(c(60, .042), c(30, .377), c(20, .704), c(10, .962))
 data_combined$doctors_e2sfca <- catchment_ratio(
   data_combined, provider_locations, traveltimes, step_weights,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
-  verbose = TRUE
-) * 1000
+  verbose = TRUE, return_type = 1000
+)
 
 binary_vs_step <- data_combined$doctors_e2sfca - data_combined$doctors_2sfca
 
@@ -587,8 +588,8 @@ step-weighted scores:
 data_combined$doctors_kd2sfca <- catchment_ratio(
   data_combined, provider_locations, traveltimes, "gaussian", scale = 19,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
-  verbose = TRUE
-) * 1000
+  verbose = TRUE, return_type = 1000
+)
 
 step_vs_continuous <- data_combined$doctors_kd2sfca - data_combined$doctors_e2sfca
 
@@ -621,8 +622,8 @@ data_combined$doctors_3sfca <- catchment_ratio(
   data_combined, provider_locations, traveltimes, step_weights,
   normalize_weight = TRUE,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
-  verbose = TRUE
-) * 1000
+  verbose = TRUE, return_type = 1000
+)
 
 two_vs_three <- data_combined$doctors_3sfca - data_combined$doctors_e2sfca
 
@@ -654,8 +655,8 @@ data_combined$doctors_cb3sfca <- catchment_ratio(
   data_combined, provider_locations, traveltimes, step_weights,
   normalize_weight = TRUE,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
-  consumers_commutes = commutes
-) * 1000
+  consumers_commutes = commutes, return_type = 1000
+)
 
 single_vs_multi <- data_combined$doctors_cb3sfca - data_combined$doctors_3sfca
 
