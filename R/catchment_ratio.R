@@ -15,6 +15,7 @@
 #' If \code{NULL}, coordinate information will be looked for in \code{consumers} and \code{providers} (based on
 #' \code{consumers_location} and \code{providers_location}), from which to calculate Euclidean distances.
 #' Costs equal to \code{0} are treated as missing, so any truly \code{0} costs should be set to some minimal value.
+#' In some cases, \code{0}s are automatically adjusted; see the \code{adjust_zeros} argument.
 #' @param weight Means of defining catchment areas and their topology / friction / impedance. The simplest is a single
 #' number representing a maximum distance between \code{consumers} and \code{providers} (2-step floating catchment area;
 #' 2SFCA; Luo & Wang, 2003).
@@ -55,6 +56,9 @@
 #' \code{function(w) w / rowSums(w)} and \code{adjust_providers = function(w) sweep(w, 2, colSums(w), "/")}.
 #' When weights are adjusted independently in this way, region scores will likely no longer sum to the sum
 #' of \code{providers} (fewer than the total number of providers will be distributed).
+#' @param adjust_zeros A number to set real \code{0}s to, in case \code{cost} is symmetrical and all its diagonal
+#' values are \code{0} (assumed to be distance from self), or \code{NA}s are also present. Set to \code{FALSE}
+#' to prevent \code{0}s from being adjusted.
 #' @param return_type Determines the values that are returned: \code{"original"} (default) for \code{providers}
 #' per \code{consumers} (e.g., how many, likely fractional, doctors are accessible by each person within each region),
 #' \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
@@ -144,7 +148,7 @@
 
 catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, weight = NULL, normalize_weight = FALSE,
                             scale = 2, max_cost = NULL, adjust_consumers = NULL, adjust_providers = NULL,
-                            return_type = "original", consumers_commutes = NULL, consumers_id = "GEOID",
+                            adjust_zeros = 1e-6, return_type = "original", consumers_commutes = NULL, consumers_id = "GEOID",
                             consumers_value = "count", consumers_location = c("X", "Y"), providers_id = "GEOID",
                             providers_value = "count", providers_location = c("X", "Y"), verbose = FALSE) {
   if (verbose) cli_rule("Calculating a Floating Catchment Area Ratio")
@@ -323,9 +327,11 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
       cli_abort("{.arg cost} must be a matrix-like object")
     }
   } else if (verbose) cli_alert_info("cost: {.arg cost} matrix")
-  if (is.data.frame(cost)) cost <- as.matrix(cost)
-  if (anyNA(cost)) cost[is.na(cost)] <- 0
-  w <- catchment_weight(cost, weight, max_cost = max_cost, scale = scale, normalize_weight = FALSE, verbose = verbose)
+  w <- catchment_weight(
+    cost, weight,
+    max_cost = max_cost, adjust_zeros = adjust_zeros, scale = scale,
+    normalize_weight = FALSE, verbose = verbose
+  )
   if (!is.null(consumers_commutes)) {
     dims <- dim(consumers_commutes)
     if (dims[1] != dims[2]) cli_abort("{.arg consumers_commutes} must be a square matrix")

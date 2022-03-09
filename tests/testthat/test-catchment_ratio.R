@@ -189,6 +189,18 @@ test_that("consumers and providers get aligned with cost and weights", {
   expect_equal(full, catchment_ratio(co[is], pr, cost, 40))
 })
 
+test_that("non-missing 0s are handled", {
+  cost <- cost_adj <- 1 / lma_simets(data.frame(x = 1:5, y = 1:5), metric = "euc", symmetrical = TRUE) - 1
+  diag(cost_adj) <- 1e-6
+  expect_identical(catchment_ratio(1:5, 1:5, cost = cost), catchment_ratio(1:5, 1:5, cost = cost_adj))
+  nas <- sample.int(length(cost), 5)
+  zeros <- sample.int(length(cost), 2)
+  cost[nas] <- cost_adj[nas] <- NA
+  cost[zeros] <- 0
+  cost_adj[zeros] <- 1e-6
+  expect_identical(catchment_ratio(1:5, 1:5, cost = cost), catchment_ratio(1:5, 1:5, cost = cost_adj))
+})
+
 test_that("verbose works", {
   demand <- data.frame(
     id = as.character(1:50),

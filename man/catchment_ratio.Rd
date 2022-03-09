@@ -7,15 +7,16 @@
 \usage{
 catchment_ratio(consumers = NULL, providers = NULL, cost = NULL,
   weight = NULL, normalize_weight = FALSE, scale = 2, max_cost = NULL,
-  adjust_consumers = NULL, adjust_providers = NULL,
+  adjust_consumers = NULL, adjust_providers = NULL, adjust_zeros = 1e-06,
   return_type = "original", consumers_commutes = NULL,
   consumers_id = "GEOID", consumers_value = "count",
   consumers_location = c("X", "Y"), providers_id = "GEOID",
   providers_value = "count", providers_location = c("X", "Y"),
   verbose = FALSE)
 
-catchment_weight(cost, weight = NULL, max_cost = NULL, scale = 2,
-  normalize_weight = FALSE, verbose = FALSE)
+catchment_weight(cost, weight = NULL, max_cost = NULL,
+  adjust_zeros = 1e-06, scale = 2, normalize_weight = FALSE,
+  verbose = FALSE)
 }
 \arguments{
 \item{consumers}{Number of consumers (demand); either a vector with consumer amounts (such as population counts),
@@ -32,7 +33,8 @@ or a matrix-like object with a column of IDs (located by \code{providers_id}) an
 \code{providers} are vectors, or will be aligned by name if available (as vector names or in \code{_id} columns).
 If \code{NULL}, coordinate information will be looked for in \code{consumers} and \code{providers} (based on
 \code{consumers_location} and \code{providers_location}), from which to calculate Euclidean distances.
-Costs equal to \code{0} are treated as missing, so any truly \code{0} costs should be set to some minimal value.}
+Costs equal to \code{0} are treated as missing, so any truly \code{0} costs should be set to some minimal value.
+In some cases, \code{0}s are automatically adjusted; see the \code{adjust_zeros} argument.}
 
 \item{weight}{Means of defining catchment areas and their topology / friction / impedance. The simplest is a single
 number representing a maximum distance between \code{consumers} and \code{providers} (2-step floating catchment area;
@@ -78,6 +80,10 @@ balanced floating catchment area (BFCA; Paez, Higgins, & Vivona, 2019) with \cod
 \code{function(w) w / rowSums(w)} and \code{adjust_providers = function(w) sweep(w, 2, colSums(w), "/")}.
 When weights are adjusted independently in this way, region scores will likely no longer sum to the sum
 of \code{providers} (fewer than the total number of providers will be distributed).}
+
+\item{adjust_zeros}{A number to set real \code{0}s to, in case \code{cost} is symmetrical and all its diagonal
+values are \code{0} (assumed to be distance from self), or \code{NA}s are also present. Set to \code{FALSE}
+to prevent \code{0}s from being adjusted.}
 
 \item{return_type}{Determines the values that are returned: \code{"original"} (default) for \code{providers}
 per \code{consumers} (e.g., how many, likely fractional, doctors are accessible by each person within each region),

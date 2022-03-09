@@ -50,7 +50,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -88,18 +88,55 @@
 
     
     
-<p><em>Built with R 4.1.2 on February 07 2022</em></p>
+<p><em>Built with R 4.1.2 on March 09 2022</em></p>
 <hr>
-<p><strong>Floating catchment areas</strong> can be thought of as a means of distributing consumers across providers, or allocating providers to consumers.</p>
-<p><strong>Providers</strong> and <strong>consumers</strong> are locations with some quantity. At most granular, these might be individuals, such as a single doctor as provider, and single patient as consumer. In this case, each would have a quantity of 1, and if they are within range of each other, and there are no other providers or consumers in range, their floating catchment area ratio would be 1 (<code>providers / consumers</code>).</p>
-<p>Usually, consumers are local groups of people, such as the population of a region (say, 1,000 people). In this case the floating catchment area ratio is <code>1 / 1000</code> – the provider distributed across consumers, resulting in the number of providers per person, or the fraction of the population with concurrent access to the provider. These ratios sum up to the number of providers when multiplied by the population: <code>1000 * 1 / 1000 == 1</code>.</p>
-<p>So far, these are simple ratios, and that holds in discrete cases. <strong>Catchment areas</strong> define the range of providers, such that we can make cases discrete; that is, given a large region with many spread-out provider and consumer locations, we can define sub-regions (catchment areas) in which to calculate ratios. A catchment is the result of the provider’s catching (attracting, serving), which, when applied spatially, defines an area.</p>
-<p>A simple means of defining a catchment area could be by city. Say there are two doctors in a region, but they are in different cities; it might make sense to define each doctor’s catchment area as their city, and then we have two discrete ratios to work with (each doctor divided by the population of their city). It would remain discrete to add doctors in each city, as this would simply increase the numerator of the ratio – as long as they are in the same city, they are not differentiated by this catchment area definition.</p>
-<p>This might make sense in some cases, but what if the cities are close enough that the population of one might visit doctors in the other? The <strong>floating</strong> part of floating catchment areas come in when each provider location gets their own catchment area. For example, say we define each doctor’s catchment area as a range of 5 miles, rather than the city’s boundaries. This might exclude some portion of the population (those in the same city but far away), and include others (those in another city that is close), and it might result in some overlap of catchment areas between doctors.</p>
+<p><strong>Floating catchment areas</strong> can be thought of as a
+means of distributing consumers across providers, or allocating
+providers to consumers.</p>
+<p><strong>Providers</strong> and <strong>consumers</strong> are
+locations with some quantity. At most granular, these might be
+individuals, such as a single doctor as provider, and single patient as
+consumer. In this case, each would have a quantity of 1, and if they are
+within range of each other, and there are no other providers or
+consumers in range, their floating catchment area ratio would be 1
+(<code>providers / consumers</code>).</p>
+<p>Usually, consumers are local groups of people, such as the population
+of a region (say, 1,000 people). In this case the floating catchment
+area ratio is <code>1 / 1000</code> – the provider distributed across
+consumers, resulting in the number of providers per person, or the
+fraction of the population with concurrent access to the provider. These
+ratios sum up to the number of providers when multiplied by the
+population: <code>1000 * 1 / 1000 == 1</code>.</p>
+<p>So far, these are simple ratios, and that holds in discrete cases.
+<strong>Catchment areas</strong> define the range of providers, such
+that we can make cases discrete; that is, given a large region with many
+spread-out provider and consumer locations, we can define sub-regions
+(catchment areas) in which to calculate ratios. A catchment is the
+result of the provider’s catching (attracting, serving), which, when
+applied spatially, defines an area.</p>
+<p>A simple means of defining a catchment area could be by city. Say
+there are two doctors in a region, but they are in different cities; it
+might make sense to define each doctor’s catchment area as their city,
+and then we have two discrete ratios to work with (each doctor divided
+by the population of their city). It would remain discrete to add
+doctors in each city, as this would simply increase the numerator of the
+ratio – as long as they are in the same city, they are not
+differentiated by this catchment area definition.</p>
+<p>This might make sense in some cases, but what if the cities are close
+enough that the population of one might visit doctors in the other? The
+<strong>floating</strong> part of floating catchment areas come in when
+each provider location gets their own catchment area. For example, say
+we define each doctor’s catchment area as a range of 5 miles, rather
+than the city’s boundaries. This might exclude some portion of the
+population (those in the same city but far away), and include others
+(those in another city that is close), and it might result in some
+overlap of catchment areas between doctors.</p>
 <div class="section level2">
 <h2 id="basic-example">Basic Example<a class="anchor" aria-label="anchor" href="#basic-example"></a>
 </h2>
-<p>The most basic case where floating catchment areas differ from simple ratios is when multiple providers have differing but overlapping coverage of consumers.</p>
+<p>The most basic case where floating catchment areas differ from simple
+ratios is when multiple providers have differing but overlapping
+coverage of consumers.</p>
 <p>Lets make a small set of providers and consumers:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># each entry in the vector represents a location, and its value is</span>
@@ -108,7 +145,8 @@
 <span class="co">#&gt; [1] 5 5</span>
 <span class="op">(</span><span class="va">consumers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 10 10 10</span></code></pre></div>
-<p>If these were all in the same catchment area (like a city), we could just sum them up for their ratio:</p>
+<p>If these were all in the same catchment area (like a city), we could
+just sum them up for their ratio:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">providers</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">consumers</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.3333333</span></code></pre></div>
@@ -118,7 +156,9 @@
 <span class="co"># where 1 means in range and 0 means out of range</span>
 <span class="va">in_range_p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span> <span class="co"># provider 1 is in range of consumers 1 and 2</span>
 <span class="va">in_range_p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="co"># provider 2 is in range of consumers 2 and 3</span></code></pre></div>
-<p>We can visualize this like a structural equation model or directed graph, with circles around providers representing their catchment areas: <img src="introduction_files/figure-html/unnamed-chunk-5-1.svg" width="864"></p>
+<p>We can visualize this like a structural equation model or directed
+graph, with circles around providers representing their catchment areas:
+<img src="introduction_files/figure-html/unnamed-chunk-5-1.svg" width="864"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## this is the ratio for provider 1 --</span>
 <span class="co">## provider / sum of consumers in range</span>
@@ -142,7 +182,10 @@
 <span class="co">## and now we can combine them for individualized access scores</span>
 <span class="va">access_p1</span> <span class="op">+</span> <span class="va">access_p2</span>
 <span class="co">#&gt; [1] 0.25 0.50 0.25</span></code></pre></div>
-<p>This introduces the concept of weights, which are the instantiation of catchment areas. In the previous example, we applied weights vector by vector manually, but an easier way to do this in bigger examples is to use a matrix:</p>
+<p>This introduces the concept of weights, which are the instantiation
+of catchment areas. In the previous example, we applied weights vector
+by vector manually, but an easier way to do this in bigger examples is
+to use a matrix:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># we can add both `in_range` vectors to a matrix</span>
 <span class="op">(</span><span class="va">weight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">in_range_p1</span>, <span class="va">in_range_p2</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>
@@ -162,13 +205,25 @@
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">catchment</span><span class="op">)</span>
 <span class="op">(</span><span class="va">access_uniform</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="va">consumers</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.25 0.50 0.25</span></code></pre></div>
-<p>This is called a 2-step floating catchment area <span class="citation">(2SFCA; <a href="#ref-luo03" role="doc-biblioref">Luo &amp; Wang, 2003</a>)</span> because we are effectively combining catchment areas around both providers (step 1) and consumers (step 2).</p>
+<p>This is called a 2-step floating catchment area <span class="citation">(2SFCA; <a href="#ref-luo03" role="doc-biblioref">Luo
+&amp; Wang, 2003</a>)</span> because we are effectively combining
+catchment areas around both providers (step 1) and consumers (step
+2).</p>
 </div>
 <div class="section level2">
 <h2 id="variable-weights">Variable Weights<a class="anchor" aria-label="anchor" href="#variable-weights"></a>
 </h2>
-<p>Binary weight vectors denote which consumers fall within a catchment area, but they imply that all consumers fall within the catchment area to the same degree – all consumers get a weight of 1. But providers tend to be in physical locations that consumers must travel to, which creates variability of access within catchment areas; consumers closer to the provider location have an easier time getting to the provider, and are more likely to go to that provider than a more distant alternative. To appreciate this difference, we can adjust weights by distance.</p>
-<p>From the previous example, imagine we separated providers more, keeping consumers 2 close to providers 1: <img src="introduction_files/figure-html/unnamed-chunk-9-1.svg" width="864"></p>
+<p>Binary weight vectors denote which consumers fall within a catchment
+area, but they imply that all consumers fall within the catchment area
+to the same degree – all consumers get a weight of 1. But providers tend
+to be in physical locations that consumers must travel to, which creates
+variability of access within catchment areas; consumers closer to the
+provider location have an easier time getting to the provider, and are
+more likely to go to that provider than a more distant alternative. To
+appreciate this difference, we can adjust weights by distance.</p>
+<p>From the previous example, imagine we separated providers more,
+keeping consumers 2 close to providers 1:
+<img src="introduction_files/figure-html/unnamed-chunk-9-1.svg" width="864"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">## as before, we can specify weights in vectors</span>
 <span class="va">weight_p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.9</span>, <span class="fl">.9</span>, <span class="fl">0</span><span class="op">)</span>
@@ -207,9 +262,13 @@
 <span class="co">## compare to the uniform weights</span>
 <span class="va">access</span> <span class="op">-</span> <span class="va">access_uniform</span>
 <span class="co">#&gt; [1]  0.0000000 -0.1590909  0.1590909</span></code></pre></div>
-<p>Compared to the uniformly weighted scores, consumer 3 gets a higher score since there is less competition from the more distant consumer 2, and consumer 2 gets a dampened score because of that distance.</p>
-<p>Adjusting weights like this results in an enhanced 2-step floating catchment area <span class="citation">(E2SFCA; <a href="#ref-luo09" role="doc-biblioref">Luo &amp; Qi, 2009</a>)</span>.</p>
-<p>Note that we are still just distributing providers to consumers, so region scores sum up to the number of providers:</p>
+<p>Compared to the uniformly weighted scores, consumer 3 gets a higher
+score since there is less competition from the more distant consumer 2,
+and consumer 2 gets a dampened score because of that distance.</p>
+<p>Adjusting weights like this results in an enhanced 2-step floating
+catchment area <span class="citation">(E2SFCA; <a href="#ref-luo09" role="doc-biblioref">Luo &amp; Qi, 2009</a>)</span>.</p>
+<p>Note that we are still just distributing providers to consumers, so
+region scores sum up to the number of providers:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># original ratios are providers per person, so multiplying by consumers gives providers per location</span>
 <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">consumers</span> <span class="op">*</span> <span class="op">(</span><span class="va">access_p1</span> <span class="op">+</span> <span class="va">access_p2</span><span class="op">)</span><span class="op">)</span>
@@ -222,12 +281,27 @@
   normalize_weight <span class="op">=</span> <span class="cn">TRUE</span>, return_type <span class="op">=</span> <span class="st">"region"</span>
 <span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 10</span></code></pre></div>
-<p>Because weights are applied in both steps, or to both sides of the ratio, the absolute scale of weights is arbitrary. For example, you could multiply weights by 100 and get the same result:</p>
+<p>Because weights are applied in both steps, or to both sides of the
+ratio, the absolute scale of weights is arbitrary. For example, you
+could multiply weights by 100 and get the same result:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="va">consumers</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.2500000 0.3409091 0.4090909</span></code></pre></div>
-<p>This may be counterintuitive when relative difference are held constant. For example, if a catchment area includes only 1 provider and 1 consumer, the consumer will always get an access score of 1 (<code>1 / 1</code>) regardless of their weight, as long as they are in range – they could be 10 minutes from the provider or 2 hours and get the same score.</p>
-<p>This highlights a potential issue with the interpretation of catchment ratios: They are most modestly allocations of providers to consumers. Weights work to adjust those allocations, but we always end up with the same number of providers and consumers within range. That is, given a positive set of weights, scores can only range from 0 to 1. Scores will only be 0 if the location has a weight of 0, and scores will only reach 1 if they are the only location in range – otherwise scores will infinity approach 0 and 1 as relative difference in weights increase.</p>
+<p>This may be counterintuitive when relative difference are held
+constant. For example, if a catchment area includes only 1 provider and
+1 consumer, the consumer will always get an access score of 1
+(<code>1 / 1</code>) regardless of their weight, as long as they are in
+range – they could be 10 minutes from the provider or 2 hours and get
+the same score.</p>
+<p>This highlights a potential issue with the interpretation of
+catchment ratios: They are most modestly allocations of providers to
+consumers. Weights work to adjust those allocations, but we always end
+up with the same number of providers and consumers within range. That
+is, given a positive set of weights, scores can only range from 0 to 1.
+Scores will only be 0 if the location has a weight of 0, and scores will
+only reach 1 if they are the only location in range – otherwise scores
+will infinity approach 0 and 1 as relative difference in weights
+increase.</p>
 <p>We can see this in a simple simulation:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://miserman.github.io/splot/" class="external-link">splot</a></span><span class="op">)</span>
@@ -270,9 +344,18 @@
 <div class="section level2">
 <h2 id="normalized-weights">Normalized Weights<a class="anchor" aria-label="anchor" href="#normalized-weights"></a>
 </h2>
-<p>An interesting and potentially clarifying way to think about weights is as relative probabilities that the consumer will utilize one provider over another. This makes good sense with distance weighting, where, all else being equal, a consumer is less likely to make use of a distant provider if a nearer one is available.</p>
-<p>Thinking of weights in this way highlights a potential issue with the way we have been applying weights: The more providers a consumer has in range, the more overall weight they get, which doesn’t make sense if consumers’ consumption is actually the same (say, each consumer is a patient visiting only one doctor).</p>
-<p>To account for this, we might normalize each consumer’s weights by proportionally redistributing them:</p>
+<p>An interesting and potentially clarifying way to think about weights
+is as relative probabilities that the consumer will utilize one provider
+over another. This makes good sense with distance weighting, where, all
+else being equal, a consumer is less likely to make use of a distant
+provider if a nearer one is available.</p>
+<p>Thinking of weights in this way highlights a potential issue with the
+way we have been applying weights: The more providers a consumer has in
+range, the more overall weight they get, which doesn’t make sense if
+consumers’ consumption is actually the same (say, each consumer is a
+patient visiting only one doctor).</p>
+<p>To account for this, we might normalize each consumer’s weights by
+proportionally redistributing them:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># get each consumer's total weight</span>
 <span class="op">(</span><span class="va">consumer_weight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span><span class="op">)</span>
@@ -306,14 +389,24 @@
 <span class="co"># compare with original</span>
 <span class="va">access_normed</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1]  0.02500000 -0.09649162  0.07149162</span></code></pre></div>
-<p>With these normalized weights, consumers 1 and 3 get higher access score because consumer 2 is now (more appropriately?) spread across the 2 providers in range – consumers 1 or 3 may be the only ones using their only provider, depending on where consumers 2 go.</p>
-<p>As always, these are still just redistributions of the same number of providers:</p>
+<p>With these normalized weights, consumers 1 and 3 get higher access
+score because consumer 2 is now (more appropriately?) spread across the
+2 providers in range – consumers 1 or 3 may be the only ones using their
+only provider, depending on where consumers 2 go.</p>
+<p>As always, these are still just redistributions of the same number of
+providers:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">access_normed</span> <span class="op">*</span> <span class="va">consumers</span><span class="op">)</span>
 <span class="co">#&gt; [1] 10</span></code></pre></div>
-<p>When weights are normalized in this way, it is called a 3-step floating catchment area <span class="citation">(3SFCA; <a href="#ref-wan12" role="doc-biblioref">Wan et al., 2012</a>)</span>.</p>
-<p>Note that, though the original 3-step floating catchment area used enhanced 2-step floating catchment area weights, it can be applied to any weighting scheme.</p>
-<p>It is also notable that this sort of normalization might slightly over-correct – in this case, consumers 2 gets less total weight than 1 or 3. It might make more sense to give everyone a weight of 1 by using the weight proportions directly:</p>
+<p>When weights are normalized in this way, it is called a 3-step
+floating catchment area <span class="citation">(3SFCA; <a href="#ref-wan12" role="doc-biblioref">Wan et al., 2012</a>)</span>.</p>
+<p>Note that, though the original 3-step floating catchment area used
+enhanced 2-step floating catchment area weights, it can be applied to
+any weighting scheme.</p>
+<p>It is also notable that this sort of normalization might slightly
+over-correct – in this case, consumers 2 gets less total weight than 1
+or 3. It might make more sense to give everyone a weight of 1 by using
+the weight proportions directly:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># total normed weights</span>
 <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">weight_normed</span><span class="op">)</span>
@@ -330,14 +423,20 @@
 <span class="co"># compare with normed</span>
 <span class="va">access_prop</span> <span class="op">-</span> <span class="va">access_normed</span>
 <span class="co">#&gt; [1]  0.0000000  0.0575056 -0.0575056</span></code></pre></div>
-<p>In this case, proportional weighting resulted in slightly better access for consumers 2 because it moved them closer to providers 2 with more relative weight. This can be more directly seen between weights when they are on the same scale:</p>
+<p>In this case, proportional weighting resulted in slightly better
+access for consumers 2 because it moved them closer to providers 2 with
+more relative weight. This can be more directly seen between weights
+when they are on the same scale:</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">weight_prop</span> <span class="op">-</span> <span class="va">weight_normed</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">weight_normed</span><span class="op">)</span>
 <span class="co">#&gt;      [,1]      [,2]</span>
 <span class="co">#&gt; [1,]    0 0.0000000</span>
 <span class="co">#&gt; [2,]    0 0.1414141</span>
 <span class="co">#&gt; [3,]    0 0.0000000</span></code></pre></div>
-<p>Normalizing weights in this way removes any absolute differences in weight between consumer locations, making for a more even distribution of consumers. Though, consider what this looks like in our previous simulation:</p>
+<p>Normalizing weights in this way removes any absolute differences in
+weight between consumer locations, making for a more even distribution
+of consumers. Though, consider what this looks like in our previous
+simulation:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/splot/man/splot.html" class="external-link">splot</a></span><span class="op">(</span>
   <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">100</span>, <span class="fl">.5</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span>
@@ -349,8 +448,17 @@
   title <span class="op">=</span> <span class="cn">FALSE</span>, lines <span class="op">=</span> <span class="cn">FALSE</span>, leg.title <span class="op">=</span> <span class="st">"Consumers"</span>, lpos <span class="op">=</span> <span class="st">"right"</span>,
   laby <span class="op">=</span> <span class="st">"Catchment Ratio"</span>, labx <span class="op">=</span> <span class="st">"(would-be) Relative Difference"</span>
 <span class="op">)</span></code></pre></div>
-<p><img src="introduction_files/figure-html/unnamed-chunk-18-1.svg" width="864"> That is, with proportional weights, consumers can shift around between providers, but they cannot be nearer or farther from the set of providers.</p>
-<p>Proportional weighting is similar to an adjustment proposed by <span class="citation"><a href="#ref-paez19" role="doc-biblioref">Paez et al.</a> (<a href="#ref-paez19" role="doc-biblioref">2019</a>)</span>, except they also propose independently adjusting the provider-side weights such that weights across providers also sum to 1. This may not be advisable for two reasons: First is that independently adjusting weights may result in a different number of providers being distributed (see the <a href="#imperfect-distribution">Imperfect Distribution</a> section). Second is that column standardization on its own doesn’t seem to make a difference to the final access scores:</p>
+<p><img src="introduction_files/figure-html/unnamed-chunk-18-1.svg" width="864">
+That is, with proportional weights, consumers can shift around between
+providers, but they cannot be nearer or farther from the set of
+providers.</p>
+<p>Proportional weighting is similar to an adjustment proposed by <span class="citation">Paez et al. (<a href="#ref-paez19" role="doc-biblioref">2019</a>)</span>, except they also propose
+independently adjusting the provider-side weights such that weights
+across providers also sum to 1. This may not be advisable for two
+reasons: First is that independently adjusting weights may result in a
+different number of providers being distributed (see the <a href="#imperfect-distribution">Imperfect Distribution</a> section).
+Second is that column standardization on its own doesn’t seem to make a
+difference to the final access scores:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># balanced floating catchment area (BFCS)</span>
 <span class="op">(</span><span class="va">access_balanced</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span>
@@ -379,14 +487,19 @@
 <div class="section level2">
 <h2 id="expanding-weights">Expanding Weights<a class="anchor" aria-label="anchor" href="#expanding-weights"></a>
 </h2>
-<p>The most commonly applied weights are those based on physical distance, but thinking of weights as generally describing the probability that a consumer will use a particular provider, we might imagine any number of other weight sources.</p>
+<p>The most commonly applied weights are those based on physical
+distance, but thinking of weights as generally describing the
+probability that a consumer will use a particular provider, we might
+imagine any number of other weight sources.</p>
 <div class="section level3">
 <h3 id="provider-consumer-fit">Provider-Consumer Fit<a class="anchor" aria-label="anchor" href="#provider-consumer-fit"></a>
 </h3>
 <div class="section level4">
 <h4 id="categorical">Categorical<a class="anchor" aria-label="anchor" href="#categorical"></a>
 </h4>
-<p>For example, relating to doctors and patients, health insurance networks may quite strictly condition consumer to provider pairings. Things like this can be added as weights arbitrarily:</p>
+<p>For example, relating to doctors and patients, health insurance
+networks may quite strictly condition consumer to provider pairings.
+Things like this can be added as weights arbitrarily:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># lets say our consumers and providers are all associated with one of two networks</span>
 <span class="va">provider_networks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span>
@@ -409,12 +522,14 @@
 <span class="co">## compare with originals</span>
 <span class="va">access_insurance</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1] -0.20454545  0.12450593  0.08003953</span></code></pre></div>
-<p>With added insurance weights, the access score for consumers 1 goes down quite a lot because they have no in-network providers in range.</p>
+<p>With added insurance weights, the access score for consumers 1 goes
+down quite a lot because they have no in-network providers in range.</p>
 </div>
 <div class="section level4">
 <h4 id="continuous">Continuous<a class="anchor" aria-label="anchor" href="#continuous"></a>
 </h4>
-<p>Another relevant point of consumer decision might be cost versus income:</p>
+<p>Another relevant point of consumer decision might be cost versus
+income:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># say we had some sort of price associated with each provider location</span>
 <span class="va">provider_price</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fl">250</span><span class="op">)</span>
@@ -441,8 +556,12 @@
 <span class="co">## compare with originals</span>
 <span class="va">access_monetary</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1]  0.012903226 -0.016093018  0.003189793</span></code></pre></div>
-<p>This is a subtler weighting, but the score for consumers 1 goes up a bit in particular because consumers 2 is pushed more toward providers 2 based on monetary cost, even though that travel cost is greater.</p>
-<p>What information might be useful to incorporate and how much relative weight it should get are questions that will probably want to be explored on a case by case basis.</p>
+<p>This is a subtler weighting, but the score for consumers 1 goes up a
+bit in particular because consumers 2 is pushed more toward providers 2
+based on monetary cost, even though that travel cost is greater.</p>
+<p>What information might be useful to incorporate and how much relative
+weight it should get are questions that will probably want to be
+explored on a case by case basis.</p>
 </div>
 </div>
 <div class="section level3">
@@ -451,8 +570,14 @@
 <div class="section level4">
 <h4 id="multiple-origins">Multiple Origins<a class="anchor" aria-label="anchor" href="#multiple-origins"></a>
 </h4>
-<p>So far, we have considered consumers to have a single location (where they live) from which they will travel to providers. If consumers regularly travel to other locations, however, they might end up closer to a provider incidentally. For example, someone might visit a doctor that is close to where they work, even if the doctor is far from where they live.</p>
-<p>One way to try and account for this might be to simply calculate multiple ratios based on different locations:</p>
+<p>So far, we have considered consumers to have a single location (where
+they live) from which they will travel to providers. If consumers
+regularly travel to other locations, however, they might end up closer
+to a provider incidentally. For example, someone might visit a doctor
+that is close to where they work, even if the doctor is far from where
+they live.</p>
+<p>One way to try and account for this might be to simply calculate
+multiple ratios based on different locations:</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># say our consumer counts were spread across home and work locations (a consumer home x work matrix)</span>
 <span class="op">(</span><span class="va">consumers_work</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">8</span>, <span class="fl">3</span>, <span class="fl">5</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>
@@ -472,7 +597,18 @@
 <span class="co">#&gt; [1]  7 11 12</span>
 <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span>, <span class="va">providers</span>, weight <span class="op">=</span> <span class="va">weight</span><span class="op">)</span>
 <span class="co">#&gt; [1] 0.2777778 0.3547009 0.3461538</span></code></pre></div>
-<p>But this does not reflect the choice some consumers now have. For example, consumers in location 1 only have access to providers 1 from home, but 50% of them also have access to providers 2 from work, and so could choose to go to either provider. Since these providers are the same distance from 1 and 3 respectively (both have a weight of .9), our best guess at these consumers’ decisions is 50% for each. We could represent this in a combine set of weights, where 50% of consumers get 100% weight for consumer location 1, and the other 50% get 50% weight for consumer location 1 and 50% for consumer location 3, resulting in a 75% weight (<code>.9 * .75</code>) for providers 1 and 25% weight (<code>.9 * .25</code>) for providers 2. We can do this for all consumers, then calculate the ratios in the same way as before:</p>
+<p>But this does not reflect the choice some consumers now have. For
+example, consumers in location 1 only have access to providers 1 from
+home, but 50% of them also have access to providers 2 from work, and so
+could choose to go to either provider. Since these providers are the
+same distance from 1 and 3 respectively (both have a weight of .9), our
+best guess at these consumers’ decisions is 50% for each. We could
+represent this in a combine set of weights, where 50% of consumers get
+100% weight for consumer location 1, and the other 50% get 50% weight
+for consumer location 1 and 50% for consumer location 3, resulting in a
+75% weight (<code>.9 * .75</code>) for providers 1 and 25% weight
+(<code>.9 * .25</code>) for providers 2. We can do this for all
+consumers, then calculate the ratios in the same way as before:</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># get the proportion of non-commuters (those with only home-origins)</span>
 <span class="op">(</span><span class="va">nonworker_prop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">consumers_work</span><span class="op">)</span> <span class="op">/</span> <span class="va">consumers</span><span class="op">)</span>
@@ -516,7 +652,9 @@
 <span class="co">## compare with originals</span>
 <span class="va">access_commute</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1]  0.04286996  0.01876840 -0.06163836</span></code></pre></div>
-<p>Here, consumers 1 and 2 both benefit from a general shift of consumers toward provider 2, which you can also see from the weights:</p>
+<p>Here, consumers 1 and 2 both benefit from a general shift of
+consumers toward provider 2, which you can also see from the
+weights:</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># looking again at differences between scaled weights</span>
 <span class="va">weight_commute</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">weight_commute</span><span class="op">)</span> <span class="op">-</span> <span class="va">weight</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">weight</span><span class="op">)</span>
@@ -524,13 +662,20 @@
 <span class="co">#&gt; [1,] -0.1666667  0.2777778</span>
 <span class="co">#&gt; [2,]  0.0000000  0.1358025</span>
 <span class="co">#&gt; [3,]  0.2474747 -0.1363636</span></code></pre></div>
-<p>This is a very simplified, but conceptually similar version of the commuter-based 2-step floating catchment area <span class="citation">(CB2SFCA; <a href="#ref-fransen15" role="doc-biblioref">Fransen et al., 2015</a>)</span>.</p>
+<p>This is a very simplified, but conceptually similar version of the
+commuter-based 2-step floating catchment area <span class="citation">(CB2SFCA; <a href="#ref-fransen15" role="doc-biblioref">Fransen et al., 2015</a>)</span>.</p>
 </div>
 <div class="section level4">
 <h4 id="multiple-modes">Multiple Modes<a class="anchor" aria-label="anchor" href="#multiple-modes"></a>
 </h4>
-<p>We have also been assuming consumes all use the same mode of travel, such that their travel costs are all the same. We can incorporate multiple modes of travel in a similar way, this time with separate cost matrices.</p>
-<p>Say our original cost matrix was based on travel time by car, but we knew some proportion of each consumer location did not have access to a car, and would walk to their provider. We can combined these in the same way we incorporated multiple origins:</p>
+<p>We have also been assuming consumes all use the same mode of travel,
+such that their travel costs are all the same. We can incorporate
+multiple modes of travel in a similar way, this time with separate cost
+matrices.</p>
+<p>Say our original cost matrix was based on travel time by car, but we
+knew some proportion of each consumer location did not have access to a
+car, and would walk to their provider. We can combined these in the same
+way we incorporated multiple origins:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># weight based on walking time</span>
 <span class="op">(</span><span class="va">weight_walking</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">1.2</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1.3</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>
@@ -556,16 +701,31 @@
 <span class="co">## compare with original</span>
 <span class="va">access_multimode</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1] -0.007142857 -0.047402597  0.054545455</span></code></pre></div>
-<p>Here, consumers 3 get slightly better access because more of consumers 2 are limited to providers 1.</p>
-<p>This is similar to the multi-modal 2-step floating catchment area proposed by <span class="citation"><a href="#ref-langford16" role="doc-biblioref">Langford et al.</a> (<a href="#ref-langford16" role="doc-biblioref">2016</a>)</span>.</p>
+<p>Here, consumers 3 get slightly better access because more of
+consumers 2 are limited to providers 1.</p>
+<p>This is similar to the multi-modal 2-step floating catchment area
+proposed by <span class="citation">Langford et al. (<a href="#ref-langford16" role="doc-biblioref">2016</a>)</span>.</p>
 </div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="imperfect-distribution">Imperfect Distribution<a class="anchor" aria-label="anchor" href="#imperfect-distribution"></a>
 </h2>
-<p>So far, we have been perfectly distributing consumers across providers, as indicated by the fact that region scores always sum to the number of providers. The only time this relationship doesn’t hold with the methods we’ve reviewed so far is if a provider is not in range of any consumers – you could say region scores always sum to the number of providers <strong>in range</strong>.</p>
-<p>One way to see this sort of distribution is as an optimal distribution of providers, which is probably not very realistic (e.g., providers that are inconveniently located may not be perfectly utilized). To try and account for this <span class="citation"><a href="#ref-delamater13" role="doc-biblioref">Delamater</a> (<a href="#ref-delamater13" role="doc-biblioref">2013</a>)</span> proposed increasing provider-side weights, which would unbalance the ratio, allowing for some providers to be left out of the distribution. This is done by simply squaring provider-side distance weights, resulting in the modified 2-step floating catchment area (M2SFCA).</p>
+<p>So far, we have been perfectly distributing consumers across
+providers, as indicated by the fact that region scores always sum to the
+number of providers. The only time this relationship doesn’t hold with
+the methods we’ve reviewed so far is if a provider is not in range of
+any consumers – you could say region scores always sum to the number of
+providers <strong>in range</strong>.</p>
+<p>One way to see this sort of distribution is as an optimal
+distribution of providers, which is probably not very realistic (e.g.,
+providers that are inconveniently located may not be perfectly
+utilized). To try and account for this <span class="citation">Delamater
+(<a href="#ref-delamater13" role="doc-biblioref">2013</a>)</span>
+proposed increasing provider-side weights, which would unbalance the
+ratio, allowing for some providers to be left out of the distribution.
+This is done by simply squaring provider-side distance weights,
+resulting in the modified 2-step floating catchment area (M2SFCA).</p>
 <p>We can do this with the <code>adjust_providers</code> argument:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">(</span><span class="va">access_modified</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/catchment_ratio.html">catchment_ratio</a></span><span class="op">(</span>
@@ -582,32 +742,52 @@
 <span class="co">## compare with original</span>
 <span class="va">access_modified</span> <span class="op">-</span> <span class="va">access</span>
 <span class="co">#&gt; [1] -0.02500000 -0.09772727 -0.04090909</span></code></pre></div>
-<p>Naturally, this will almost always result in lower access scores, particularly when providers are more distant (as in the case of consumers 2).</p>
+<p>Naturally, this will almost always result in lower access scores,
+particularly when providers are more distant (as in the case of
+consumers 2).</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" line-spacing="2">
 <div id="ref-delamater13" class="csl-entry">
-Delamater, P. L. (2013). Spatial accessibility in suboptimally configured health care systems: A modified two-step floating catchment area (M2SFCA) metric. <em>Health &amp; Place</em>, <em>24</em>, 30–43. <a href="https://doi.org/10.1016/j.healthplace.2013.07.012" class="external-link">https://doi.org/10.1016/j.healthplace.2013.07.012</a>
+Delamater, P. L. (2013). Spatial accessibility in suboptimally
+configured health care systems: A modified two-step floating catchment
+area (M2SFCA) metric. <em>Health &amp; Place</em>, <em>24</em>, 30–43.
+<a href="https://doi.org/10.1016/j.healthplace.2013.07.012" class="external-link">https://doi.org/10.1016/j.healthplace.2013.07.012</a>
 </div>
 <div id="ref-fransen15" class="csl-entry">
-Fransen, K., Neutens, T., De Maeyer, P., &amp; Deruyter, G. (2015). A commuter-based two-step floating catchment area method for measuring spatial accessibility of daycare centers. <em>Health &amp; Place</em>, <em>32</em>, 65–73. <a href="https://doi.org/10.1016/j.healthplace.2015.01.002" class="external-link">https://doi.org/10.1016/j.healthplace.2015.01.002</a>
+Fransen, K., Neutens, T., De Maeyer, P., &amp; Deruyter, G. (2015). A
+commuter-based two-step floating catchment area method for measuring
+spatial accessibility of daycare centers. <em>Health &amp; Place</em>,
+<em>32</em>, 65–73. <a href="https://doi.org/10.1016/j.healthplace.2015.01.002" class="external-link">https://doi.org/10.1016/j.healthplace.2015.01.002</a>
 </div>
 <div id="ref-langford16" class="csl-entry">
-Langford, M., Higgs, G., &amp; Fry, R. (2016). Multi-modal two-step floating catchment area analysis of primary health care accessibility. <em>Health &amp; Place</em>, <em>38</em>, 70–81. <a href="https://doi.org/10.1016/j.healthplace.2015.11.007" class="external-link">https://doi.org/10.1016/j.healthplace.2015.11.007</a>
+Langford, M., Higgs, G., &amp; Fry, R. (2016). Multi-modal two-step
+floating catchment area analysis of primary health care accessibility.
+<em>Health &amp; Place</em>, <em>38</em>, 70–81. <a href="https://doi.org/10.1016/j.healthplace.2015.11.007" class="external-link">https://doi.org/10.1016/j.healthplace.2015.11.007</a>
 </div>
 <div id="ref-luo09" class="csl-entry">
-Luo, W., &amp; Qi, Y. (2009). An enhanced two-step floating catchment area (E2SFCA) method for measuring spatial accessibility to primary care physicians. <em>Health &amp; Place</em>, <em>15</em>, 1100–1107. <a href="https://doi.org/10.1016/j.healthplace.2009.06.002" class="external-link">https://doi.org/10.1016/j.healthplace.2009.06.002</a>
+Luo, W., &amp; Qi, Y. (2009). An enhanced two-step floating catchment
+area (E2SFCA) method for measuring spatial accessibility to primary care
+physicians. <em>Health &amp; Place</em>, <em>15</em>, 1100–1107. <a href="https://doi.org/10.1016/j.healthplace.2009.06.002" class="external-link">https://doi.org/10.1016/j.healthplace.2009.06.002</a>
 </div>
 <div id="ref-luo03" class="csl-entry">
-Luo, W., &amp; Wang, F. (2003). Measures of spatial accessibility to health care in a GIS environment: Synthesis and a case study in the chicago region. <em>Environment and Planning B: Planning and Design</em>, <em>30</em>, 865–884. <a href="https://doi.org/10.1068/b29120" class="external-link">https://doi.org/10.1068/b29120</a>
+Luo, W., &amp; Wang, F. (2003). Measures of spatial accessibility to
+health care in a GIS environment: Synthesis and a case study in the
+chicago region. <em>Environment and Planning B: Planning and
+Design</em>, <em>30</em>, 865–884. <a href="https://doi.org/10.1068/b29120" class="external-link">https://doi.org/10.1068/b29120</a>
 </div>
 <div id="ref-paez19" class="csl-entry">
-Paez, A., Higgins, C. D., &amp; Vivona, S. F. (2019). Demand and level of service inflation in floating catchment area (FCA) methods. <em>Plos One</em>, <em>14</em>, e0218773. <a href="https://doi.org/10.1371/journal.pone.0218773" class="external-link">https://doi.org/10.1371/journal.pone.0218773</a>
+Paez, A., Higgins, C. D., &amp; Vivona, S. F. (2019). Demand and level
+of service inflation in floating catchment area (FCA) methods. <em>Plos
+One</em>, <em>14</em>, e0218773. <a href="https://doi.org/10.1371/journal.pone.0218773" class="external-link">https://doi.org/10.1371/journal.pone.0218773</a>
 </div>
 <div id="ref-wan12" class="csl-entry">
-Wan, N., Zou, B., &amp; Sternberg, T. (2012). A three-step floating catchment area method for analyzing spatial access to health services. <em>International Journal of Geographical Information Science</em>, <em>26</em>, 1073–1089. <a href="https://doi.org/10.1080/13658816.2011.624987" class="external-link">https://doi.org/10.1080/13658816.2011.624987</a>
+Wan, N., Zou, B., &amp; Sternberg, T. (2012). A three-step floating
+catchment area method for analyzing spatial access to health services.
+<em>International Journal of Geographical Information Science</em>,
+<em>26</em>, 1073–1089. <a href="https://doi.org/10.1080/13658816.2011.624987" class="external-link">https://doi.org/10.1080/13658816.2011.624987</a>
 </div>
 </div>
 </div>
@@ -630,7 +810,8 @@ Wan, N., Zou, B., &amp; Sternberg, T. (2012). A three-step floating catchment ar
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.2.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
+2.0.2.</p>
 </div>
 
       </footer>

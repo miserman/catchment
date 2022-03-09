@@ -6,11 +6,23 @@
 #' @return \code{catchment_weight}: A sparse matrix of weights.
 #' @export
 
-catchment_weight <- function(cost, weight = NULL, max_cost = NULL, scale = 2,
+catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros = 1e-6, scale = 2,
                              normalize_weight = FALSE, verbose = FALSE) {
   if (is.null(dim(cost))) cost <- matrix(cost, ncol = 1)
   if (is.data.frame(cost)) cost <- as.matrix(cost)
-  if (anyNA(cost)) cost[is.na(cost)] <- 0
+  if (is.numeric(adjust_zeros)) {
+    if (nrow(cost) == ncol(cost) && all(!is.na(diag(cost)) & diag(cost) == 0)) {
+      if (verbose) cli_alert_info("setting diagonal 0s to 1e-6")
+      diag(cost) <- adjust_zeros
+    }
+  }
+  if (anyNA(cost)) {
+    if (is.numeric(adjust_zeros) && any(!is.na(cost) & cost == 0)) {
+      if (verbose) cli_alert_info("setting non-NA 0s to 1e-6")
+      cost[!is.na(cost) & cost == 0] <- adjust_zeros
+    }
+    cost[is.na(cost)] <- 0
+  }
   if (is.numeric(weight) && is.null(dim(weight)) && length(weight) > 1) {
     weight <- matrix(weight, ncol = ncol(cost))
   }
