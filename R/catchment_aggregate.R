@@ -188,7 +188,7 @@ catchment_aggregate <- function(from, to = NULL, id = "GEOID", value = "access",
     if (verbose) cli_bullets(c(v = "returning sum of value per {.arg to} ID"))
     av[1, ]
   } else {
-    if (aggregate_consumers && ncol(av) != length(tcv)) aggregate_consumers < FALSE
+    if (aggregate_consumers && !is.null(tcv) && ncol(av) != length(tcv)) aggregate_consumers <- FALSE
     if (verbose) {
       cli_bullets(c(v = paste0(
         "returning sum of value over total {.arg ",
@@ -196,6 +196,12 @@ catchment_aggregate <- function(from, to = NULL, id = "GEOID", value = "access",
         "} consumers per {.arg to} ID"
       )))
     }
-    if (aggregate_consumers) av[1, ] / av[2, ] else av[1, ] / tcv
+    if (aggregate_consumers) {
+      av[2, av[2, ] == 0] <- 1
+      av[1, ] / av[2, ]
+    } else {
+      tcv[tcv == 0] <- 1
+      av[1, ] / tcv
+    }
   }
 }

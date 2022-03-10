@@ -210,12 +210,12 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
   # getting provider and consumer ids
   cid <- if (input_data[1]) {
-    if (!is.null(names(consumers))) {
-      if (verbose) cli_alert_info("consumers id: {.arg consumers} names")
-      names(consumers)
-    } else if (!missing(consumers_id) && length(cv) == length(consumers_id)) {
+    if (!missing(consumers_id) && length(cv) == length(consumers_id)) {
       if (verbose) cli_alert_info("consumers id: {.arg consumers_id} vector")
       consumers_id
+    } else if (!is.null(names(consumers))) {
+      if (verbose) cli_alert_info("consumers id: {.arg consumers} names")
+      names(consumers)
     } else if (!is.null(colnames(cost))) {
       if (verbose) cli_alert_info("consumers id: {.arg cost} column names")
       colnames(cost)
@@ -232,12 +232,12 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   }
   if (!length(cid)) cli_abort("failed to recognize IDs in {.arg consumers}")
   pid <- if (input_data[1]) {
-    if (!is.null(names(providers))) {
-      if (verbose) cli_alert_info("providers id: {.arg providers} names")
-      names(providers)
-    } else if (!missing(providers_id) && length(pv) == length(providers_id)) {
+    if (!missing(providers_id) && length(pv) == length(providers_id)) {
       if (verbose) cli_alert_info("providers id: {.arg providers_id} vector")
       providers_id
+    } else if (!is.null(names(providers))) {
+      if (verbose) cli_alert_info("providers id: {.arg providers} names")
+      names(providers)
     } else if (!is.null(colnames(cost))) {
       if (verbose) cli_alert_info("providers id: {.arg cost} column names")
       colnames(cost)
@@ -357,9 +357,10 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     w <- w_commutes * (1 - noncommuters) + w * noncommuters
   }
   wr <- rowSums(w)
-  if (!is.null(rownames(w)) && is.character(cid) &&
-    (!all(cid %in% rownames(w)) || length(cid) != nrow(w) || !all(cid == rownames(w)))) {
-    if (verbose) cli_alert_info("selected weight rows by consumers id names")
+  if (nrow(w) < length(cv) && !is.null(rownames(w)) &&
+    (!all(cid %in% rownames(w)) || !all(cid == rownames(w)))) {
+    if (verbose) cli_alert_info("selected weight rows by consumers ID names")
+    cid <- as.character(cid)
     mcs <- cid[!cid %in% rownames(w)]
     w <- rbind(
       w, sparseMatrix(
@@ -371,20 +372,35 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
       )
     )[cid, ]
   }
-  if (!is.null(colnames(w)) && is.character(pid) &&
-    (!all(pid %in% colnames(w)) || length(pid) != ncol(w) || !all(pid == colnames(w)))) {
-    if (verbose) cli_alert_info("selected weight columns by providers id names")
-    su <- pid %in% colnames(w)
+  if (!is.null(colnames(w)) && is.character(pid) && any(su <- pid %in% colnames(w)) &&
+    (!all(su) || length(pv) != ncol(w) || !all(pid == colnames(w)))) {
+    if (verbose) cli_alert_info("selected weight columns by providers ID names")
     pid <- pid[su]
     pv <- pv[su]
     w <- w[, pid]
   }
-  if (nrow(w) != length(cv) && is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) {
-    if (verbose) cli_alert_info("selected weight rows by consumers id indices")
+  if (nrow(w) != length(cv)) {
+    if (is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) {
+      if (verbose) cli_alert_info("selected weight rows by consumers ID indices")
+    } else if (any(su <- cid %in% rownames(w))) {
+      if (verbose) cli_alert_info("selected weight rows by consumers IDs")
+      cv <- cv[su]
+      cid <- as.character(cid[su])
+    } else {
+      cli_abort("consumers values are not the same length as weight rows, and could not be aligned by name")
+    }
     w <- w[cid, ]
   }
-  if (ncol(w) != length(pv) && is.numeric(pid) && min(pid) > 0 && max(pid) <= ncol(w)) {
-    if (verbose) cli_alert_info("selected weight rows by providers id indices")
+  if (ncol(w) != length(pv) && is.numeric(pid)) {
+    if (min(pid) > 0 && max(pid) <= ncol(w)) {
+      if (verbose) cli_alert_info("selected weight rows by providers ID indices")
+    } else if (any(su <- pid %in% colnames(w))) {
+      if (verbose) cli_alert_info("selected weight rows by providers IDs")
+      pv <- pv[su]
+      pid <- as.character(pid[su])
+    } else {
+      cli_abort("providers IDs are numeric, but are out of range or weights and do not all appear in its column names")
+    }
     w <- w[, pid]
   }
   if (!all(dim(w) == c(length(cv), length(pv)))) {
