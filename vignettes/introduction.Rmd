@@ -246,7 +246,7 @@ For example, you could multiply weights by 100 and get the same result:
 catchment_ratio(consumers, providers, weight = weight * 100)
 ```
 
-This may be counterintuitive when relative difference are held constant. For example, if a catchment area includes
+This may be counterintuitive when relative differences are held constant. For example, if a catchment area includes
 only 1 provider and 1 consumer, the consumer will always get an access score of 1 (`1 / 1`) regardless of their weight,
 as long as they are in range -- they could be 10 minutes from the provider or 2 hours and get the same score.
 
@@ -254,8 +254,8 @@ This highlights a potential issue with the interpretation of catchment ratios: T
 allocations of providers to consumers. Weights work to adjust those allocations, but we always end up with
 the same number of providers and consumers within range. That is, given a positive set of weights, scores can only
 range from 0 to 1. Scores will only be 0 if the location has a weight of 0, and scores will only reach 1 if
-they are the only location in range -- otherwise scores will infinity approach 0 and 1 as relative difference in
-weights increase.
+they are the only location in range -- otherwise, scores will infinity approach 0 and 1 as relative differences in
+weight increase.
 
 We can see this in a simple simulation:
 ```{r}
@@ -536,12 +536,12 @@ This is a very simplified, but conceptually similar version of the commuter-base
 area [CB2SFCA\; @fransen15].
 
 ### Multiple Modes
-We have also been assuming consumes all use the same mode of travel, such that their travel
+We have also been assuming consumers all use the same mode of travel, such that their travel
 costs are all the same. We can incorporate multiple modes of travel in a similar way, this time with
 separate cost matrices.
 
 Say our original cost matrix was based on travel time by car, but we knew some proportion of each
-consumer location did not have access to a car, and would walk to their provider. We can combined these in the
+consumer location did not have access to a car, and would walk to their provider. We can combine these in the
 same way we incorporated multiple origins:
 ```{r}
 # weight based on walking time

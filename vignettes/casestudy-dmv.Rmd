@@ -586,7 +586,8 @@ Here, we will apply a Gaussian decay function within catchment areas, then compa
 step-weighted scores:
 ```{r}
 data_combined$doctors_kd2sfca <- catchment_ratio(
-  data_combined, provider_locations, traveltimes, "gaussian", scale = 19,
+  data_combined, provider_locations, traveltimes, "gaussian",
+  scale = 19,
   consumers_value = "population", providers_id = "ID", providers_value = "doctors",
   verbose = TRUE, return_type = 1000
 )
