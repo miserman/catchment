@@ -188,7 +188,8 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     if (verbose) cli_alert_info("consumers value: {.field 1}")
     rep(1, nrow(consumers))
   }
-  if (!length(cv)) cli_abort("failed to recognize values in {.arg consumers}")
+  cn <- length(cv)
+  if (!cn) cli_abort("failed to recognize values in {.arg consumers}")
   pv <- if (input_data[1]) {
     if (is.null(providers)) {
       if (is.numeric(providers_value)) {
@@ -210,7 +211,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
   # getting provider and consumer ids
   cid <- if (input_data[1]) {
-    if (!missing(consumers_id) && length(cv) == length(consumers_id)) {
+    if (!missing(consumers_id) && cn == length(consumers_id)) {
       if (verbose) cli_alert_info("consumers id: {.arg consumers_id} vector")
       consumers_id
     } else if (!is.null(names(consumers))) {
@@ -313,14 +314,14 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         {},
         {},
         x = 0,
-        dims = c(length(cv), length(pv)),
+        dims = c(cn, length(pv)),
         dimnames = list(cid, pid)
       )
       cost[] <- 1
     }
   } else if (is.null(dim(cost))) {
     cost <- matrix(cost, length(cv))
-    if (identical(dim(cost), c(length(cv), length(pv)))) {
+    if (identical(dim(cost), c(cn, length(pv)))) {
       dimnames(cost) <- list(cid, pid)
       if (verbose) cli_alert_info("cost: {.arg cost} vector")
     } else {
@@ -335,7 +336,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   if (!is.null(consumers_commutes)) {
     dims <- dim(consumers_commutes)
     if (dims[1] != dims[2]) cli_abort("{.arg consumers_commutes} must be a square matrix")
-    if (dims[1] != length(cv) || (!is.null(colnames(consumers_commutes)) && !identical(pid, colnames(consumers_commutes)))) {
+    if (dims[1] != cn || (!is.null(colnames(consumers_commutes)) && !identical(pid, colnames(consumers_commutes)))) {
       if (all(cid %in% colnames(consumers_commutes)) || (is.numeric(cid) && dims[1] <= max(cid))) {
         if (verbose) cli_alert_info("ordering and/or trimming {.arg consumers_commutes} by {.arg consumers} IDs")
         if (is.numeric(cid) || (min(cid) > 0 && max(cid) > nrow(consumers_commutes))) cid <- as.character(cid)
@@ -356,8 +357,16 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     w_commutes <- consumers_commutes %*% (w / w_total) * w_total
     w <- w_commutes * (1 - noncommuters) + w * noncommuters
   }
+  if (
+    cn != nrow(w) &&
+      (cn == ncol(w) ||
+        (!is.null(rownames(w)) && !is.null(colnames(w)) && sum(cid %in% colnames(w)) > sum(cid %in% rownames(w)))
+      )
+  ) {
+    w <- t(w)
+  }
   wr <- rowSums(w)
-  if (nrow(w) < length(cv) && !is.null(rownames(w)) &&
+  if (nrow(w) < cn && !is.null(rownames(w)) &&
     (!all(cid %in% rownames(w)) || !all(cid == rownames(w)))) {
     if (verbose) cli_alert_info("selected weight rows by consumers ID names")
     cid <- as.character(cid)
@@ -379,7 +388,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     pv <- pv[su]
     w <- w[, pid]
   }
-  if (nrow(w) != length(cv)) {
+  if (nrow(w) != cn) {
     if (is.numeric(cid) && min(cid) > 0 && max(cid) <= nrow(w)) {
       if (verbose) cli_alert_info("selected weight rows by consumers ID indices")
     } else if (any(su <- cid %in% rownames(w))) {
@@ -403,7 +412,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     }
     w <- w[, pid]
   }
-  if (!all(dim(w) == c(length(cv), length(pv)))) {
+  if (!all(dim(w) == c(cn, length(pv)))) {
     cli_abort("failed to align weight matrix with consumer and provider values")
   }
   if (normalize_weight) {
