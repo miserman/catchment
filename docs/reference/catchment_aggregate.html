@@ -119,14 +119,14 @@ for each entry in <code>to</code>.</p>
 <span class="r-in">  consumers <span class="op">=</span> <span class="st">"pop"</span>, id <span class="op">=</span> <span class="st">"id"</span>, value <span class="op">=</span> <span class="st">"value"</span>,</span>
 <span class="r-in">  to_id <span class="op">=</span> <span class="st">"id"</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span class="r-in"><span class="op">)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> -- Aggregating Values ----------------------------------------------------------</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from IDs: `id` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from values: `value` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> consumers: `pop` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to IDs: `id` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to consumers: `pop` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> mapping: by first 3 character match</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">v</span> returning sum of value over total `to` consumers per `to` ID</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── Aggregating Values ──────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> from IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> from values: `value` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> to IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> to consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> mapping: by first 3 character match</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> returning sum of value over total `to` consumers per `to` ID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   100   110 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 0.100 0.036 </span>
 <span class="r-in"></span>
@@ -136,14 +136,14 @@ for each entry in <code>to</code>.</p>
 <span class="r-in">  consumers <span class="op">=</span> <span class="st">"pop"</span>, id <span class="op">=</span> <span class="st">"id"</span>, value <span class="op">=</span> <span class="st">"value"</span>,</span>
 <span class="r-in">  map <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"100"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1001</span>, <span class="fl">1003</span>, <span class="fl">1005</span><span class="op">)</span>, <span class="st">"110"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1102</span>, <span class="fl">1104</span><span class="op">)</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span class="r-in"><span class="op">)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> -- Aggregating Values ----------------------------------------------------------</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from IDs: `id` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> from values: `value` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> consumers: `pop` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to IDs: `id` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> to consumers: `pop` column</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">i</span> mapping: by map list</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">v</span> returning sum of value over total `to` consumers per `to` ID</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── Aggregating Values ──────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> from IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> from values: `value` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> to IDs: `id` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> to consumers: `pop` column</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> mapping: by map list</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> returning sum of value over total `to` consumers per `to` ID</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   100   110 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 0.100 0.036 </span>
 </code></pre></div>
@@ -160,8 +160,7 @@ for each entry in <code>to</code>.</p>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a>
-2.0.2.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
 </div>
 
       </footer></div>

@@ -111,7 +111,7 @@ plotmat(
   name = paste(rep(c("providers\n", "consumers\n"), c(2, 3)), c(1:2, 1:3)),
   box.type = rep(c("rect", "circle"), c(2, 3)),
   box.prop = rep(c(.5, 1), c(2, 3)),
-  box.size = rep(c(.07, .06), c(2, 3)), box.cex = rep(c(1.1, .8), c(2, 3)),
+  box.size = rep(c(.08, .06), c(2, 3)), box.cex = rep(c(1.1, .8), c(2, 3)),
   box.col = rep(c("#000000", "#cfcfcf"), c(2, 3)),
   txt.col = rep(c("#ffffff", "#000000"), c(2, 3)),
   arr.pos = arr, arr.lcol = arrcol, arr.col = arrcol
@@ -189,7 +189,7 @@ plotmat(
   name = paste(rep(c("providers\n", "consumers\n"), c(2, 3)), c(1:2, 1:3)),
   box.type = rep(c("rect", "circle"), c(2, 3)),
   box.prop = rep(c(.5, 1), c(2, 3)),
-  box.size = rep(c(.07, .06), c(2, 3)), box.cex = rep(c(1.1, .8), c(2, 3)),
+  box.size = rep(c(.08, .06), c(2, 3)), box.cex = rep(c(1.1, .8), c(2, 3)),
   box.col = rep(c("#000000", "#cfcfcf"), c(2, 3)),
   txt.col = rep(c("#ffffff", "#000000"), c(2, 3)),
   arr.pos = arr, arr.lcol = arrcol, arr.col = arrcol

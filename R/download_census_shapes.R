@@ -1,15 +1,15 @@
 #' Download and Prepare Map Shapes
 #'
-#' Download cartographic boundary files from the [U.S. Census Bureau](https://www.census.gov),
+#' Download cartographic boundary files from the \href{https://www.census.gov}{U.S. Census Bureau},
 #' and reformat them to simplified GeoJSON files.
 #'
 #' @param dir Path to a directory in which to save the reformatted files. If these are to be
 #' used in a published site, they should be in the \code{"docs"} directory of the site directory. If not specified,
 #' the shapes are downloaded and returned, but not saved.
 #' @param fips State Federal Information Processing Standard (FIPS) code, United States Postal Service (USPS)
-#' code, or name; see [state.txt](https://www2.census.gov/geo/docs/reference/state.txt).
+#' code, or name; see \href{state.txt}{https://www2.census.gov/geo/docs/reference/state.txt}.
 #' @param entity Entity name (e.g., \code{"county"}, \code{"tract"}, or \code{"bg"}); see
-#' [2019_file_name_def.pdf](https://www2.census.gov/geo/tiger/GENZ2019/2019_file_name_def.pdf)
+#' \href{2019_file_name_def.pdf}{https://www2.census.gov/geo/tiger/GENZ2019/2019_file_name_def.pdf}
 #' (or appropriate year's file). States and counties are only available at the national level, so if these are
 #' requested for a particular state, the national files will be downloaded and subset.
 #' @param name Name for the GeoJSON file (without extension) to be written.

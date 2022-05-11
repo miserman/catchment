@@ -14,10 +14,10 @@ used in a published site, they should be in the \code{"docs"} directory of the s
 the shapes are downloaded and returned, but not saved.}
 
 \item{fips}{State Federal Information Processing Standard (FIPS) code, United States Postal Service (USPS)
-code, or name; see [state.txt](https://www2.census.gov/geo/docs/reference/state.txt).}
+code, or name; see \href{state.txt}{https://www2.census.gov/geo/docs/reference/state.txt}.}
 
 \item{entity}{Entity name (e.g., \code{"county"}, \code{"tract"}, or \code{"bg"}); see
-[2019_file_name_def.pdf](https://www2.census.gov/geo/tiger/GENZ2019/2019_file_name_def.pdf)
+\href{2019_file_name_def.pdf}{https://www2.census.gov/geo/tiger/GENZ2019/2019_file_name_def.pdf}
 (or appropriate year's file). States and counties are only available at the national level, so if these are
 requested for a particular state, the national files will be downloaded and subset.}
 
@@ -42,7 +42,7 @@ you might want to specify \code{keep} and set \code{keep_shapes} to \code{TRUE}.
 An \code{sf} \code{data.frame} with a geometry column containing shapes, and other features in columns.
 }
 \description{
-Download cartographic boundary files from the [U.S. Census Bureau](https://www.census.gov),
+Download cartographic boundary files from the \href{https://www.census.gov}{U.S. Census Bureau},
 and reformat them to simplified GeoJSON files.
 }
 \examples{
