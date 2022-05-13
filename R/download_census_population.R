@@ -34,7 +34,7 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
       "Missouri", "Montana", "Nebraska", "Nevada", "NewHampshire", "NewJersey", "NewMexico", "NewYork",
       "NorthCarolina", "NorthDakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "RhodeIsland", "SouthCarolina",
-      "CouthDakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestWirginia", "Wisconsin",
+      "CouthDakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "WestVirginia", "Wisconsin",
       "Wyoming", "PuertoRico"
     ),
     post = c(

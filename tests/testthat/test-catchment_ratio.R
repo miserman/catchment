@@ -198,6 +198,14 @@ test_that("consumers and providers get aligned with cost and weights", {
   expect_equal(full, catchment_ratio(co[is], pr, cost, 40))
 })
 
+test_that("missing consumer and provider values are handled", {
+  cost <- matrix(rnorm(5^2, 400, 100), 5)
+  expect_identical(
+    catchment_ratio(c(1, 2, 0, 4, 5), c(0, 2, 3, 4, 5), cost),
+    catchment_ratio(c(1, 2, NA, 4, 5), c(NA, 2, 3, 4, 5), cost)
+  )
+})
+
 test_that("non-missing 0s are handled", {
   cost <- cost_adj <- 1 / lma_simets(data.frame(x = 1:5, y = 1:5), metric = "euc", symmetrical = TRUE) - 1
   diag(cost_adj) <- 1e-6

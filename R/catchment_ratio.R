@@ -190,6 +190,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   }
   cn <- length(cv)
   if (!cn) cli_abort("failed to recognize values in {.arg consumers}")
+  if (anyNA(cv)) cv[is.na(cv)] <- 0
   pv <- if (input_data[1]) {
     if (is.null(providers)) {
       if (is.numeric(providers_value)) {
@@ -209,6 +210,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     rep(1, nrow(providers))
   }
   if (!length(pv)) cli_abort("failed to recognize values in {.arg providers}")
+  if (anyNA(pv)) pv[is.na(pv)] <- 0
   # getting provider and consumer ids
   cid <- if (input_data[1]) {
     if (!missing(consumers_id) && cn == length(consumers_id)) {
