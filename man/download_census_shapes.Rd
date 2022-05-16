@@ -23,7 +23,7 @@ requested for a particular state, the national files will be downloaded and subs
 
 \item{name}{Name for the GeoJSON file (without extension) to be written.}
 
-\item{year}{Year of the shapes, 2010 and after.}
+\item{year}{Year of the shapes, 2013 and after.}
 
 \item{resolution}{Resolution of the shapes; one of \code{"500k"} (default), \code{"5m"}, or \code{"20m"}.}
 

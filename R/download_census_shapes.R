@@ -13,7 +13,7 @@
 #' (or appropriate year's file). States and counties are only available at the national level, so if these are
 #' requested for a particular state, the national files will be downloaded and subset.
 #' @param name Name for the GeoJSON file (without extension) to be written.
-#' @param year Year of the shapes, 2010 and after.
+#' @param year Year of the shapes, 2013 and after.
 #' @param resolution Resolution of the shapes; one of \code{"500k"} (default), \code{"5m"}, or \code{"20m"}.
 #' @param strip_features Logical; if \code{TRUE}, will strip all features other than IDs.
 #' @param simplify A function to simplify shapes with, such as \code{rmapshaper::ms_simplify}. This
@@ -76,7 +76,7 @@ download_census_shapes <- function(dir = NULL, fips = "us", entity = "state", na
   fips <- us_fips$fips[fid]
   if (nchar(fips) == 1) fips <- paste0("0", fips)
   if (nchar(year) < 4) year <- as.numeric(paste0("20", year))
-  if (year < 2010) cli_abort("only years 2010 and after are available from this function")
+  if (year < 2013) cli_abort("only years 2013 and after are available from this function")
   entity <- tolower(entity)
   entity <- match.arg(entity, entities)
   subset <- NULL
@@ -87,7 +87,7 @@ download_census_shapes <- function(dir = NULL, fips = "us", entity = "state", na
   resolution <- tolower(resolution)
   resolution <- match.arg(resolution, c("500k", "5m", "20m"))
   file <- paste0("cb_", year, "_", fips, "_", entity, "_", resolution)
-  url <- paste0("https://www2.census.gov/geo/tiger/GENZ", year, "/shp/", file, ".zip")
+  url <- paste0("https://www2.census.gov/geo/tiger/GENZ", year, if (year == 2013) "/" else "/shp/", file, ".zip")
   temp <- tempdir()
   temp_file <- paste0(temp, "/", file, ".zip")
   out_file <- paste0(dir, "/", if (!is.null(name)) name else file, ".geojson")
