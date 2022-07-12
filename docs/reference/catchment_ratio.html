@@ -35,6 +35,9 @@
       <a href="../articles/casestudy-dmv.html">Case Study - National Capital Region</a>
     </li>
     <li>
+      <a href="../articles/casestudy-rural_urban.html">Case Study - Virginia Counties</a>
+    </li>
+    <li>
       <a href="../articles/introduction.html">Introduction to Floating Catchment Areas</a>
     </li>
   </ul></li>
@@ -57,18 +60,18 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">catchment_ratio</span><span class="op">(</span>consumers <span class="op">=</span> <span class="cn">NULL</span>, providers <span class="op">=</span> <span class="cn">NULL</span>, cost <span class="op">=</span> <span class="cn">NULL</span>,
-  weight <span class="op">=</span> <span class="cn">NULL</span>, normalize_weight <span class="op">=</span> <span class="cn">FALSE</span>, scale <span class="op">=</span> <span class="fl">2</span>, max_cost <span class="op">=</span> <span class="cn">NULL</span>,
-  adjust_consumers <span class="op">=</span> <span class="cn">NULL</span>, adjust_providers <span class="op">=</span> <span class="cn">NULL</span>, adjust_zeros <span class="op">=</span> <span class="fl">1e-06</span>,
-  return_type <span class="op">=</span> <span class="st">"original"</span>, consumers_commutes <span class="op">=</span> <span class="cn">NULL</span>,
-  consumers_id <span class="op">=</span> <span class="st">"GEOID"</span>, consumers_value <span class="op">=</span> <span class="st">"count"</span>,
-  consumers_location <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>, providers_id <span class="op">=</span> <span class="st">"GEOID"</span>,
-  providers_value <span class="op">=</span> <span class="st">"count"</span>, providers_location <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>,
-  verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
-
-<span class="fu">catchment_weight</span><span class="op">(</span><span class="va">cost</span>, weight <span class="op">=</span> <span class="cn">NULL</span>, max_cost <span class="op">=</span> <span class="cn">NULL</span>,
-  adjust_zeros <span class="op">=</span> <span class="fl">1e-06</span>, scale <span class="op">=</span> <span class="fl">2</span>, normalize_weight <span class="op">=</span> <span class="cn">FALSE</span>,
-  verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">catchment_ratio</span><span class="op">(</span>consumers <span class="op">=</span> <span class="cn">NULL</span>, providers <span class="op">=</span> <span class="cn">NULL</span>, cost <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  weight <span class="op">=</span> <span class="cn">NULL</span>, normalize_weight <span class="op">=</span> <span class="cn">FALSE</span>, scale <span class="op">=</span> <span class="fl">2</span>, max_cost <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adjust_consumers <span class="op">=</span> <span class="cn">NULL</span>, adjust_providers <span class="op">=</span> <span class="cn">NULL</span>, adjust_zeros <span class="op">=</span> <span class="fl">1e-06</span>,</span>
+<span>  return_type <span class="op">=</span> <span class="st">"original"</span>, consumers_commutes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  consumers_id <span class="op">=</span> <span class="st">"GEOID"</span>, consumers_value <span class="op">=</span> <span class="st">"count"</span>,</span>
+<span>  consumers_location <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>, providers_id <span class="op">=</span> <span class="st">"GEOID"</span>,</span>
+<span>  providers_value <span class="op">=</span> <span class="st">"count"</span>, providers_location <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="st">"Y"</span><span class="op">)</span>,</span>
+<span>  distance_metric <span class="op">=</span> <span class="st">"euclidean"</span>, distance_scale <span class="op">=</span> <span class="fl">1</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">catchment_weight</span><span class="op">(</span><span class="va">cost</span>, weight <span class="op">=</span> <span class="cn">NULL</span>, max_cost <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  adjust_zeros <span class="op">=</span> <span class="fl">1e-06</span>, scale <span class="op">=</span> <span class="fl">2</span>, normalize_weight <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -77,10 +80,14 @@
 <dd><p>Number of consumers (demand); either a vector with consumer amounts (such as population counts),
 or a matrix-like object with a column of IDs (located by <code>consumers_id</code>) and a column of amounts (located by
 <code>consumers_value</code>).</p></dd>
+
+
 <dt>providers</dt>
 <dd><p>Number of providers (supply); either a vector with provider amounts (such as number of doctors),
 or a matrix-like object with a column of IDs (located by <code>providers_id</code>) and a column of amounts (located by
 <code>providers_value</code>).</p></dd>
+
+
 <dt>cost</dt>
 <dd><p>A matrix-like object of cost associated with each pair of <code>consumers</code> and <code>providers</code>
 (such as distance or travel times), with <code>consumers</code> in rows and <code>providers</code> in columns.
@@ -90,6 +97,8 @@ If <code>NULL</code>, coordinate information will be looked for in <code>consume
 <code>consumers_location</code> and <code>providers_location</code>), from which to calculate Euclidean distances.
 Costs equal to <code>0</code> are treated as missing, so any truly <code>0</code> costs should be set to some minimal value.
 In some cases, <code>0</code>s are automatically adjusted; see the <code>adjust_zeros</code> argument.</p></dd>
+
+
 <dt>weight</dt>
 <dd><p>Means of defining catchment areas and their topology / friction / impedance. The simplest is a single
 number representing a maximum distance between <code>consumers</code> and <code>providers</code> (2-step floating catchment area;
@@ -101,18 +110,26 @@ area; E2SFCA; Lou &amp; Qi 2009). If a character, refers to a weighting function
 catchment area; KD2SFCA; Dai, 2010; in order from most gradual to steepest between costs of <code>1</code> and <code>6</code>):</p><table class="table table"><tr><td><code>linear</code> (<code>li</code>)</td><td><code>{w &lt;- (scale - cost) / scale; w[w &lt; 0] &lt;- 0; w}</code></td></tr><tr><td><code>gaussian</code> (<code>ga</code>)</td><td><code>exp(-cost^2 / (2 * scale ^ 2))</code></td></tr><tr><td><code>d*</code> (name of a density function; e.g., <code>"dnorm"</code>)</td><td><code>weight(cost, 0, scale)</code></td></tr><tr><td><code>p*</code> (name of a distribution function; e.g., <code>"pnorm"</code>)</td><td><code>weight(-cost, 0, scale)</code></td></tr><tr><td><code>gravity</code> / <code>normal</code> (<code>gr</code> or <code>n</code>)</td><td><code>sqrt(1 / cost^scale)</code></td></tr><tr><td><code>logarithmic</code> (<code>loga</code>)</td><td><code>1 / (1 + log(cost, scale))</code></td></tr><tr><td><code>logistic</code> (<code>l</code>)</td><td><code>1 / (1 + exp(scale * cost))</code></td></tr><tr><td><code>exponential</code> (<code>e</code>)</td><td><code>exp(-cost * scale)</code></td></tr></table><p>If a function, this will be passed <code>cost</code> as its first argument -- its output should be a matrix
 convertible to a sparse matrix, of the same dimensions as <code>cost</code>. If a matrix-like object,
 this will be converted to a sparse matrix.</p></dd>
+
+
 <dt>normalize_weight</dt>
 <dd><p>Logical; if <code>TRUE</code>, weight is row-normalized such that <code>consumers</code> weights
 are spread across <code>providers</code> in range. This can help correct for the increased weight of <code>consumers</code>
 when they are in range of multiple <code>providers</code>. Selection weights like this make the difference between 2-
 and 3-step floating catchment areas (3SFCA; Wan, Zou, &amp; Sternberg, 2012).</p></dd>
+
+
 <dt>scale</dt>
 <dd><p>Numeric scaling factor if <code>weight</code> is the name of a decay function.</p></dd>
+
+
 <dt>max_cost</dt>
 <dd><p>Numeric limit on <code>cost</code>. This is the same as setting <code>weight</code> to a single value,
 or specifying a list of steps as <code>weight</code> (where the most distant step is effectively <code>max_cost</code>),
 although a single-value weight is exclusive (<code>cost &lt; weight</code>) where steps are inclusive. This is most useful
 when <code>weight</code> is a weighing function, where <code>max_cost</code> will trim the tail of the weight distribution.</p></dd>
+
+
 <dt>adjust_consumers, adjust_providers</dt>
 <dd><p>A function to adjust weights when applied to <code>consumers</code> or
 <code>providers</code>; should take the sparse weight matrix as its first argument, and return an adjusted matrix of the
@@ -122,10 +139,14 @@ balanced floating catchment area (BFCA; Paez, Higgins, &amp; Vivona, 2019) with 
 <code>function(w) w / rowSums(w)</code> and <code>adjust_providers = function(w) sweep(w, 2, colSums(w), "/")</code>.
 When weights are adjusted independently in this way, region scores will likely no longer sum to the sum
 of <code>providers</code> (fewer than the total number of providers will be distributed).</p></dd>
+
+
 <dt>adjust_zeros</dt>
 <dd><p>A number to set real <code>0</code>s to, in case <code>cost</code> is symmetrical and all its diagonal
 values are <code>0</code> (assumed to be distance from self), or <code>NA</code>s are also present. Set to <code>FALSE</code>
 to prevent <code>0</code>s from being adjusted.</p></dd>
+
+
 <dt>return_type</dt>
 <dd><p>Determines the values that are returned: <code>"original"</code> (default) for <code>providers</code>
 per <code>consumers</code> (e.g., how many, likely fractional, doctors are accessible by each person within each region),
@@ -133,25 +154,41 @@ per <code>consumers</code> (e.g., how many, likely fractional, doctors are acces
 how many doctors are accessible within each region), or <code>"normalized"</code> for <code>original</code> divided by
 <code>sum(region) / sum(consumers)</code>. Can also be a number by which to multiply the original values (e.g., <code>1000</code>
 for <code>providers</code> per 1,000 <code>consumers</code>).</p></dd>
+
+
 <dt>consumers_commutes</dt>
 <dd><p>A square, consumers source x consumers origin matrix with counts of origins,
 used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
 may work in locations 1 and 3, so the first row of <code>consumers_commutes</code> should have values in columns 1 and 3).
 This can also be entered in place of <code>consumers</code>, assuming it includes all consumers (e.g., in a worker commute
 matrix, you may need to add non-workers to the diagonal, if they are also consumers).</p></dd>
+
+
 <dt>consumers_id, consumers_value, consumers_location, providers_id, providers_value, providers_location</dt>
 <dd><p>Column
 names in <code>consumers</code> and/or <code>providers</code> to extract IDs, values, and location data (referring to a single
 <code>sf</code> geometry column, or multiple columns with coordinates). These can also be used to directly enter
 ID, value, and/or location vectors (or matrices for location coordinates).</p></dd>
+
+
+<dt>distance_metric</dt>
+<dd><p>Name of the distance metric to be used, if costs are being calculated from coordinates;
+defaults to <code>"euclidean"</code>; see <code><a href="https://rdrr.io/pkg/lingmatch/man/lma_simets.html" class="external-link">lma_simets</a></code>.</p></dd>
+
+
 <dt>verbose</dt>
 <dd><p>Logical; if <code>TRUE</code>, will print logs, and the type of floating catchment area that was calculated.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p><code>catchment_ratio</code>: A vector with an access score (determined by <code>return_type</code>)
-for each entry in <code>consumers</code>.
-<code>catchment_weight</code>: A sparse matrix of weights.</p>
+    
+
+<p><code>catchment_ratio</code>: A vector with an access score (determined by <code>return_type</code>)
+for each entry in <code>consumers</code>.</p>
+
+
+<p><code>catchment_weight</code>: A sparse matrix of weights.</p>
     </div>
     <div id="references">
     <h2>References</h2>
@@ -177,58 +214,58 @@ doi: <a href="https://doi.org/10.1080/13658816.2011.624987" class="external-link
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span>, <span class="fl">50</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">doc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">travel_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">50</span>, <span class="fl">25</span>, <span class="fl">70</span>, <span class="fl">40</span>, <span class="fl">30</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># 2-step floating catchment area</span></span>
-<span class="r-in"><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="fl">30</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span>, <span class="fl">50</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">doc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">travel_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">50</span>, <span class="fl">25</span>, <span class="fl">70</span>, <span class="fl">40</span>, <span class="fl">30</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 2-step floating catchment area</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="fl">30</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9090909 0.0000000 0.9090909</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># kernel density (Gaussian) 2-step floating catchment area</span></span>
-<span class="r-in"><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="st">"gaussian"</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># kernel density (Gaussian) 2-step floating catchment area</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="st">"gaussian"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.000000e+01 1.383897e-85 2.678637e-32</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># enhanced 2-step floating catchment area</span></span>
-<span class="r-in"><span class="va">step_weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">.22</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">.68</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-in"><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># enhanced 2-step floating catchment area</span></span></span>
+<span class="r-in"><span><span class="va">step_weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">.22</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">.68</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.213592 1.933657 2.491909</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># modified 2-step floating catchment area</span></span>
-<span class="r-in"><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span>, adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="va">m</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># modified 2-step floating catchment area</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span>, adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">m</span><span class="op">)</span> <span class="va">m</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.213592 1.192071 1.694498</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># balanced 2-step floating catchment area</span></span>
-<span class="r-in"><span class="fu">catchment_ratio</span><span class="op">(</span></span>
-<span class="r-in">  <span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span>,</span>
-<span class="r-in">  adjust_consumers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="st">"/"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span class="r-in">  adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="st">"/"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span class="r-in"><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># balanced 2-step floating catchment area</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_ratio</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span>,</span></span>
+<span class="r-in"><span>  adjust_consumers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="st">"/"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  adjust_providers <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="va">w</span>, <span class="fl">2</span>, <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>, <span class="st">"/"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.8111031 1.7142789 2.0873863</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># 3-step floating catchment area</span></span>
-<span class="r-in"><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span>, normalize_weight <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># 3-step floating catchment area</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_ratio</span><span class="op">(</span><span class="va">pop</span>, <span class="va">doc</span>, <span class="va">travel_time</span>, <span class="va">step_weights</span>, normalize_weight <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2.218497 2.440125 2.290125</span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># visualized weight functions</span></span>
-<span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://miserman.github.io/splot/" class="external-link">"splot"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in">  <span class="va">cost</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span></span>
-<span class="r-in">  <span class="va">scale</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
-<span class="r-in">  <span class="fu"><a href="https://rdrr.io/pkg/splot/man/splot.html" class="external-link">splot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span class="r-in">    linear <span class="op">=</span> <span class="op">(</span><span class="fl">10</span> <span class="op">-</span> <span class="va">cost</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span>,</span>
-<span class="r-in">    gaussian <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">cost</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">scale</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
-<span class="r-in">    dnorm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">cost</span>, <span class="fl">0</span>, <span class="va">scale</span><span class="op">)</span>,</span>
-<span class="r-in">    pnorm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">pnorm</a></span><span class="op">(</span><span class="op">-</span><span class="va">cost</span>, <span class="fl">0</span>, <span class="va">scale</span><span class="op">)</span>,</span>
-<span class="r-in">    gravity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">cost</span><span class="op">^</span><span class="va">scale</span><span class="op">)</span>,</span>
-<span class="r-in">    logarithmic <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">cost</span>, <span class="va">scale</span><span class="op">)</span><span class="op">)</span>,</span>
-<span class="r-in">    logistic <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">scale</span> <span class="op">*</span> <span class="va">cost</span><span class="op">)</span><span class="op">)</span>,</span>
-<span class="r-in">    exponential <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">cost</span> <span class="op">*</span> <span class="va">scale</span><span class="op">)</span></span>
-<span class="r-in">  <span class="op">)</span> <span class="op">~</span> <span class="va">cost</span>, title <span class="op">=</span> <span class="st">"Decay Functions"</span>, laby <span class="op">=</span> <span class="st">"Weight"</span>, labx <span class="op">=</span> <span class="st">"Cost"</span>, lines <span class="op">=</span> <span class="st">"con"</span>, note <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># visualized weight functions</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="st"><a href="https://miserman.github.io/splot/" class="external-link">"splot"</a></span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">cost</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span></span></span>
+<span class="r-in"><span>  <span class="va">scale</span> <span class="op">&lt;-</span> <span class="fl">2</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/pkg/splot/man/splot.html" class="external-link">splot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    linear <span class="op">=</span> <span class="op">(</span><span class="fl">10</span> <span class="op">-</span> <span class="va">cost</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>    gaussian <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">cost</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">scale</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    dnorm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">cost</span>, <span class="fl">0</span>, <span class="va">scale</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    pnorm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">pnorm</a></span><span class="op">(</span><span class="op">-</span><span class="va">cost</span>, <span class="fl">0</span>, <span class="va">scale</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    gravity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">cost</span><span class="op">^</span><span class="va">scale</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    logarithmic <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">cost</span>, <span class="va">scale</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    logistic <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">scale</span> <span class="op">*</span> <span class="va">cost</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    exponential <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">cost</span> <span class="op">*</span> <span class="va">scale</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span> <span class="op">~</span> <span class="va">cost</span>, title <span class="op">=</span> <span class="st">"Decay Functions"</span>, laby <span class="op">=</span> <span class="st">"Weight"</span>, labx <span class="op">=</span> <span class="st">"Cost"</span>, lines <span class="op">=</span> <span class="st">"con"</span>, note <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-plt img"><img src="catchment_ratio-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"></span>
-<span class="r-in"><span class="co"># gives weight only to costs under 2</span></span>
-<span class="r-in"><span class="fu">catchment_weight</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># gives weight only to costs under 2</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_weight</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3 x 2 sparse Matrix of class "dgCMatrix"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 1 .</span>
@@ -248,7 +285,7 @@ doi: <a href="https://doi.org/10.1080/13658816.2011.624987" class="external-link
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

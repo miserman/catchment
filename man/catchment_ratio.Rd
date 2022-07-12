@@ -12,7 +12,7 @@ catchment_ratio(consumers = NULL, providers = NULL, cost = NULL,
   consumers_id = "GEOID", consumers_value = "count",
   consumers_location = c("X", "Y"), providers_id = "GEOID",
   providers_value = "count", providers_location = c("X", "Y"),
-  verbose = FALSE)
+  distance_metric = "euclidean", distance_scale = 1, verbose = FALSE)
 
 catchment_weight(cost, weight = NULL, max_cost = NULL,
   adjust_zeros = 1e-06, scale = 2, normalize_weight = FALSE,
@@ -102,6 +102,9 @@ matrix, you may need to add non-workers to the diagonal, if they are also consum
 names in \code{consumers} and/or \code{providers} to extract IDs, values, and location data (referring to a single
 \code{sf} geometry column, or multiple columns with coordinates). These can also be used to directly enter
 ID, value, and/or location vectors (or matrices for location coordinates).}
+
+\item{distance_metric}{Name of the distance metric to be used, if costs are being calculated from coordinates;
+defaults to \code{"euclidean"}; see \code{\link[lingmatch]{lma_simets}}.}
 
 \item{verbose}{Logical; if \code{TRUE}, will print logs, and the type of floating catchment area that was calculated.}
 }

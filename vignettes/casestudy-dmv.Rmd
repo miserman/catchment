@@ -13,9 +13,7 @@ link-citations: true
 ---
 
 *Built with R 
-`r getRversion()`
-on 
-`r format(Sys.time(),'%B %d %Y')`*
+`r getRversion()`*
 
 ***
 

@@ -3,7 +3,7 @@ template:
 
 reference:
 - title: Main Functions
-  desc: This functions are used to calculate 2- or 3-step floating catchment area ratios.
+  desc: These functions are used to calculate 2- or 3-step floating catchment area ratios.
   contents:
   - catchment_ratio
 
@@ -16,6 +16,10 @@ reference:
   - catchment_connections
   - catchment_network
   - simulate_catchments
+
+- title: internal
+  contents:
+  - catchment-package
 
 home:
   links:

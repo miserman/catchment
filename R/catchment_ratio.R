@@ -74,6 +74,8 @@
 #' names in \code{consumers} and/or \code{providers} to extract IDs, values, and location data (referring to a single
 #' \code{sf} geometry column, or multiple columns with coordinates). These can also be used to directly enter
 #' ID, value, and/or location vectors (or matrices for location coordinates).
+#' @param distance_metric Name of the distance metric to be used, if costs are being calculated from coordinates;
+#' defaults to \code{"euclidean"}; see \code{\link[lingmatch]{lma_simets}}.
 #' @param verbose Logical; if \code{TRUE}, will print logs, and the type of floating catchment area that was calculated.
 #' @examples
 #' pop <- c(5, 10, 50)
@@ -150,7 +152,8 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
                             scale = 2, max_cost = NULL, adjust_consumers = NULL, adjust_providers = NULL,
                             adjust_zeros = 1e-6, return_type = "original", consumers_commutes = NULL, consumers_id = "GEOID",
                             consumers_value = "count", consumers_location = c("X", "Y"), providers_id = "GEOID",
-                            providers_value = "count", providers_location = c("X", "Y"), verbose = FALSE) {
+                            providers_value = "count", providers_location = c("X", "Y"),
+                            distance_metric = "euclidean", distance_scale = 1, verbose = FALSE) {
   if (verbose) cli_rule("Calculating a Floating Catchment Area Ratio")
   type <- ""
   if (is.null(consumers_commutes)) {
@@ -297,8 +300,8 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
         pcords <- st_coordinates(pcords)
       }
       if (ncol(pcords) == ncol(ccords)) {
-        if (verbose) cli_alert_info("cost: calculated Euclidean distances")
-        cost <- 1 / lma_simets(ccords, pcords, metric = "euclidean", pairwise = TRUE) - 1
+        if (verbose) cli_alert_info(paste("cost: calculated", distance_metric, "distances"))
+        cost <- 1 / lma_simets(ccords, pcords, metric = distance_metric, pairwise = TRUE) - 1
         if (is.null(dim(cost))) {
           cost <- t(cost)
           if (nrow(pcords) == 1) cost <- t(cost)
@@ -405,12 +408,16 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   if (ncol(w) != length(pv) && is.numeric(pid)) {
     if (min(pid) > 0 && max(pid) <= ncol(w)) {
       if (verbose) cli_alert_info("selected weight rows by providers ID indices")
-    } else if (any(su <- pid %in% colnames(w))) {
-      if (verbose) cli_alert_info("selected weight rows by providers IDs")
-      pv <- pv[su]
-      pid <- as.character(pid[su])
     } else {
-      cli_abort("providers IDs are numeric, but are out of range or weights and do not all appear in its column names")
+      pid_len <- nchar(colnames(w)[1])
+      if (all(nchar(colnames(w)) == pid_len)) pid <- formatC(pid, width = pid_len, flag = 0)
+      if (any(su <- pid %in% colnames(w))) {
+        if (verbose) cli_alert_info("selected weight rows by providers IDs")
+        pv <- pv[su]
+        pid <- as.character(pid[su])
+      } else {
+        cli_abort("providers IDs are numeric, but are out of range or weights and do not all appear in its column names")
+      }
     }
     w <- w[, pid]
   }

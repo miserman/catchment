@@ -101,7 +101,11 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     # column names
     headers <- read.csv(paste0(
       "https://www2.census.gov/programs-surveys/acs/summary_file/", year,
-      "/documentation/user_tools/ACS_5yr_Seq_Table_Number_Lookup.txt"
+      "/documentation/", if (year < 2013) {
+        "5_year/user_tools/Sequence_Number_and_Table_Number_Lookup"
+      } else {
+        "user_tools/ACS_5yr_Seq_Table_Number_Lookup"
+      }, ".txt"
     ), nrows = 661)
     title_id <- which(headers$Total.Cells.in.Table != "")
     names <- sub("^Universe:\\s*", "", headers$Table.Title)

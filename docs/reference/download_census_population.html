@@ -36,6 +36,9 @@ optionally including home-work commute statistics."><meta property="og:image" co
       <a href="../articles/casestudy-dmv.html">Case Study - National Capital Region</a>
     </li>
     <li>
+      <a href="../articles/casestudy-rural_urban.html">Case Study - Virginia Counties</a>
+    </li>
+    <li>
       <a href="../articles/introduction.html">Introduction to Floating Catchment Areas</a>
     </li>
   </ul></li>
@@ -59,46 +62,66 @@ optionally including home-work commute statistics.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">download_census_population</span><span class="op">(</span><span class="va">dir</span>, <span class="va">state</span>, year <span class="op">=</span> <span class="fl">2019</span>,
-  include_margins <span class="op">=</span> <span class="cn">FALSE</span>, include_commutes <span class="op">=</span> <span class="cn">FALSE</span>, counties <span class="op">=</span> <span class="cn">NULL</span>,
-  tracts <span class="op">=</span> <span class="cn">NULL</span>, blockgroups <span class="op">=</span> <span class="cn">NULL</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">download_census_population</span><span class="op">(</span><span class="va">dir</span>, <span class="va">state</span>, year <span class="op">=</span> <span class="fl">2019</span>,</span>
+<span>  include_margins <span class="op">=</span> <span class="cn">FALSE</span>, include_commutes <span class="op">=</span> <span class="cn">FALSE</span>, counties <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tracts <span class="op">=</span> <span class="cn">NULL</span>, blockgroups <span class="op">=</span> <span class="cn">NULL</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>dir</dt>
 <dd><p>Directory in which to save the file(s).</p></dd>
+
+
 <dt>state</dt>
 <dd><p>Name, abbreviation, or FIPS code of the state.</p></dd>
+
+
 <dt>year</dt>
 <dd><p>4 digit year, between 2009 and the most recent year.</p></dd>
+
+
 <dt>include_margins</dt>
 <dd><p>Logical; if <code>TRUE</code>, will save and include estimate margins or error, which is a
 <code>data.frame</code> with the same dimensions as the estimates <code>data.frame</code>.</p></dd>
+
+
 <dt>include_commutes</dt>
 <dd><p>Logical; if <code>TRUE</code>, will download the Longitudinal Employer-Household Dynamics (LEHD)
 Origin-Destination Employment Statistics (LODES) data for the state and block groups within selected tracts.</p></dd>
+
+
 <dt>counties, tracts, blockgroups</dt>
 <dd><p>A vector of counties, tracts, or block group GEOIDs within the specified state to
 filter block groups for (block groups within the specified counties or tracts, or matching the specified block group
 GEOID). Only one can be specified (lower levels overwrite higher levels). Defaults to all block groups.</p></dd>
+
+
 <dt>overwrite</dt>
 <dd><p>Logical; if <code>TRUE</code>, will remove any existing files before downloading and saving new versions.</p></dd>
+
+
 <dt>verbose</dt>
 <dd><p>Logical; if <code>FALSE</code>, will not print status messages.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A list with at least an <code>estimates</code> entry, and optionally <code>margins</code> and/or <code>commutes</code>entries. The <code>extimates</code> and <code>margins</code> entries are <code>data.frame</code>s with block groups in rows,
+    
+
+<p>A list with at least an <code>estimates</code> entry, and optionally <code>margins</code> and/or <code>commutes</code></p>
+
+
+<p>entries. The <code>extimates</code> and <code>margins</code> entries are <code>data.frame</code>s with block groups in rows,
 population variables in columns, and person counts in cells. The <code>commutes</code> entry is a sparse matrix with
 home block groups in rows, work block groups in columns, and job counts in cells (all jobs, summed across blocks).</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in"><span class="fu">download_census_population</span><span class="op">(</span><span class="st">"."</span>, <span class="st">"va"</span><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="fu">download_census_population</span><span class="op">(</span><span class="st">"."</span>, <span class="st">"va"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -113,7 +136,7 @@ home block groups in rows, work block groups in columns, and job counts in cells
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

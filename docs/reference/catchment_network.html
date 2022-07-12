@@ -35,6 +35,9 @@
       <a href="../articles/casestudy-dmv.html">Case Study - National Capital Region</a>
     </li>
     <li>
+      <a href="../articles/casestudy-rural_urban.html">Case Study - Virginia Counties</a>
+    </li>
+    <li>
       <a href="../articles/introduction.html">Introduction to Floating Catchment Areas</a>
     </li>
   </ul></li>
@@ -57,7 +60,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">catchment_network</span><span class="op">(</span><span class="va">connections</span>, from_start <span class="op">=</span> <span class="cn">NULL</span>, to_start <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">catchment_network</span><span class="op">(</span><span class="va">connections</span>, from_start <span class="op">=</span> <span class="cn">NULL</span>, to_start <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -65,51 +68,53 @@
     <dl><dt>connections</dt>
 <dd><p>A list- or matrix-like object with <code>"from"</code> and <code>"to"</code> entries, such as that
 returned from <code><a href="catchment_connections.html">catchment_connections</a></code>.</p></dd>
+
+
 <dt>from_start, to_start</dt>
 <dd><p>The ID of a <code>from</code> (consumer) or <code>to</code> (provider) in <code>connections</code> from
 which to trace out a network.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A subsetted version of <code>connections</code> containing only connections traceable from <code>from_start</code>and/or <code>to_start</code>.</p>
+    
+
+<p>A subsetted version of <code>connections</code> containing only connections traceable from <code>from_start</code></p>
+
+
+<p>and/or <code>to_start</code>.</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_catchments.html">simulate_catchments</a></span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">connections</span> <span class="op">&lt;-</span> <span class="fu"><a href="catchment_connections.html">catchment_connections</a></span><span class="op">(</span></span>
-<span class="r-in">  <span class="va">pop</span><span class="op">$</span><span class="va">consumers</span>, <span class="va">pop</span><span class="op">$</span><span class="va">providers</span>,</span>
-<span class="r-in">  weight <span class="op">=</span> <span class="fl">1</span>, max_cost <span class="op">=</span> <span class="fl">.5</span>,</span>
-<span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="fu">catchment_network</span><span class="op">(</span><span class="va">connections</span>, <span class="fl">1</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="simulate_catchments.html">simulate_catchments</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">connections</span> <span class="op">&lt;-</span> <span class="fu"><a href="catchment_connections.html">catchment_connections</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">pop</span><span class="op">$</span><span class="va">consumers</span>, <span class="va">pop</span><span class="op">$</span><span class="va">providers</span>,</span></span>
+<span class="r-in"><span>  weight <span class="op">=</span> <span class="fl">1</span>, max_cost <span class="op">=</span> <span class="fl">.5</span>,</span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">catchment_network</span><span class="op">(</span><span class="va">connections</span>, <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    from to weight       cost</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1  2      1 0.20739011</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4     6  2      1 0.33807573</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5     6  6      1 0.28335530</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7     9  6      1 0.45891326</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12   18  9      1 0.47397491</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14   25  2      1 0.08415098</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16   27  6      1 0.46687036</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17   27  9      1 0.40306093</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21   33  9      1 0.34566260</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 25   41  2      1 0.11878405</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 35   59  2      1 0.33391111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 36   59  6      1 0.48397434</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 38   61  6      1 0.32258315</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 41   65  2      1 0.24279910</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 42   66  6      1 0.40767933</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 43   67  2      1 0.31271322</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 44   67  6      1 0.40548302</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 45   69  9      1 0.36313113</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 48   72  2      1 0.21334524</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 49   72  6      1 0.41357663</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 51   74  2      1 0.45261645</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 56   82  2      1 0.27709573</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 57   83  2      1 0.30753447</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 58   83  6      1 0.47023321</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 66   92  9      1 0.36631919</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 71  100  2      1 0.31558577</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 72  100  6      1 0.49048373</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     1  2      1 0.21145719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     2  2      1 0.18591928</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11    9  8      1 0.16135533</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20   21  2      1 0.14486740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25   26  2      1 0.23870481</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26   26  8      1 0.44321233</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28   28  2      1 0.36117091</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29   29  8      1 0.26260850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 45   49  2      1 0.34537468</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 47   54  2      1 0.22163386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 48   55  2      1 0.12994852</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 51   60  2      1 0.45342107</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 54   69 11      1 0.40247007</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 55   72  2      1 0.39570653</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 56   72  8      1 0.36374346</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 59   74  8      1 0.42151821</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 67   82  8      1 0.34301164</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 68   82 11      1 0.47437297</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 69   83  2      1 0.08871649</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 73   89 11      1 0.05247504</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 77   97  2      1 0.44432760</span>
 </code></pre></div>
     </div>
   </div>
@@ -124,7 +129,7 @@ which to trace out a network.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

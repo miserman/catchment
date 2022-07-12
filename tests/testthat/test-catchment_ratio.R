@@ -267,7 +267,7 @@ test_that("verbose works", {
       "calculating cost from locations...",
       "consumers location: `consumers` columns (lat and long)",
       "providers location: `providers` columns (lat and long)",
-      "cost: calculated Euclidean distances",
+      "cost: calculated euclidean distances",
       "weight: cost",
       "normalizing weight",
       "calculated 3-step floating catchment area (resources per consumer)"

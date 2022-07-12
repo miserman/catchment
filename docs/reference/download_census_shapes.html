@@ -36,6 +36,9 @@ and reformat them to simplified GeoJSON files."><meta property="og:image" conten
       <a href="../articles/casestudy-dmv.html">Case Study - National Capital Region</a>
     </li>
     <li>
+      <a href="../articles/casestudy-rural_urban.html">Case Study - Virginia Counties</a>
+    </li>
+    <li>
       <a href="../articles/introduction.html">Introduction to Floating Catchment Areas</a>
     </li>
   </ul></li>
@@ -59,9 +62,9 @@ and reformat them to simplified GeoJSON files.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">download_census_shapes</span><span class="op">(</span>dir <span class="op">=</span> <span class="cn">NULL</span>, fips <span class="op">=</span> <span class="st">"us"</span>, entity <span class="op">=</span> <span class="st">"state"</span>,
-  name <span class="op">=</span> <span class="cn">NULL</span>, year <span class="op">=</span> <span class="fl">2019</span>, resolution <span class="op">=</span> <span class="st">"500k"</span>,
-  strip_features <span class="op">=</span> <span class="cn">FALSE</span>, simplify <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span>, force <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">download_census_shapes</span><span class="op">(</span>dir <span class="op">=</span> <span class="cn">NULL</span>, fips <span class="op">=</span> <span class="st">"us"</span>, entity <span class="op">=</span> <span class="st">"state"</span>,</span>
+<span>  name <span class="op">=</span> <span class="cn">NULL</span>, year <span class="op">=</span> <span class="fl">2019</span>, resolution <span class="op">=</span> <span class="st">"500k"</span>,</span>
+<span>  strip_features <span class="op">=</span> <span class="cn">FALSE</span>, simplify <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span>, force <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -70,47 +73,70 @@ and reformat them to simplified GeoJSON files.</p>
 <dd><p>Path to a directory in which to save the reformatted files. If these are to be
 used in a published site, they should be in the <code>"docs"</code> directory of the site directory. If not specified,
 the shapes are downloaded and returned, but not saved.</p></dd>
+
+
 <dt>fips</dt>
 <dd><p>State Federal Information Processing Standard (FIPS) code, United States Postal Service (USPS)
 code, or name; see <a href="state.txt">https://www2.census.gov/geo/docs/reference/state.txt</a>.</p></dd>
+
+
 <dt>entity</dt>
 <dd><p>Entity name (e.g., <code>"county"</code>, <code>"tract"</code>, or <code>"bg"</code>); see
 <a href="2019_file_name_def.pdf">https://www2.census.gov/geo/tiger/GENZ2019/2019_file_name_def.pdf</a>
 (or appropriate year's file). States and counties are only available at the national level, so if these are
 requested for a particular state, the national files will be downloaded and subset.</p></dd>
+
+
 <dt>name</dt>
 <dd><p>Name for the GeoJSON file (without extension) to be written.</p></dd>
+
+
 <dt>year</dt>
 <dd><p>Year of the shapes, 2013 and after.</p></dd>
+
+
 <dt>resolution</dt>
 <dd><p>Resolution of the shapes; one of <code>"500k"</code> (default), <code>"5m"</code>, or <code>"20m"</code>.</p></dd>
+
+
 <dt>strip_features</dt>
 <dd><p>Logical; if <code>TRUE</code>, will strip all features other than IDs.</p></dd>
+
+
 <dt>simplify</dt>
 <dd><p>A function to simplify shapes with, such as <code><a href="https://rdrr.io/pkg/rmapshaper/man/ms_simplify.html" class="external-link">rmapshaper::ms_simplify</a></code>. This
 function should take the <code>sf</code> <code>data.frame</code> as its first argument, and return that object
 with its <code>geometry</code> replaced.</p></dd>
+
+
 <dt>...</dt>
 <dd><p>Passes additional arguments to <code>simplify</code>; e.g., for <code><a href="https://rdrr.io/pkg/rmapshaper/man/ms_simplify.html" class="external-link">rmapshaper::ms_simplify</a></code>,
 you might want to specify <code>keep</code> and set <code>keep_shapes</code> to <code>TRUE</code>.</p></dd>
+
+
 <dt>force</dt>
 <dd><p>Logical; if <code>TRUE</code>, will force a re-download, and overwrite any existing files.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>An <code>sf</code><code>data.frame</code> with a geometry column containing shapes, and other features in columns.</p>
+    
+
+<p>An <code>sf</code></p>
+<p></p>
+<p><code>data.frame</code> with a geometry column containing shapes, and other features in columns.</p>
     </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span>
-<span class="r-in"><span class="co"># download Virginia counties shapes</span></span>
-<span class="r-in"><span class="va">shapes</span> <span class="op">&lt;-</span> <span class="fu">download_census_shapes</span><span class="op">(</span></span>
-<span class="r-in">  <span class="st">"docs/shapes"</span>, <span class="st">"va"</span>, <span class="st">"county"</span>,</span>
-<span class="r-in">  name <span class="op">=</span> <span class="st">"counties"</span>,</span>
-<span class="r-in">  simplify <span class="op">=</span> <span class="fu">rmapshaper</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/rmapshaper/man/ms_simplify.html" class="external-link">ms_simplify</a></span>, keep_shapes <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span class="r-in"><span class="op">)</span></span>
-<span class="r-in"><span class="op">}</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="co"># download Virginia counties shapes</span></span></span>
+<span class="r-in"><span><span class="va">shapes</span> <span class="op">&lt;-</span> <span class="fu">download_census_shapes</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="st">"docs/shapes"</span>, <span class="st">"va"</span>, <span class="st">"county"</span>,</span></span>
+<span class="r-in"><span>  name <span class="op">=</span> <span class="st">"counties"</span>,</span></span>
+<span class="r-in"><span>  simplify <span class="op">=</span> <span class="fu">rmapshaper</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/rmapshaper/man/ms_simplify.html" class="external-link">ms_simplify</a></span>, keep_shapes <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -125,7 +151,7 @@ you might want to specify <code>keep</code> and set <code>keep_shapes</code> to 
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
 </div>
 
       </footer></div>

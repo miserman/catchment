@@ -1,0 +1,338 @@
+---
+title: "Case Study - Virginia Counties"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Case Study - Virginia Counties}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+*Built with R 
+`r getRversion()`*
+
+***
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.height = 5,
+  fig.width = 8.84,
+  dev = "CairoSVG",
+  fig.ext = "svg"
+)
+dir <- "../dc.hifld.ems/data/working/"
+if (!dir.exists(dir)) dir <- "../../dc.hifld.ems/data/working/"
+library(sf)
+library(Matrix)
+library(catchment)
+library(splot)
+library(leaflet)
+```
+
+This case study compares different ways of calculating catchment area ratios between two counties in Virginia:
+Loudoun and Fairfax. These counties represent more rural (Loudoun) and more urban (Fairfax) environments.
+
+# Data
+
+**Demand** is defined as the total population in 2020, as estimated in the [U.S. Census Bureau](https://www.census.gov)'s
+[American Community Survey](https://www.census.gov/programs-surveys/acs) 5-year summaries.
+
+**Supply** is defined as hospital beds, as collected from various government sources by Oak Ridge National Laboratory, and hosted by [Homeland Infrastructure Foundation-Level Data](https://hifld-geoplatform.opendata.arcgis.com): [Hospitals](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::hospitals/about). The inclusion criteria for hospitals were that they have a status of `OPEN` and a type of either `CRITICAL ACCESS` or `GENERAL ACCUTE CARE`. Missing bed counts (13 of 805 within the working subset) were median-imputed.
+
+**Cost** is defined as travel times between each region's centroid and each hospital, as calculated within road networks by the [Open Source Routing Machine](https://github.com/Project-OSRM/osrm-backend) using [OpenStreetMap](https://www.openstreetmap.org) data from 2022, as provided by [Geofabrik](https://download.geofabrik.de/north-america/us.html).
+
+Data were prepared as part of a data commons project; the full script is available at [uva-bi-sdad/dc.hifld.ems/src/retrieve.R](https://github.com/uva-bi-sdad/dc.hifld.ems/blob/main/src/retrieve.R).
+Here, we will be loading in the files created from the original sources.
+
+## Downloading/Loading
+
+You can clone the repository, or directly download the files in the [data/working](https://github.com/uva-bi-sdad/dc.hifld.ems/tree/main/data/working) directory, then point to the directory containing those files with the `dir` variable:
+
+```sh
+git clone --branch main https://github.com/uva-bi-sdad/dc.hifld.ems.git
+```
+
+```r
+# this would be the directory when working from within the dc.hifld.ems repository
+dir <- "data/working/"
+```
+
+Now, we can load the files, which will results in 3 main objects: `hospitals`, `population`, and `traveltimes`:
+
+```{r}
+# main objects
+hospitals <- read.csv(gzfile(paste0(dir, "hospitals.csv.xz")))
+population <- read.csv(gzfile(paste0(dir, "population_bg.csv.xz")))
+rownames(population) <- population$GEOID
+population$tract <- substring(population$GEOID, 1, 11)
+traveltimes <- do.call(rbind, lapply(
+  paste0(dir, "traveltimes_2020_", unique(substring(population$GEOID, 1, 2)), ".csv.xz"),
+  function(f) read.csv(gzfile(f), row.names = 1, check.names = FALSE)
+))
+
+# tract-level comparisons
+population_tract <- read.csv(gzfile(paste0(dir, "population_tr.csv.xz")))
+rownames(population_tract) <- population_tract$GEOID
+population_tract <- population_tract[unique(population$tract), ]
+traveltimes_tract <- do.call(rbind, lapply(
+  paste0(dir, "traveltimes_2020_", unique(substring(population_tract$GEOID, 1, 2)), "_tract.csv.xz"),
+  function(f) read.csv(gzfile(f), row.names = 1, check.names = FALSE)
+))
+```
+
+Well also use a map to show comparisons between the focal regions:
+```{r}
+# download map geographies
+library(sf)
+tracts <- st_read(paste0(
+  "https://raw.githubusercontent.com/uva-bi-sdad/dc.geographies/main/data/",
+  "va_geo_census_cb_2020_census_tracts/distribution/",
+  "va_geo_census_cb_2020_census_tracts.geojson"
+), quiet = TRUE)
+tracts <- tracts[grep("^51(?:107|059)", tracts$geoid), ]
+block_groups <- st_read(paste0(
+  "https://raw.githubusercontent.com/uva-bi-sdad/dc.geographies/main/data/",
+  "va_geo_census_cb_2020_census_block_groups/distribution/",
+  "va_geo_census_cb_2020_census_block_groups.geojson"
+), quiet = TRUE)
+block_groups <- block_groups[grep("^51(?:107|059)", block_groups$geoid), ]
+
+# make base maps
+library(leaflet)
+map_tracts <- leaflet(tracts, options = leafletOptions(attributionControl = FALSE)) |>
+  setView(-77.4, 38.99, 9) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addScaleBar("bottomleft") |>
+  addMapPane("lines", zIndex = 410) |>
+  addMapPane("points", zIndex = 411) |>
+  addLayersControl(position = "topleft", overlayGroups = "Hospitals") |>
+  addCircles(
+    data = hospitals, color = "#000", fillColor = "#000", opacity = .8, lng = ~X, lat = ~Y,
+    label = ~ paste0("ID: ", ID, ", Beds: ", BEDS),
+    group = "Hospitals", options = pathOptions(pane = "points")
+  )
+map_block_groups <- leaflet(block_groups, options = leafletOptions(attributionControl = FALSE)) |>
+  setView(-77.4, 38.99, 9) |>
+  addProviderTiles("CartoDB.Positron") |>
+  addScaleBar("bottomleft") |>
+  addMapPane("lines", zIndex = 410) |>
+  addMapPane("points", zIndex = 411) |>
+  addLayersControl(position = "topleft", overlayGroups = "Hospitals") |>
+  addCircles(
+    data = hospitals, color = "#000", fillColor = "#000", opacity = .8, lng = ~X, lat = ~Y,
+    label = ~ paste0("ID: ", ID, ", Beds: ", BEDS),
+    group = "Hospitals", options = pathOptions(pane = "points")
+  )
+
+# specify colors
+palette <- scico::scico(255, direction = -1, palette = "vik")
+plot_colors <- c("#b69349", "#003e7d")
+```
+
+# Resolution
+
+In all of our catchment area calculations, we are referring to resources per person, but we do not
+calculate costs for each individual. In this respect, our calculations are always approximations.
+
+To get a feel for how much impact this approximation has, we can compare cost calculations made at
+the highest resolution with population data available (block groups; for yearly estimates) with 
+those made at a lower resolution (tracts).
+
+```{r}
+# calculate floating catchment area ratios
+library(catchment)
+resolutions <- data.frame(
+  # starting from block groups and aggregating up to tracts
+  higher = vapply(split(data.frame(
+    ratio = catchment_ratio(
+      population, hospitals, traveltimes,
+      weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
+      consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+    ),
+    population = population$population
+  ), population$tract), function(bg) {
+    total <- sum(bg$population)
+    if (total) sum(bg$ratio * bg$population) / total else 0
+  }, 0),
+  # starting from tracts
+  lower = catchment_ratio(
+    population_tract, hospitals, traveltimes_tract,
+    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  )
+)
+```
+Overall, calculations made at higher and lower resolutions have a Person's _r_ of `r round(cor(resolutions$higher, resolutions$lower), 3)`.
+
+Looking specifically at our comparison counties...
+```{r}
+# convenience functions to look at the focal counties
+get_focal_subset <- function(data, rowIds, counties = c(Loudoun = "51107", Fairfax = "51059")) {
+  comp <- colnames(data)[1:2]
+  sub <- do.call(rbind, unname(lapply(counties, function(county) {
+    d <- data[startsWith(rownames(data), county), ]
+    n <- nrow(d)
+    d[[paste0("rank_", comp[[1]])]] <- order(-d[, 1]) / n * 100
+    d[[paste0("rank_", comp[[2]])]] <- order(-d[, 2]) / n * 100
+    d$County <- names(counties[counties == county])
+    d$difference <- d[, 1] - d[, 2]
+    d$rank_difference <- d[[paste0("rank_", comp[[1]])]] - d[[paste0("rank_", comp[[2]])]]
+    d
+  })))
+  sub[rowIds, ]
+}
+summary_contrast <- function(data) {
+  vapply(split(data, data$County), function(d) {
+    c(
+      `Average` = colMeans(d[, 1:2]),
+      `Average Difference` = mean(d$difference),
+      `Correlation` = cor(d[, 1], d[, 2]),
+      `Average Difference in Rank` = mean(abs(d$rank_difference))
+    )
+  }, numeric(5))
+}
+
+res_subset <- get_focal_subset(resolutions, tracts$geoid)
+summary_contrast(res_subset)
+
+# Average difference is in number of beds per 100k people;
+# higher means more are estimated when starting from tracts.
+
+pal <- colorQuantile(palette, res_subset$difference, 10)
+map_tracts |>
+  addControl("Difference in Hospital Beds Per 100K People (Block Groups - Tract)", "topright") |>
+  addLegend("bottomright", pal, res_subset$difference, opacity = 1) |>
+  addPolygons(
+    fillColor = pal(res_subset$difference), fillOpacity = 1, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
+    label = paste0("Block Groups - Tract: ", round(res_subset$difference, 3))
+  )
+```
+Higher values mean ratios are higher when made at the block group level.
+
+```{r}
+library(splot)
+splot(
+  higher ~ lower * County, res_subset,
+  colors = plot_colors,
+  title = FALSE, laby = "From Block Groups", labx = "From Tracts"
+)
+```
+Ratios are even more highly correlated within county.
+
+The only reason to use lower resolution geographies would be if (a) population data are not available
+at higher resolutions, or (b) there are practical computing limits.
+
+# Distance
+
+Our next comparison will consider different means of calculating distance / travel time, which represents cost.
+The simplest means of calculating distance would be to measure straight lines between each consumer and provider location.
+We use a routing machine to get estimated travel times within road networks, which should be more accurate,
+but requires some setup and computing resources.
+
+```{r}
+distances <- data.frame(
+  # with cost defined by travel times as routed within road networks
+  routed = catchment_ratio(
+    population, hospitals, traveltimes,
+    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  ),
+  # with cost defined by Euclidean distances
+  straight = catchment_ratio(
+    population, hospitals,
+    weight = "gaussian", scale = .13, normalize_weight = TRUE, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  )
+)
+rownames(distances) <- population$GEOID
+```
+Overall, calculations made with routed and straight costs have a Person's _r_ of `r round(cor(distances$routed, distances$straight), 3)`,
+though this is fairly sensitive to the weight function.
+
+Looking specifically at our comparison counties...
+```{r}
+dist_split <- get_focal_subset(distances, block_groups$geoid)
+summary_contrast(dist_split)
+
+pal <- colorQuantile(palette, dist_split$difference, n = 11)
+map_block_groups |>
+  addControl("Difference in Hospital Beds Per 100K People (Routed - Straight)", "topright") |>
+  addLegend("bottomright", pal, dist_split$difference, opacity = 1) |>
+  addPolygons(
+    fillColor = pal(dist_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
+    label = paste0("Routed - Straight: ", round(dist_split$difference, 3))
+  )
+```
+Higher values mean ratios are higher when costs are based on routed travel time.
+
+```{r}
+splot(
+  routed ~ straight * County, dist_split,
+  colors = plot_colors,
+  title = FALSE, laby = "With Route Times", labx = "With Straight Distance"
+)
+```
+Correlations within subsets remain high, with some interesting skewing.
+
+The only reason to use straight distances in this context would be if good travel time
+data are not available.
+
+# Buffer
+
+There is a warping effect at the boundaries of catchment area calculation regions if the regions
+are artificially restricted, such as at state borders when consumers can freely access out-of-state
+providers. To theoretically avoid such a warping effect, we include surrounding states as a buffer.
+To see how much of an effect this has, we can compare those overall calculations with ones made
+just within the focal region (here, the full set of states versus just Virginia).
+
+```{r}
+buffer <- data.frame(
+  # including the full set of states (VA and surrounding)
+  full = catchment_ratio(
+    population, hospitals, traveltimes,
+    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  )[population$state == "VA"],
+  # including just Virginia
+  none = catchment_ratio(
+    population[population$state == "VA", ], hospitals[hospitals$STATE == "VA", ], traveltimes,
+    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  )
+)
+rownames(buffer) <- population[population$state == "VA", "GEOID"]
+```
+Overall, calculations made with routed and straight costs have a Person's _r_ of `r round(cor(buffer$full, buffer$none), 3)`,
+though this is fairly sensitive to the weight function.
+
+Looking specifically at our comparison counties...
+```{r}
+buffer_split <- get_focal_subset(buffer, block_groups$geoid)
+summary_contrast(buffer_split)
+
+pal <- colorQuantile(palette, buffer_split$difference, n = 11)
+map_block_groups |>
+  addControl("Difference in Hospital Beds Per 100K People (Full Buffer - No Buffer)", "topright") |>
+  addLegend("bottomright", pal, buffer_split$difference, opacity = 1) |>
+  addPolygons(
+    fillColor = pal(buffer_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
+    label = paste0("Full - None: ", round(buffer_split$difference, 3))
+  )
+```
+Higher values mean ratios are higher when the full buffer is used.
+As is to be expected, we see more differences along the state border.
+
+```{r}
+splot(
+  full ~ none * County, buffer_split,
+  colors = plot_colors,
+  title = FALSE, laby = "Including Surrounding States", labx = "Only Virginia"
+)
+```
+Correlations are nearly identical in Loudoun, but some start to deviate in Fairfax.
