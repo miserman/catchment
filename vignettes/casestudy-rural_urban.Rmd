@@ -83,7 +83,7 @@ traveltimes_tract <- do.call(rbind, lapply(
 ))
 ```
 
-Well also use a map to show comparisons between the focal regions:
+We'll also use a map to show comparisons between the focal regions:
 ```{r}
 # download map geographies
 library(sf)
@@ -92,13 +92,13 @@ tracts <- st_read(paste0(
   "va_geo_census_cb_2020_census_tracts/distribution/",
   "va_geo_census_cb_2020_census_tracts.geojson"
 ), quiet = TRUE)
-tracts <- tracts[grep("^51(?:107|059)", tracts$geoid), ]
+tracts <- tracts[grep("^51(?:107|059|600)", tracts$geoid), ]
 block_groups <- st_read(paste0(
   "https://raw.githubusercontent.com/uva-bi-sdad/dc.geographies/main/data/",
   "va_geo_census_cb_2020_census_block_groups/distribution/",
   "va_geo_census_cb_2020_census_block_groups.geojson"
 ), quiet = TRUE)
-block_groups <- block_groups[grep("^51(?:107|059)", block_groups$geoid), ]
+block_groups <- block_groups[grep("^51(?:107|059|600)", block_groups$geoid), ]
 
 # make base maps
 library(leaflet)
@@ -170,10 +170,10 @@ Overall, calculations made at higher and lower resolutions have a Person's _r_ o
 Looking specifically at our comparison counties...
 ```{r}
 # convenience functions to look at the focal counties
-get_focal_subset <- function(data, rowIds, counties = c(Loudoun = "51107", Fairfax = "51059")) {
+get_focal_subset <- function(data, rowIds, counties = c(Loudoun = "^51107", Fairfax = "^51(?:600|059)")) {
   comp <- colnames(data)[1:2]
   sub <- do.call(rbind, unname(lapply(counties, function(county) {
-    d <- data[startsWith(rownames(data), county), ]
+    d <- data[grep(county, rownames(data)), ]
     n <- nrow(d)
     d[[paste0("rank_", comp[[1]])]] <- order(-d[, 1]) / n * 100
     d[[paste0("rank_", comp[[2]])]] <- order(-d[, 2]) / n * 100
