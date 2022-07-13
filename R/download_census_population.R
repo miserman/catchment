@@ -8,8 +8,10 @@
 #' @param year 4 digit year, between 2009 and the most recent year.
 #' @param include_margins Logical; if \code{TRUE}, will save and include estimate margins or error, which is a
 #' \code{data.frame} with the same dimensions as the estimates \code{data.frame}.
-#' @param include_commutes Logical; if \code{TRUE}, will download the Longitudinal Employer-Household Dynamics (LEHD)
-#' Origin-Destination Employment Statistics (LODES) data for the state and block groups within selected tracts.
+#' @param include_commutes Logical; if \code{TRUE}, will download the
+#' \href{https://lehd.ces.census.gov}{Longitudinal Employer-Household Dynamics (LEHD)}
+#' \href{https://lehd.ces.census.gov/data/#lodes}{Origin-Destination Employment Statistics (LODES)}
+#' data for the state and block groups within selected tracts.
 #' @param counties,tracts,blockgroups A vector of counties, tracts, or block group GEOIDs within the specified state to
 #' filter block groups for (block groups within the specified counties or tracts, or matching the specified block group
 #' GEOID). Only one can be specified (lower levels overwrite higher levels). Defaults to all block groups.

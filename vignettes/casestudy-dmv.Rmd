@@ -527,20 +527,8 @@ map |>
   showGroup("Doctors")
 ```
 
-From this, it seems the routing machine had some trouble with the regions nearest the cluster of
-providers, considering more distant block groups were in range. It also looks like provider `l820`
-should be in range but isn't by travel time. This is reflected in the difference between travel-time-
-and Euclidean-based costs, which we can check directly to see an inverse relationship:
-```{r}
-data.frame(
-  travel_time = traveltimes[IDs, "l820"],
-  euclidean = sqrt(rowSums((
-    data_combined[IDs, c("Y", "X")] - rep(as.numeric(
-      provider_locations[provider_locations$ID == "l820", c("Y", "X")]
-    ), each = 4)
-  )^2)) * 1000
-)
-```
+This was initially a weird looking set of locations, but it turned out our routing machine only
+had maps for Virginia. Now, we can see that these consumer locations have more reasonable connections.
 
 ## Enhanced 2-Step Floating Catchment Area
 
@@ -698,6 +686,7 @@ consideration beyond these boundaries creates a sort of warping, as parts of the
 areas around consumers and providers are effectively cut off. Fully addressing this limitation
 might require calculating ratios globally, but enough practical benefit might be gained
 by including surrounding states, or even just parts of those states that fall within a buffer
-around the focal region.
+around the focal region. This question is further explored in the
+[next case study](https://uva-bi-sdad.github.io/catchment/articles/casestudy-rural_urban.html).
 
 # References

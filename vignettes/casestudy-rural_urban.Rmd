@@ -1,18 +1,18 @@
 ---
-title: "Case Study - Virginia Counties"
+title: 'Case Study - Virginia Counties'
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Case Study - Virginia Counties}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
-*Built with R 
-`r getRversion()`*
+_Built with R
+`r getRversion()`_
 
-***
+---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -84,6 +84,7 @@ traveltimes_tract <- do.call(rbind, lapply(
 ```
 
 We'll also use a map to show comparisons between the focal regions:
+
 ```{r}
 # download map geographies
 library(sf)
@@ -132,26 +133,34 @@ palette <- scico::scico(255, direction = -1, palette = "vik")
 plot_colors <- c("#b69349", "#003e7d")
 ```
 
+We'll be looking at several variants of floating catchment areas, so, to better compare them,
+we'll start with a baseline that represents the most thorough and up-to-date variant:
+
+```{r}
+library(catchment)
+baseline <- catchment_ratio(
+  population, hospitals, traveltimes,
+  weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
+  consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+)
+names(baseline) <- population$GEOID
+```
+
 # Resolution
 
 In all of our catchment area calculations, we are referring to resources per person, but we do not
 calculate costs for each individual. In this respect, our calculations are always approximations.
 
 To get a feel for how much impact this approximation has, we can compare cost calculations made at
-the highest resolution with population data available (block groups; for yearly estimates) with 
+the highest resolution with population data available (block groups; for yearly estimates) with
 those made at a lower resolution (tracts).
 
 ```{r}
 # calculate floating catchment area ratios
-library(catchment)
 resolutions <- data.frame(
   # starting from block groups and aggregating up to tracts
   higher = vapply(split(data.frame(
-    ratio = catchment_ratio(
-      population, hospitals, traveltimes,
-      weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
-      consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
-    ),
+    ratio = baseline,
     population = population$population
   ), population$tract), function(bg) {
     total <- sum(bg$population)
@@ -165,9 +174,11 @@ resolutions <- data.frame(
   )
 )
 ```
+
 Overall, calculations made at higher and lower resolutions have a Person's _r_ of `r round(cor(resolutions$higher, resolutions$lower), 3)`.
 
 Looking specifically at our comparison counties...
+
 ```{r}
 # convenience functions to look at the focal counties
 get_focal_subset <- function(data, rowIds, counties = c(Loudoun = "^51107", Fairfax = "^51(?:600|059)")) {
@@ -211,7 +222,8 @@ map_tracts |>
     label = paste0("Block Groups - Tract: ", round(res_subset$difference, 3))
   )
 ```
-Higher values mean ratios are higher when made at the block group level.
+
+Higher values (blue) mean ratios are higher when made at the block group level.
 
 ```{r}
 library(splot)
@@ -221,6 +233,7 @@ splot(
   title = FALSE, laby = "From Block Groups", labx = "From Tracts"
 )
 ```
+
 Ratios are even more highly correlated within county.
 
 The only reason to use lower resolution geographies would be if (a) population data are not available
@@ -228,19 +241,20 @@ at higher resolutions, or (b) there are practical computing limits.
 
 # Distance
 
-Our next comparison will consider different means of calculating distance / travel time, which represents cost.
-The simplest means of calculating distance would be to measure straight lines between each consumer and provider location.
-We use a routing machine to get estimated travel times within road networks, which should be more accurate,
-but requires some setup and computing resources.
+Our next comparison will consider different means of calculating distance / travel time, which
+represents cost, and define the shape of the catchment areas.
+
+The simplest means of calculating distance would be to measure straight lines between each consumer
+and provider location (resulting in perfectly circular catchment areas).
+
+We use a routing machine to get estimated travel times within road networks (resulting in catchment
+areas shaped by the local road topology), which should be more accurate, but requires some setup
+and computing resources.
 
 ```{r}
 distances <- data.frame(
   # with cost defined by travel times as routed within road networks
-  routed = catchment_ratio(
-    population, hospitals, traveltimes,
-    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
-  ),
+  routed = baseline,
   # with cost defined by Euclidean distances
   straight = catchment_ratio(
     population, hospitals,
@@ -248,12 +262,13 @@ distances <- data.frame(
     consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
   )
 )
-rownames(distances) <- population$GEOID
 ```
+
 Overall, calculations made with routed and straight costs have a Person's _r_ of `r round(cor(distances$routed, distances$straight), 3)`,
 though this is fairly sensitive to the weight function.
 
 Looking specifically at our comparison counties...
+
 ```{r}
 dist_split <- get_focal_subset(distances, block_groups$geoid)
 summary_contrast(dist_split)
@@ -268,7 +283,8 @@ map_block_groups |>
     label = paste0("Routed - Straight: ", round(dist_split$difference, 3))
   )
 ```
-Higher values mean ratios are higher when costs are based on routed travel time.
+
+Higher values (blue) mean ratios are higher when costs are based on routed travel time.
 
 ```{r}
 splot(
@@ -277,6 +293,7 @@ splot(
   title = FALSE, laby = "With Route Times", labx = "With Straight Distance"
 )
 ```
+
 Correlations within subsets remain high, with some interesting skewing.
 
 The only reason to use straight distances in this context would be if good travel time
@@ -286,18 +303,14 @@ data are not available.
 
 There is a warping effect at the boundaries of catchment area calculation regions if the regions
 are artificially restricted, such as at state borders when consumers can freely access out-of-state
-providers. To theoretically avoid such a warping effect, we include surrounding states as a buffer.
+providers. To mitigate such a warping effect, we include surrounding states as a buffer.
 To see how much of an effect this has, we can compare those overall calculations with ones made
 just within the focal region (here, the full set of states versus just Virginia).
 
 ```{r}
 buffer <- data.frame(
   # including the full set of states (VA and surrounding)
-  full = catchment_ratio(
-    population, hospitals, traveltimes,
-    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
-  )[population$state == "VA"],
+  full = baseline[population$state == "VA"],
   # including just Virginia
   none = catchment_ratio(
     population[population$state == "VA", ], hospitals[hospitals$STATE == "VA", ], traveltimes,
@@ -305,8 +318,8 @@ buffer <- data.frame(
     consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
   )
 )
-rownames(buffer) <- population[population$state == "VA", "GEOID"]
 ```
+
 Overall, calculations made with routed and straight costs have a Person's _r_ of `r round(cor(buffer$full, buffer$none), 3)`,
 though this is fairly sensitive to the weight function.
 
@@ -325,7 +338,8 @@ map_block_groups |>
     label = paste0("Full - None: ", round(buffer_split$difference, 3))
   )
 ```
-Higher values mean ratios are higher when the full buffer is used.
+
+Higher values (blue) mean ratios are higher when the full buffer is used.
 As is to be expected, we see more differences along the state border.
 
 ```{r}
@@ -335,4 +349,133 @@ splot(
   title = FALSE, laby = "Including Surrounding States", labx = "Only Virginia"
 )
 ```
-Correlations are nearly identical in Loudoun, but some start to deviate in Fairfax.
+
+Ratios are very similar in Loudoun, but many block groups in Fairfax have higher ratios
+due to their proximity to D.C. and Maryland hospitals.
+
+# Weight
+
+## Norm Adjustment
+
+One aspect of weight is the step added to make the 3-step floating catchment area: Normalization
+adjustment. In this step, weights are multiplied by weights that have been normalized.
+Normalized weights sum to 1 across a consumer location's connections, so multiplying by these
+dampens multiple connections, which works against the priority given to highly interconnected
+consumer locations.
+
+```{r}
+steps <- data.frame(
+  # with adjusted weights
+  three = baseline,
+  # without adjusted weights
+  two = catchment_ratio(
+    population, hospitals, traveltimes,
+    weight = "gaussian", scale = 18, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  )
+)
+```
+
+Overall, calculations made with and without norm adjustments have a Person's _r_ of `r round(cor(steps$three, steps$two), 3)`.
+
+Looking specifically at our comparison counties...
+```{r}
+step_split <- get_focal_subset(steps, block_groups$geoid)
+summary_contrast(step_split)
+
+pal <- colorQuantile(palette, step_split$difference, n = 11)
+map_block_groups |>
+  addControl("Difference in Hospital Beds Per 100K People (3-Step - 2-Step)", "topright") |>
+  addLegend("bottomright", pal, step_split$difference, opacity = 1) |>
+  addPolygons(
+    fillColor = pal(step_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
+    label = paste0("3-Step - 2-Step: ", round(step_split$difference, 3))
+  )
+```
+
+Higher values (blue) mean ratios are higher when weights have been adjusted.
+As expected, adjusting weights with their normalized versions shifts beds toward less
+interconnected regions, which particularly affects the more remote parts of Loudoun county.
+
+```{r}
+splot(
+  three ~ two * County, step_split,
+  colors = plot_colors,
+  title = FALSE, laby = "With Norm-Adjusted Weights", labx = "With Original Weights"
+)
+```
+
+## Scale
+
+The weight's scale defines the size and vertical shape of the catchment areas.
+For example, we can compare the baseline scale (18) with a slightly bigger scale (25) across
+values representing travel times in minutes:
+```{r}
+# just to illustrate
+Travel_Time <- 1:70
+Weight <- cbind(
+  catchment_weight(Travel_Time, "gaussian", scale = 18),
+  catchment_weight(Travel_Time, "gaussian", scale = 25)
+)
+colnames(Weight) <- c(18, 25)
+splot(
+  Weight ~ Travel_Time,
+  points = FALSE, line = "con", colors = plot_colors,
+  note = FALSE, myl = c(-.1, 1), title = FALSE, leg.title = "Scale", add = {
+    steps <- c(10, 20, 30, 60)
+    adj <- c(-.07, .07)
+    for (i in 1:2) {
+      values <- cdat$`.^^.`[[i]]$y[steps]
+      points(values ~ steps, col = plot_colors[i])
+      text(steps, values + adj[i], prettyNum(values, digits = 2))
+    }
+  }
+)
+```
+
+```{r}
+scale <- data.frame(
+  # with a weight scale of 18
+  smaller = baseline,
+  # with a weight scale of 25
+  larger = catchment_ratio(
+    population, hospitals, traveltimes,
+    weight = "gaussian", scale = 25, normalize_weight = TRUE, return_type = 1e5,
+    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  )
+)
+```
+
+Overall, calculations made with smaller and larger scales have a Person's _r_ of `r round(cor(scale$smaller, scale$larger), 3)`.
+
+Looking specifically at our comparison counties...
+```{r}
+scale_split <- get_focal_subset(scale, block_groups$geoid)
+summary_contrast(scale_split)
+
+pal <- colorQuantile(palette, scale_split$difference, n = 11)
+map_block_groups |>
+  addControl("Difference in Hospital Beds Per 100K People (Smaller - Larger)", "topright") |>
+  addLegend("bottomright", pal, scale_split$difference, opacity = 1) |>
+  addPolygons(
+    fillColor = pal(scale_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
+    label = paste0("Smaller - Larger: ", round(scale_split$difference, 3))
+  )
+```
+
+Higher values (blue) mean ratios are higher with the smaller scale.
+A larger scale works to more evenly distribute beds, generally shifting them from nearer to farther
+consumer locations.
+
+```{r}
+splot(
+  smaller ~ larger * County, scale_split,
+  colors = plot_colors,
+  title = FALSE, laby = "With A Smaller Scale (18)", labx = "With A Larger Scale (25)"
+)
+```
+
+This is incidentally very similar to the effect of norm adjusting weights because consumer
+locations with more provider connections also tend to be closer to those providers.
