@@ -14,6 +14,11 @@ _Built with R
 
 ---
 
+```{css, echo = FALSE}
+.table {display: table}
+.table th {text-align: right}
+```
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -30,6 +35,7 @@ library(Matrix)
 library(catchment)
 library(splot)
 library(leaflet)
+library(knitr)
 ```
 
 This case study compares different ways of calculating catchment area ratios between two counties in Virginia:
@@ -181,6 +187,7 @@ Looking specifically at our comparison counties...
 
 ```{r}
 # convenience functions to look at the focal counties
+library(knitr)
 get_focal_subset <- function(data, rowIds, counties = c(Loudoun = "^51107", Fairfax = "^51(?:600|059)")) {
   comp <- colnames(data)[1:2]
   sub <- do.call(rbind, unname(lapply(counties, function(county) {
@@ -193,33 +200,38 @@ get_focal_subset <- function(data, rowIds, counties = c(Loudoun = "^51107", Fair
     d$rank_difference <- d[[paste0("rank_", comp[[1]])]] - d[[paste0("rank_", comp[[2]])]]
     d
   })))
-  sub[rowIds, ]
+  data <- sub[rowIds, ]
+  list(data = data, pal = colorNumeric(palette, rep(max(abs(data$difference)), 2) * c(-1, 1)))
 }
-summary_contrast <- function(data) {
-  vapply(split(data, data$County), function(d) {
+summary_contrast <- function(subset) {
+  data <- subset$data
+  summary <- vapply(split(data, data$County), function(d) {
     c(
-      `Average` = colMeans(d[, 1:2]),
-      `Average Difference` = mean(d$difference),
-      `Correlation` = cor(d[, 1], d[, 2]),
-      `Average Difference in Rank` = mean(abs(d$rank_difference))
+      colMeans(d[, 1:2]), mean(d$difference), cor(d[, 1], d[, 2]), mean(abs(d$rank_difference))
     )
   }, numeric(5))
+  rownames(summary) <- c(
+    paste0("Average (", colnames(data)[1:2], ")"),
+    "Average Difference", "Correlation", "Average Change in Rank Percent"
+  )
+  kable(summary, digits = 3)
 }
+```
 
+```{r, result='asis'}
 res_subset <- get_focal_subset(resolutions, tracts$geoid)
 summary_contrast(res_subset)
+```
+Average difference is in number of beds per 100k people; higher means more are estimated when starting from tracts.
 
-# Average difference is in number of beds per 100k people;
-# higher means more are estimated when starting from tracts.
-
-pal <- colorQuantile(palette, res_subset$difference, 10)
+```{r}
 map_tracts |>
   addControl("Difference in Hospital Beds Per 100K People (Block Groups - Tract)", "topright") |>
-  addLegend("bottomright", pal, res_subset$difference, opacity = 1) |>
+  addLegend("bottomright", res_subset$pal, res_subset$data$difference, opacity = 1) |>
   addPolygons(
-    fillColor = pal(res_subset$difference), fillOpacity = 1, weight = 1, color = "#000",
+    fillColor = res_subset$pal(res_subset$data$difference), fillOpacity = 1, weight = 1, color = "#000",
     highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
-    label = paste0("Block Groups - Tract: ", round(res_subset$difference, 3))
+    label = paste0("Block Groups - Tract: ", round(res_subset$data$difference, 3))
   )
 ```
 
@@ -228,7 +240,7 @@ Higher values (blue) mean ratios are higher when made at the block group level.
 ```{r}
 library(splot)
 splot(
-  higher ~ lower * County, res_subset,
+  higher ~ lower * County, res_subset$data,
   colors = plot_colors,
   title = FALSE, laby = "From Block Groups", labx = "From Tracts"
 )
@@ -269,18 +281,19 @@ though this is fairly sensitive to the weight function.
 
 Looking specifically at our comparison counties...
 
-```{r}
+```{r, result='asis'}
 dist_split <- get_focal_subset(distances, block_groups$geoid)
 summary_contrast(dist_split)
+```
 
-pal <- colorQuantile(palette, dist_split$difference, n = 11)
+```{r}
 map_block_groups |>
   addControl("Difference in Hospital Beds Per 100K People (Routed - Straight)", "topright") |>
-  addLegend("bottomright", pal, dist_split$difference, opacity = 1) |>
+  addLegend("bottomright", dist_split$pal, dist_split$data$difference, opacity = 1) |>
   addPolygons(
-    fillColor = pal(dist_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    fillColor = dist_split$pal(dist_split$data$difference), fillOpacity = 1, weight = 1, color = "#000",
     highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
-    label = paste0("Routed - Straight: ", round(dist_split$difference, 3))
+    label = paste0("Routed - Straight: ", round(dist_split$data$difference, 3))
   )
 ```
 
@@ -288,7 +301,7 @@ Higher values (blue) mean ratios are higher when costs are based on routed trave
 
 ```{r}
 splot(
-  routed ~ straight * County, dist_split,
+  routed ~ straight * County, dist_split$data,
   colors = plot_colors,
   title = FALSE, laby = "With Route Times", labx = "With Straight Distance"
 )
@@ -324,18 +337,20 @@ Overall, calculations made with routed and straight costs have a Person's _r_ of
 though this is fairly sensitive to the weight function.
 
 Looking specifically at our comparison counties...
-```{r}
+
+```{r, result='asis'}
 buffer_split <- get_focal_subset(buffer, block_groups$geoid)
 summary_contrast(buffer_split)
+```
 
-pal <- colorQuantile(palette, buffer_split$difference, n = 11)
+```{r}
 map_block_groups |>
   addControl("Difference in Hospital Beds Per 100K People (Full Buffer - No Buffer)", "topright") |>
-  addLegend("bottomright", pal, buffer_split$difference, opacity = 1) |>
+  addLegend("bottomright", buffer_split$pal, buffer_split$data$difference, opacity = 1) |>
   addPolygons(
-    fillColor = pal(buffer_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    fillColor = buffer_split$pal(buffer_split$data$difference), fillOpacity = 1, weight = 1, color = "#000",
     highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
-    label = paste0("Full - None: ", round(buffer_split$difference, 3))
+    label = paste0("Full - None: ", round(buffer_split$data$difference, 3))
   )
 ```
 
@@ -344,7 +359,7 @@ As is to be expected, we see more differences along the state border.
 
 ```{r}
 splot(
-  full ~ none * County, buffer_split,
+  full ~ none * County, buffer_split$data,
   colors = plot_colors,
   title = FALSE, laby = "Including Surrounding States", labx = "Only Virginia"
 )
@@ -379,18 +394,20 @@ steps <- data.frame(
 Overall, calculations made with and without norm adjustments have a Person's _r_ of `r round(cor(steps$three, steps$two), 3)`.
 
 Looking specifically at our comparison counties...
-```{r}
+
+```{r, result='asis'}
 step_split <- get_focal_subset(steps, block_groups$geoid)
 summary_contrast(step_split)
+```
 
-pal <- colorQuantile(palette, step_split$difference, n = 11)
+```{r}
 map_block_groups |>
   addControl("Difference in Hospital Beds Per 100K People (3-Step - 2-Step)", "topright") |>
-  addLegend("bottomright", pal, step_split$difference, opacity = 1) |>
+  addLegend("bottomright", step_split$pal, step_split$data$difference, opacity = 1) |>
   addPolygons(
-    fillColor = pal(step_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    fillColor = step_split$pal(step_split$data$difference), fillOpacity = 1, weight = 1, color = "#000",
     highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
-    label = paste0("3-Step - 2-Step: ", round(step_split$difference, 3))
+    label = paste0("3-Step - 2-Step: ", round(step_split$data$difference, 3))
   )
 ```
 
@@ -400,7 +417,7 @@ interconnected regions, which particularly affects the more remote parts of Loud
 
 ```{r}
 splot(
-  three ~ two * County, step_split,
+  three ~ two * County, step_split$data,
   colors = plot_colors,
   title = FALSE, laby = "With Norm-Adjusted Weights", labx = "With Original Weights"
 )
@@ -411,6 +428,7 @@ splot(
 The weight's scale defines the size and vertical shape of the catchment areas.
 For example, we can compare the baseline scale (18) with a slightly bigger scale (25) across
 values representing travel times in minutes:
+
 ```{r}
 # just to illustrate
 Travel_Time <- 1:70
@@ -450,18 +468,20 @@ scale <- data.frame(
 Overall, calculations made with smaller and larger scales have a Person's _r_ of `r round(cor(scale$smaller, scale$larger), 3)`.
 
 Looking specifically at our comparison counties...
-```{r}
+
+```{r, result='asis'}
 scale_split <- get_focal_subset(scale, block_groups$geoid)
 summary_contrast(scale_split)
+```
 
-pal <- colorQuantile(palette, scale_split$difference, n = 11)
+```{r}
 map_block_groups |>
   addControl("Difference in Hospital Beds Per 100K People (Smaller - Larger)", "topright") |>
-  addLegend("bottomright", pal, scale_split$difference, opacity = 1) |>
+  addLegend("bottomright", scale_split$pal, scale_split$data$difference, opacity = 1) |>
   addPolygons(
-    fillColor = pal(scale_split$difference), fillOpacity = 1, weight = 1, color = "#000",
+    fillColor = scale_split$pal(scale_split$data$difference), fillOpacity = 1, weight = 1, color = "#000",
     highlightOptions = highlightOptions(color = "#fff"), group = "Beds",
-    label = paste0("Smaller - Larger: ", round(scale_split$difference, 3))
+    label = paste0("Smaller - Larger: ", round(scale_split$data$difference, 3))
   )
 ```
 
@@ -471,7 +491,7 @@ consumer locations.
 
 ```{r}
 splot(
-  smaller ~ larger * County, scale_split,
+  smaller ~ larger * County, scale_split$data,
   colors = plot_colors,
   title = FALSE, laby = "With A Smaller Scale (18)", labx = "With A Larger Scale (25)"
 )
