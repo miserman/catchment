@@ -28,8 +28,8 @@ knitr::opts_chunk$set(
   dev = "CairoSVG",
   fig.ext = "svg"
 )
-dir <- "../dc.hifld.ems/data/working/"
-if (!dir.exists(dir)) dir <- "../../dc.hifld.ems/data/working/"
+dir <- "../dc.hifld.hosp/data/working/"
+if (!dir.exists(dir)) dir <- "../../dc.hifld.hosp/data/working/"
 library(sf)
 library(Matrix)
 library(catchment)
@@ -50,19 +50,19 @@ Loudoun and Fairfax. These counties represent more rural (Loudoun) and more urba
 
 **Cost** is defined as travel times between each region's centroid and each hospital, as calculated within road networks by the [Open Source Routing Machine](https://github.com/Project-OSRM/osrm-backend) using [OpenStreetMap](https://www.openstreetmap.org) data from 2022, as provided by [Geofabrik](https://download.geofabrik.de/north-america/us.html).
 
-Data were prepared as part of a data commons project; the full script is available at [uva-bi-sdad/dc.hifld.ems/src/retrieve.R](https://github.com/uva-bi-sdad/dc.hifld.ems/blob/main/src/retrieve.R).
+Data were prepared as part of a data commons project; the full script is available at [uva-bi-sdad/dc.hifld.hosp/src/retrieve.R](https://github.com/uva-bi-sdad/dc.hifld.hosp/blob/main/src/retrieve.R).
 Here, we will be loading in the files created from the original sources.
 
 ## Downloading/Loading
 
-You can clone the repository, or directly download the files in the [data/working](https://github.com/uva-bi-sdad/dc.hifld.ems/tree/main/data/working) directory, then point to the directory containing those files with the `dir` variable:
+You can clone the repository, or directly download the files in the [data/working](https://github.com/uva-bi-sdad/dc.hifld.hosp/tree/main/data/working) directory, then point to the directory containing those files with the `dir` variable:
 
 ```sh
-git clone --branch main https://github.com/uva-bi-sdad/dc.hifld.ems.git
+git clone --branch main https://github.com/uva-bi-sdad/dc.hifld.hosp.git
 ```
 
 ```r
-# this would be the directory when working from within the dc.hifld.ems repository
+# this would be the directory when working from within the dc.hifld.hosp repository
 dir <- "data/working/"
 ```
 
@@ -74,19 +74,17 @@ hospitals <- read.csv(gzfile(paste0(dir, "hospitals.csv.xz")))
 population <- read.csv(gzfile(paste0(dir, "population_bg.csv.xz")))
 rownames(population) <- population$GEOID
 population$tract <- substring(population$GEOID, 1, 11)
-traveltimes <- do.call(rbind, lapply(
-  paste0(dir, "traveltimes_2020_", unique(substring(population$GEOID, 1, 2)), ".csv.xz"),
-  function(f) read.csv(gzfile(f), row.names = 1, check.names = FALSE)
-))
+traveltimes <- read.csv(
+  gzfile(paste0(dir, "traveltimes_2020.csv.xz")), row.names = 1, check.names = FALSE
+)
 
 # tract-level comparisons
 population_tract <- read.csv(gzfile(paste0(dir, "population_tr.csv.xz")))
 rownames(population_tract) <- population_tract$GEOID
 population_tract <- population_tract[unique(population$tract), ]
-traveltimes_tract <- do.call(rbind, lapply(
-  paste0(dir, "traveltimes_2020_", unique(substring(population_tract$GEOID, 1, 2)), "_tract.csv.xz"),
-  function(f) read.csv(gzfile(f), row.names = 1, check.names = FALSE)
-))
+traveltimes_tract <- read.csv(
+  gzfile(paste0(dir, "traveltimes_2020_tract.csv.xz")), row.names = 1, check.names = FALSE
+)
 ```
 
 We'll also use a map to show comparisons between the focal regions:
@@ -118,7 +116,7 @@ map_tracts <- leaflet(tracts, options = leafletOptions(attributionControl = FALS
   addLayersControl(position = "topleft", overlayGroups = "Hospitals") |>
   addCircles(
     data = hospitals, color = "#000", fillColor = "#000", opacity = .8, lng = ~X, lat = ~Y,
-    label = ~ paste0("ID: ", ID, ", Beds: ", BEDS),
+    label = ~ paste0("ID: ", GEOID, ", Beds: ", total_beds_7_day_avg),
     group = "Hospitals", options = pathOptions(pane = "points")
   )
 map_block_groups <- leaflet(block_groups, options = leafletOptions(attributionControl = FALSE)) |>
@@ -130,7 +128,7 @@ map_block_groups <- leaflet(block_groups, options = leafletOptions(attributionCo
   addLayersControl(position = "topleft", overlayGroups = "Hospitals") |>
   addCircles(
     data = hospitals, color = "#000", fillColor = "#000", opacity = .8, lng = ~X, lat = ~Y,
-    label = ~ paste0("ID: ", ID, ", Beds: ", BEDS),
+    label = ~ paste0("ID: ", GEOID, ", Beds: ", total_beds_7_day_avg),
     group = "Hospitals", options = pathOptions(pane = "points")
   )
 
@@ -147,7 +145,7 @@ library(catchment)
 baseline <- catchment_ratio(
   population, hospitals, traveltimes,
   weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
-  consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+  consumers_value = "population", providers_value = "total_beds_7_day_avg"
 )
 names(baseline) <- population$GEOID
 ```
@@ -176,7 +174,7 @@ resolutions <- data.frame(
   lower = catchment_ratio(
     population_tract, hospitals, traveltimes_tract,
     weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
   )
 )
 ```
@@ -271,7 +269,7 @@ distances <- data.frame(
   straight = catchment_ratio(
     population, hospitals,
     weight = "gaussian", scale = .13, normalize_weight = TRUE, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
   )
 )
 ```
@@ -326,9 +324,9 @@ buffer <- data.frame(
   full = baseline[population$state == "VA"],
   # including just Virginia
   none = catchment_ratio(
-    population[population$state == "VA", ], hospitals[hospitals$STATE == "VA", ], traveltimes,
+    population[population$state == "VA", ], hospitals[hospitals$state == "VA", ], traveltimes,
     weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
   )
 )
 ```
@@ -386,7 +384,7 @@ steps <- data.frame(
   two = catchment_ratio(
     population, hospitals, traveltimes,
     weight = "gaussian", scale = 18, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
   )
 )
 ```
@@ -460,7 +458,7 @@ scale <- data.frame(
   larger = catchment_ratio(
     population, hospitals, traveltimes,
     weight = "gaussian", scale = 25, normalize_weight = TRUE, return_type = 1e5,
-    consumers_value = "population", providers_id = "ID", providers_value = "BEDS"
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
   )
 )
 ```
