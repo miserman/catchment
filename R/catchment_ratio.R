@@ -64,7 +64,8 @@
 #' \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
 #' how many doctors are accessible within each region), or \code{"normalized"} for \code{original} divided by
 #' \code{sum(region) / sum(consumers)}. Can also be a number by which to multiply the original values (e.g., \code{1000}
-#' for \code{providers} per 1,000 \code{consumers}).
+#' for \code{providers} per 1,000 \code{consumers}). Alternatively \code{"providers"} will return just the 
+#' provider ratio -- a vector with a ratio (\code{provider value / weighted population}) for each provider.
 #' @param consumers_commutes A square, consumers source x consumers origin matrix with counts of origins,
 #' used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
 #' may work in locations 1 and 3, so the first row of \code{consumers_commutes} should have values in columns 1 and 3).
@@ -425,7 +426,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     cli_abort("failed to align weight matrix with consumer and provider values")
   }
   if (normalize_weight) {
-    # adjust weights by selection probability (3-step){
+    # adjust weights by selection probability (3-step)
     if (verbose) cli_alert_info("normalizing weight")
     type <- paste0(type, "3-step floating catchment area")
     if (!is.null(rownames(w)) && all(rownames(w) %in% names(wr))) wr <- wr[rownames(w)]
@@ -441,6 +442,13 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     w
   }, cv)
   wd[abs(wd) < .Machine$double.eps] <- 1
+  if (is.character(return_type)) {
+    return_type <- tolower(substr(return_type, 1, 1))
+    if (return_type == "p") {
+      if (verbose) cli_bullets(c(v = paste("calculated", type, "(consumers per resource)")))
+      return(pv / wd)
+    }
+  }
   r <- as.numeric((if (is.function(adjust_providers)) {
     environment(adjust_providers) <- environment()
     adjust_providers(w)
@@ -452,7 +460,6 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
       r <- r * return_type
       type <- paste(type, "(resources per", return_type, "consumers)")
     } else {
-      return_type <- tolower(substr(return_type, 1, 1))
       if ("n" == return_type) {
         type <- paste(type, "(normalized)")
         if (verbose) cli_alert_info("normalizing ratios")
