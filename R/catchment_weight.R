@@ -36,11 +36,11 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros 
   } else if (is.null(dim(weight))) {
     if (is.numeric(weight)) {
       # single buffer value means a uniformly weighted catchment area (original)
-      if (verbose) cli_alert_info("weight: cost over {.feild 0} and under {.feild {weight[[1]]}}")
+      if (verbose) cli_alert_info("weight: cost over {.field 0} and under {.field {weight[[1]]}}")
       w <- as(cost > 0 & cost < weight[[1]], "lgCMatrix") * 1
     } else if (is.list(weight)) {
       # list of steps for roughly graded weightings (enhanced)
-      if (verbose) cli_alert_info("weight: cost over {.feild 0} and under steps of {.arg weight}")
+      if (verbose) cli_alert_info("weight: cost over {.field 0} and under steps of {.arg weight}")
       weight <- weight[order(-vapply(weight, "[[", 1, 1))]
       w <- as((cost <= weight[[1]][1]) * weight[[1]][2], "dgCMatrix")
       for (s in weight[-1]) w[cost <= s[1]] <- s[2]

@@ -46,19 +46,20 @@ Loudoun and Fairfax. These counties represent more rural (Loudoun) and more urba
 **Demand** is defined as the total population in 2020, as estimated in the [U.S. Census Bureau](https://www.census.gov)'s
 [American Community Survey](https://www.census.gov/programs-surveys/acs) 5-year summaries.
 
-**Supply** is defined as hospital beds, as collected from various government sources by Oak Ridge National Laboratory, and hosted by [Homeland Infrastructure Foundation-Level Data](https://hifld-geoplatform.opendata.arcgis.com): [Hospitals](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::hospitals/about). The inclusion criteria for hospitals were that they have a status of `OPEN` and a type of either `CRITICAL ACCESS` or `GENERAL ACCUTE CARE`. Missing bed counts (13 of 805 within the working subset) were median-imputed.
+**Supply** is defined as the yearly average of weekly average hospital beds, as reported by the
+[U.S. Health and Human Services](https://healthdata.gov) in their [COVID-19 Hospital Capacity](https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u) dataset.
 
 **Cost** is defined as travel times between each region's centroid and each hospital, as calculated within road networks by the [Open Source Routing Machine](https://github.com/Project-OSRM/osrm-backend) using [OpenStreetMap](https://www.openstreetmap.org) data from 2022, as provided by [Geofabrik](https://download.geofabrik.de/north-america/us.html).
 
-Data were prepared as part of a data commons project; the full script is available at [uva-bi-sdad/dc.hifld.hosp/src/retrieve.R](https://github.com/uva-bi-sdad/dc.hifld.hosp/blob/main/src/retrieve.R).
+Data were prepared as part of a data commons project; the full script is available at [uva-bi-sdad/dc.hifld.hosp/src/retrieve.R](https://github.com/uva-bi-sdad/dc.hifld.hosp/blob/master/src/retrieve.R).
 Here, we will be loading in the files created from the original sources.
 
 ## Downloading/Loading
 
-You can clone the repository, or directly download the files in the [data/working](https://github.com/uva-bi-sdad/dc.hifld.hosp/tree/main/data/working) directory, then point to the directory containing those files with the `dir` variable:
+You can clone the repository, or directly download the files in the [data/working](https://github.com/uva-bi-sdad/dc.hifld.hosp/tree/master/data/working) directory, then point to the directory containing those files with the `dir` variable:
 
 ```sh
-git clone --branch main https://github.com/uva-bi-sdad/dc.hifld.hosp.git
+git clone https://github.com/uva-bi-sdad/dc.hifld.hosp.git
 ```
 
 ```r
@@ -71,11 +72,13 @@ Now, we can load the files, which will results in 3 main objects: `hospitals`, `
 ```{r}
 # main objects
 hospitals <- read.csv(gzfile(paste0(dir, "hospitals.csv.xz")))
+rownames(hospitals) <- hospitals$GEOID
 population <- read.csv(gzfile(paste0(dir, "population_bg.csv.xz")))
 rownames(population) <- population$GEOID
 population$tract <- substring(population$GEOID, 1, 11)
 traveltimes <- read.csv(
-  gzfile(paste0(dir, "traveltimes_2020.csv.xz")), row.names = 1, check.names = FALSE
+  gzfile(paste0(dir, "traveltimes_2020.csv.xz")),
+  row.names = 1, check.names = FALSE
 )
 
 # tract-level comparisons
@@ -83,7 +86,8 @@ population_tract <- read.csv(gzfile(paste0(dir, "population_tr.csv.xz")))
 rownames(population_tract) <- population_tract$GEOID
 population_tract <- population_tract[unique(population$tract), ]
 traveltimes_tract <- read.csv(
-  gzfile(paste0(dir, "traveltimes_2020_tract.csv.xz")), row.names = 1, check.names = FALSE
+  gzfile(paste0(dir, "traveltimes_2020_tract.csv.xz")),
+  row.names = 1, check.names = FALSE
 )
 ```
 
@@ -497,3 +501,115 @@ splot(
 
 This is incidentally very similar to the effect of norm adjusting weights because consumer
 locations with more provider connections also tend to be closer to those providers.
+
+# Comparison with Use Data
+
+The hospital dataset includes average weekly bed use information, which we averaged over the year.
+This offers a reasonable analogue to the demand side of the catchment area ratios.
+
+```{r}
+used <- hospitals$inpatient_beds_used_7_day_avg + hospitals$icu_beds_used_7_day_avg
+used[is.na(used)] <- 0
+```
+
+First, we can look at how this actual use ratio lines up with the number of
+people that fall within each hospital's travel-time-based catchment area:
+```{r}
+baseline_population <- catchment_ratio(
+  population, hospitals, traveltimes,
+  weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = "demand",
+  consumers_value = "population", providers_value = "total_beds_7_day_avg"
+)
+```
+
+We don't know what portion of the population might actually use a hospital bed,
+but we would expect the total relevant population to correlate with the number of
+hospital beds used:
+
+```{r}
+cor(baseline_population, used)
+```
+
+Now we can consider how this correlation is affected by each of the previously considered
+decisions:
+
+```{r}
+variants <- data.frame(
+  baseline = baseline_population,
+  lower_resolution = catchment_ratio(
+    population_tract, hospitals, traveltimes_tract,
+    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = "demand",
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
+  ),
+  straight_distance = catchment_ratio(
+    population, hospitals,
+    weight = "gaussian", scale = .13, normalize_weight = TRUE, return_type = "demand",
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
+  ),
+  no_norm = catchment_ratio(
+    population, hospitals, traveltimes,
+    weight = "gaussian", scale = 18, return_type = "demand",
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
+  ),
+  bigger_radius = catchment_ratio(
+    population, hospitals, traveltimes,
+    weight = "gaussian", scale = 25, normalize_weight = TRUE, return_type = "demand",
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
+  )
+)
+cor(variants, data.frame(actual = used))
+```
+
+Since the unbuffered comparison only considers providers within Virginia,
+we'll have to look at that separately:
+```{r}
+variants_va <- cbind(
+  variants[hospitals$state == "VA", ],
+  unbuffered_population = catchment_ratio(
+    population[population$state == "VA", ], hospitals[hospitals$state == "VA", ], traveltimes,
+    weight = "gaussian", scale = 18, normalize_weight = TRUE, return_type = "demand",
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
+  )
+)
+cor(variants_va, data.frame(actual = used[hospitals$state == "VA"]))
+```
+
+## Parameter Tuning
+
+We could use this information to tune a parameter, with as scale:
+```{r, fig.height = 3}
+# we'll focus on a subset (just to make calculations faster),
+# which we can define by distance from a focal set of providers
+
+## identify an initial set of hospitals -- those close to our focal counties
+focal_hospitals <- names(which(
+  !!colSums(traveltimes[grep("^51(?:107|059|600)", rownames(traveltimes)), ] < 120)
+))
+
+## identify regions within a minimal distance of those hospitals
+focal_region_buffer <- names(which(!!rowSums(traveltimes[, focal_hospitals] < 120)))
+
+## use that to define our tuning subset
+tuning_traveltimes <- traveltimes[focal_region_buffer, ]
+tuning_traveltimes <- tuning_traveltimes[, !!colSums(tuning_traveltimes < 120)]
+tuning_population <- population[focal_region_buffer, ]
+tuning_hospitals <- hospitals[colnames(tuning_traveltimes), ]
+tuning_used <- tuning_hospitals$inpatient_beds_used_7_day_avg + tuning_hospitals$icu_beds_used_7_day_avg
+tuning_used[is.na(tuning_used)] <- 0
+
+# now we can see how the correlation seems to relate to scale
+Scales <- c(1, 3, 5, 10, 15, 20, 40, 50)
+scale_cors <- vapply(Scales, function(scale) {
+  demand <- catchment_ratio(
+    tuning_population, tuning_hospitals, tuning_traveltimes,
+    weight = "gaussian", scale = scale, normalize_weight = TRUE, return_type = "demand",
+    consumers_value = "population", providers_value = "total_beds_7_day_avg"
+  )
+  cor(demand, tuning_used)
+}, 0)
+splot(
+  scale_cors ~ Scales,
+  title = "Correlation Between Estimated Demand and Actual Use", laby = "Pearson's r",
+  sud = "Within a small buffer around the focal regions."
+)
+```

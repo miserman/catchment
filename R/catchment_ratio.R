@@ -64,8 +64,9 @@
 #' \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
 #' how many doctors are accessible within each region), or \code{"normalized"} for \code{original} divided by
 #' \code{sum(region) / sum(consumers)}. Can also be a number by which to multiply the original values (e.g., \code{1000}
-#' for \code{providers} per 1,000 \code{consumers}). Alternatively \code{"providers"} will return just the 
-#' provider ratio -- a vector with a ratio (\code{provider value / weighted population}) for each provider.
+#' for \code{providers} per 1,000 \code{consumers}). Alternatively \code{"supply"} will return just the
+#' number of resources allocated to each consumer location (total weighted resources within each consumer's catchment area),
+#' or \code{"demand"} will return just the population per provider (total weighted population within each provider's catchment area).
 #' @param consumers_commutes A square, consumers source x consumers origin matrix with counts of origins,
 #' used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
 #' may work in locations 1 and 3, so the first row of \code{consumers_commutes} should have values in columns 1 and 3).
@@ -121,8 +122,11 @@
 #'     exponential = exp(-cost * scale)
 #'   ) ~ cost, title = "Decay Functions", laby = "Weight", labx = "Cost", lines = "con", note = FALSE)
 #' }
-#' @return \code{catchment_ratio}: A vector with an access score (determined by \code{return_type})
-#' for each entry in \code{consumers}.
+#' @return \code{catchment_ratio}: A vector with a ratio (determined by \code{return_type})
+#' for each entry in \code{consumers}. If \code{return_type} is \code{"supply"}, values
+#' will be the number of resources within the location, rather than a ratio.
+#' If \code{return_type} is \code{"demand"}, the vector will have an entry for each provider
+#' rather than consumer location, and values will be number of consumers.
 #' @references
 #' Dai, D. (2010). Black residential segregation, disparities in spatial access to health care facilities, and
 #' late-stage breast cancer diagnosis in metropolitan Detroit. \emph{Health & place, 16}, 1038-1052.
@@ -154,7 +158,7 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
                             adjust_zeros = 1e-6, return_type = "original", consumers_commutes = NULL, consumers_id = "GEOID",
                             consumers_value = "count", consumers_location = c("X", "Y"), providers_id = "GEOID",
                             providers_value = "count", providers_location = c("X", "Y"),
-                            distance_metric = "euclidean", distance_scale = 1, verbose = FALSE) {
+                            distance_metric = "euclidean", verbose = FALSE) {
   if (verbose) cli_rule("Calculating a Floating Catchment Area Ratio")
   type <- ""
   if (is.null(consumers_commutes)) {
@@ -435,27 +439,39 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
   } else {
     type <- paste0(type, "2-step floating catchment area")
   }
+  provided_return_type <- !missing(return_type)
+  if (is.character(return_type)) {
+    return_type <- tolower(substr(return_type, 1, 1))
+    if (return_type == "s") {
+      if (verbose) cli_bullets(c(v = paste("calculated", type, "(resources per consumer location)")))
+      return(as.numeric(if (is.function(adjust_providers)) {
+        environment(adjust_providers) <- environment()
+        adjust_providers(w)
+      } else {
+        {
+          w
+        } %*% pv
+      }))
+    }
+  }
   wd <- crossprod(if (is.function(adjust_consumers)) {
     environment(adjust_consumers) <- environment()
     adjust_consumers(w)
   } else {
     w
   }, cv)
-  wd[abs(wd) < .Machine$double.eps] <- 1
-  if (is.character(return_type)) {
-    return_type <- tolower(substr(return_type, 1, 1))
-    if (return_type == "p") {
-      if (verbose) cli_bullets(c(v = paste("calculated", type, "(consumers per resource)")))
-      return(pv / wd)
-    }
+  if (return_type == "d") {
+    if (verbose) cli_bullets(c(v = paste("calculated", type, "(consumers per provider location)")))
+    return(as.numeric(wd))
   }
+  wd[abs(wd) < .Machine$double.eps] <- 1
   r <- as.numeric((if (is.function(adjust_providers)) {
     environment(adjust_providers) <- environment()
     adjust_providers(w)
   } else {
     w
   }) %*% (pv / wd))
-  if (!missing(return_type)) {
+  if (provided_return_type) {
     if (is.numeric(return_type)) {
       r <- r * return_type
       type <- paste(type, "(resources per", return_type, "consumers)")

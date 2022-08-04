@@ -12,7 +12,7 @@ catchment_ratio(consumers = NULL, providers = NULL, cost = NULL,
   consumers_id = "GEOID", consumers_value = "count",
   consumers_location = c("X", "Y"), providers_id = "GEOID",
   providers_value = "count", providers_location = c("X", "Y"),
-  distance_metric = "euclidean", distance_scale = 1, verbose = FALSE)
+  distance_metric = "euclidean", verbose = FALSE)
 
 catchment_weight(cost, weight = NULL, max_cost = NULL,
   adjust_zeros = 1e-06, scale = 2, normalize_weight = FALSE,
@@ -90,7 +90,9 @@ per \code{consumers} (e.g., how many, likely fractional, doctors are accessible 
 \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,
 how many doctors are accessible within each region), or \code{"normalized"} for \code{original} divided by
 \code{sum(region) / sum(consumers)}. Can also be a number by which to multiply the original values (e.g., \code{1000}
-for \code{providers} per 1,000 \code{consumers}).}
+for \code{providers} per 1,000 \code{consumers}). Alternatively \code{"supply"} will return just the
+number of resources allocated to each consumer location (total weighted resources within each consumer's catchment area),
+or \code{"demand"} will return just the population per provider (total weighted population within each provider's catchment area).}
 
 \item{consumers_commutes}{A square, consumers source x consumers origin matrix with counts of origins,
 used to specify multiple possible origins for each consumer location (e.g., consumers living in location 1
@@ -109,8 +111,11 @@ defaults to \code{"euclidean"}; see \code{\link[lingmatch]{lma_simets}}.}
 \item{verbose}{Logical; if \code{TRUE}, will print logs, and the type of floating catchment area that was calculated.}
 }
 \value{
-\code{catchment_ratio}: A vector with an access score (determined by \code{return_type})
-for each entry in \code{consumers}.
+\code{catchment_ratio}: A vector with a ratio (determined by \code{return_type})
+for each entry in \code{consumers}. If \code{return_type} is \code{"supply"}, values
+will be the number of resources within the location, rather than a ratio.
+If \code{return_type} is \code{"demand"}, the vector will have an entry for each provider
+rather than consumer location, and values will be number of consumers.
 
 \code{catchment_weight}: A sparse matrix of weights.
 }

@@ -274,3 +274,18 @@ test_that("verbose works", {
     )
   )
 })
+
+test_that("supply and demand returns work", {
+  demand <- c(5, 10, 50)
+  supply <- c(5, 10)
+  cost <- matrix(c(5, 35, 40, 55, 15, 25), ncol = 2)
+
+  expect_identical(
+    catchment_ratio(demand, supply, cost, 30, return_type = "supply"),
+    c(5, 10, 10)
+  )
+  expect_identical(
+    catchment_ratio(demand, supply, cost, 30, return_type = "demand"),
+    c(5, 60)
+  )
+})
