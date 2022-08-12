@@ -52,5 +52,5 @@ test_that("NA inputs are handled", {
   x[sample.int(100, 10)] <- NA
   xz <- x
   xz[is.na(x)] <- 0
-  expect_identical(catchment_weight(x, "linear"), catchment_weight(xz, "linear"))
+  expect_identical(catchment_weight(x, "linear"), catchment_weight(xz, "linear", adjust_zeros = FALSE))
 })

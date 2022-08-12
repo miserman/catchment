@@ -14,8 +14,9 @@
 #' \code{providers} are vectors, or will be aligned by name if available (as vector names or in \code{_id} columns).
 #' If \code{NULL}, coordinate information will be looked for in \code{consumers} and \code{providers} (based on
 #' \code{consumers_location} and \code{providers_location}), from which to calculate Euclidean distances.
-#' Costs equal to \code{0} are treated as missing, so any truly \code{0} costs should be set to some minimal value.
-#' In some cases, \code{0}s are automatically adjusted; see the \code{adjust_zeros} argument.
+#' Costs equal to \code{0} are set to \code{adjust_zeros} by default, and any missing costs are then set to \code{0}
+#' -- if \code{0} indicates no connection in your \code{cost} matrix, set \code{adjust_zeros} to \code{FALSE}, or
+#' set \code{0} to \code{NA} in your \code{cost} matrix.
 #' @param weight Means of defining catchment areas and their topology / friction / impedance. The simplest is a single
 #' number representing a maximum distance between \code{consumers} and \code{providers} (2-step floating catchment area;
 #' 2SFCA; Luo & Wang, 2003).
@@ -56,9 +57,7 @@
 #' \code{function(w) w / rowSums(w)} and \code{adjust_providers = function(w) sweep(w, 2, colSums(w), "/")}.
 #' When weights are adjusted independently in this way, region scores will likely no longer sum to the sum
 #' of \code{providers} (fewer than the total number of providers will be distributed).
-#' @param adjust_zeros A number to set real \code{0}s to, in case \code{cost} is symmetrical and all its diagonal
-#' values are \code{0} (assumed to be distance from self), or \code{NA}s are also present. Set to \code{FALSE}
-#' to prevent \code{0}s from being adjusted.
+#' @param adjust_zeros A number to set real \code{0}s to. Set to \code{FALSE} to prevent \code{0}s from being adjusted.
 #' @param return_type Determines the values that are returned: \code{"original"} (default) for \code{providers}
 #' per \code{consumers} (e.g., how many, likely fractional, doctors are accessible by each person within each region),
 #' \code{"region"} for number of \code{providers} per \code{consumers} entry (\code{consumers * original}; e.g.,

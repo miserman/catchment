@@ -95,8 +95,9 @@ or a matrix-like object with a column of IDs (located by <code>providers_id</cod
 <code>providers</code> are vectors, or will be aligned by name if available (as vector names or in <code>_id</code> columns).
 If <code>NULL</code>, coordinate information will be looked for in <code>consumers</code> and <code>providers</code> (based on
 <code>consumers_location</code> and <code>providers_location</code>), from which to calculate Euclidean distances.
-Costs equal to <code>0</code> are treated as missing, so any truly <code>0</code> costs should be set to some minimal value.
-In some cases, <code>0</code>s are automatically adjusted; see the <code>adjust_zeros</code> argument.</p></dd>
+Costs equal to <code>0</code> are set to <code>adjust_zeros</code> by default, and any missing costs are then set to <code>0</code>
+-- if <code>0</code> indicates no connection in your <code>cost</code> matrix, set <code>adjust_zeros</code> to <code>FALSE</code>, or
+set <code>0</code> to <code>NA</code> in your <code>cost</code> matrix.</p></dd>
 
 
 <dt>weight</dt>
@@ -142,9 +143,7 @@ of <code>providers</code> (fewer than the total number of providers will be dist
 
 
 <dt>adjust_zeros</dt>
-<dd><p>A number to set real <code>0</code>s to, in case <code>cost</code> is symmetrical and all its diagonal
-values are <code>0</code> (assumed to be distance from self), or <code>NA</code>s are also present. Set to <code>FALSE</code>
-to prevent <code>0</code>s from being adjusted.</p></dd>
+<dd><p>A number to set real <code>0</code>s to. Set to <code>FALSE</code> to prevent <code>0</code>s from being adjusted.</p></dd>
 
 
 <dt>return_type</dt>

@@ -184,7 +184,7 @@ test_that("consumers and providers get aligned with cost and weights", {
 
   expect_equal(full, catchment_ratio(co, pr, cost[, -ex], 40))
   expect_equal(full, catchment_ratio(co, pr[-ex], cost, 40))
-  cost[ex, ] <- 0
+  cost[ex, ] <- NA
   full <- catchment_ratio(co, pr, cost, 40)
   expect_equal(full, catchment_ratio(co, pr, cost[-ex, ], 40))
   expect_equal(full, catchment_ratio(co, pr[-ex], cost, 40))

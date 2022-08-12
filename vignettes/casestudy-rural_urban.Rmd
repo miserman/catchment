@@ -576,7 +576,7 @@ cor(variants_va, data.frame(actual = used[hospitals$state == "VA"]))
 
 ## Parameter Tuning
 
-We could use this information to tune a parameter, with as scale:
+We could use this information to tune a parameter, such as scale:
 ```{r, fig.height = 3}
 # we'll focus on a subset (just to make calculations faster),
 # which we can define by distance from a focal set of providers

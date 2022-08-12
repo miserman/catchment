@@ -11,18 +11,14 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros 
   if (is.null(dim(cost))) cost <- matrix(cost, ncol = 1)
   if (is.data.frame(cost)) cost <- as.matrix(cost)
   if (is.numeric(adjust_zeros)) {
-    if (nrow(cost) == ncol(cost) && all(!is.na(diag(cost)) & diag(cost) == 0)) {
-      if (verbose) cli_alert_info("setting diagonal 0s to 1e-6")
-      diag(cost) <- adjust_zeros
+    zero_costs <- !is.na(cost) & cost == 0
+    if (any(zero_costs)) {
+      if (verbose) cli_alert_info(paste("setting non-NA 0s to", adjust_zeros))
+      cost[zero_costs] <- adjust_zeros
+      rm(zero_costs)
     }
   }
-  if (anyNA(cost)) {
-    if (is.numeric(adjust_zeros) && any(!is.na(cost) & cost == 0)) {
-      if (verbose) cli_alert_info("setting non-NA 0s to 1e-6")
-      cost[!is.na(cost) & cost == 0] <- adjust_zeros
-    }
-    cost[is.na(cost)] <- 0
-  }
+  if (anyNA(cost)) cost[is.na(cost)] <- 0
   if (is.numeric(weight) && is.null(dim(weight)) && length(weight) > 1) {
     weight <- matrix(weight, ncol = ncol(cost))
   }
