@@ -10,7 +10,7 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros 
                              normalize_weight = FALSE, verbose = FALSE) {
   if (is.null(dim(cost))) cost <- matrix(cost, ncol = 1)
   if (is.data.frame(cost)) cost <- as.matrix(cost)
-  if (is.numeric(adjust_zeros)) {
+  if (!is.null(weight) && is.numeric(adjust_zeros)) {
     zero_costs <- !is.na(cost) & cost == 0
     if (any(zero_costs)) {
       if (verbose) cli_alert_info(paste("setting non-NA 0s to", adjust_zeros))
@@ -28,17 +28,17 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros 
   }
   if (is.null(weight)) {
     if (verbose) cli_alert_info("weight: cost")
-    w <- as(cost, "dgCMatrix")
+    w <- as(cost, "CsparseMatrix")
   } else if (is.null(dim(weight))) {
     if (is.numeric(weight)) {
       # single buffer value means a uniformly weighted catchment area (original)
       if (verbose) cli_alert_info("weight: cost over {.field 0} and under {.field {weight[[1]]}}")
-      w <- as(cost > 0 & cost < weight[[1]], "lgCMatrix") * 1
+      w <- as(cost > 0 & cost < weight[[1]], "CsparseMatrix") * 1
     } else if (is.list(weight)) {
       # list of steps for roughly graded weightings (enhanced)
       if (verbose) cli_alert_info("weight: cost over {.field 0} and under steps of {.arg weight}")
       weight <- weight[order(-vapply(weight, "[[", 1, 1))]
-      w <- as((cost <= weight[[1]][1]) * weight[[1]][2], "dgCMatrix")
+      w <- as((cost <= weight[[1]][1]) * weight[[1]][2], "CsparseMatrix")
       for (s in weight[-1]) w[cost <= s[1]] <- s[2]
       w[cost <= 0] <- 0
     } else if (is.character(weight)) {
@@ -53,30 +53,30 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros 
       }
       if (grepl("^(?:gr|n)", weight)) {
         # gravity / normal kernel
-        w <- as(sqrt(1 / cost^scale), "dgCMatrix")
+        w <- as(sqrt(1 / cost^scale), "CsparseMatrix")
       } else if (grepl("^e", weight)) {
         # exponential kernel
-        w <- as(exp(-cost * scale), "dgCMatrix")
+        w <- as(exp(-cost * scale), "CsparseMatrix")
       } else if (grepl("^loga", weight)) {
         # logarithmic kernel
-        w <- as(1 / (1 + log(cost, scale)), "dgCMatrix")
+        w <- as(1 / (1 + log(cost, scale)), "CsparseMatrix")
       } else if (grepl("^li", weight)) {
         # linear kernel
-        w <- as((scale - cost) / scale, "dgCMatrix")
+        w <- as((scale - cost) / scale, "CsparseMatrix")
         w[w < 0] <- 0
       } else if (grepl("^l", weight)) {
         # logistic kernel
-        w <- as(1 / (1 + exp(scale * cost)), "dgCMatrix")
+        w <- as(1 / (1 + exp(scale * cost)), "CsparseMatrix")
       } else if (grepl("^ga", weight)) {
         # Gaussian kernel
-        w <- as(exp(-cost^2 / (2 * scale^2)), "dgCMatrix")
+        w <- as(exp(-cost^2 / (2 * scale^2)), "CsparseMatrix")
       } else if (grepl("^d", weight) && exists(weight)) {
         # assumed to be a density function like dnorm
-        w <- as(cost, "dgCMatrix")
+        w <- as(cost, "CsparseMatrix")
         w@x <- do.call(weight, list(w@x, 0, scale))
       } else if (grepl("^p", weight) && exists(weight)) {
         # assumed to be a distribution function like pnorm
-        w <- as(cost, "dgCMatrix")
+        w <- as(cost, "CsparseMatrix")
         w@x <- do.call(weight, list(-w@x, 0, scale))
       } else {
         cli_abort("{.arg weight} not recognized")
@@ -84,12 +84,12 @@ catchment_weight <- function(cost, weight = NULL, max_cost = NULL, adjust_zeros 
       w[cost <= 0 | !is.finite(w)] <- 0
     } else if (is.function(weight)) {
       if (verbose) cli_alert_info("weight: custom weight function")
-      w <- as(weight(cost), "dgCMatrix")
+      w <- as(weight(cost), "CsparseMatrix")
       w[cost <= 0 | !is.finite(w)] <- 0
     }
   } else {
     if (verbose) cli_alert_info("weight: {.arg weight}")
-    w <- as(if (is.data.frame(weight)) as.matrix(weight) else weight, "dgCMatrix")
+    w <- as(if (is.data.frame(weight)) as.matrix(weight) else weight, "CsparseMatrix")
   }
   if (!is.null(max_cost)) {
     if (verbose) cli_alert_info("zerod-out cost over {max_cost}")

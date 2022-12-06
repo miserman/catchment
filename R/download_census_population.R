@@ -79,7 +79,7 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
   final_files <- paste0(if (is.null(dir)) tdir else dir, state_post, "_", c(
     "population",
     if (include_margins) "population_margins"
-  ), ".csv")
+  ), "_", year, ".csv")
   if (overwrite) unlink(c(paste0(tdir, files_zip), files, final_files))
   if (!all(file.exists(final_files)) && !all(file.exists(paste0(tdir, files_zip)) | file.exists(files))) {
     if (verbose) cli_alert_info(paste("downloading", display_state, "American Community Survey summary files"))
@@ -208,7 +208,7 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
   }
   # commutes
   if (include_commutes) {
-    file <- paste0(tdir, state_post, "_commutes.csv")
+    file <- paste0(tdir, state_post, "_commutes_", year, ".csv")
     filegz <- paste0(file, ".gz")
     if (overwrite) unlink(c(file, filegz))
     if (!any(file.exists(c(file, filegz)))) {
@@ -263,7 +263,7 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       "population",
       if (include_margins) "population_margins",
       if (include_commutes && check) "commutes"
-    ), ".csv")
+    ), "_", year, ".csv")
     if (!all(file.exists(files)) || (include_commutes && fresh && check)) {
       if (verbose) cli_alert_info(paste("writing", display_state, "files"))
       ck <- c(!file.exists(files[1]), !file.exists(files[2]) && include_margins, include_commutes && fresh && check)

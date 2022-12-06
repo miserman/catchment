@@ -209,13 +209,13 @@ test_that("missing consumer and provider values are handled", {
 test_that("non-missing 0s are handled", {
   cost <- cost_adj <- 1 / lma_simets(data.frame(x = 1:5, y = 1:5), metric = "euc", symmetrical = TRUE) - 1
   diag(cost_adj) <- 1e-6
-  expect_identical(catchment_ratio(1:5, 1:5, cost = cost), catchment_ratio(1:5, 1:5, cost = cost_adj))
+  expect_equal(catchment_ratio(1:5, 1:5, cost = cost), catchment_ratio(1:5, 1:5, cost = cost_adj), tolerance = 1e-6)
   nas <- sample.int(length(cost), 5)
   zeros <- sample.int(length(cost), 2)
   cost[nas] <- cost_adj[nas] <- NA
   cost[zeros] <- 0
   cost_adj[zeros] <- 1e-6
-  expect_identical(catchment_ratio(1:5, 1:5, cost = cost), catchment_ratio(1:5, 1:5, cost = cost_adj))
+  expect_equal(catchment_ratio(1:5, 1:5, cost = cost), catchment_ratio(1:5, 1:5, cost = cost_adj), tolerance = 1e-6)
 })
 
 test_that("verbose works", {

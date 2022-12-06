@@ -97,15 +97,13 @@ We'll also use a map to show comparisons between the focal regions:
 # download map geographies
 library(sf)
 tracts <- st_read(paste0(
-  "https://raw.githubusercontent.com/uva-bi-sdad/dc.geographies/main/data/",
-  "va_geo_census_cb_2020_census_tracts/distribution/",
-  "va_geo_census_cb_2020_census_tracts.geojson"
+  "https://raw.githubusercontent.com/uva-bi-sdad/sdc.geographies/main/VA/Census%20Geographies/",
+  "Tract/2020/data/distribution/va_geo_census_cb_2020_census_tracts.geojson"
 ), quiet = TRUE)
 tracts <- tracts[grep("^51(?:107|059|600)", tracts$geoid), ]
 block_groups <- st_read(paste0(
-  "https://raw.githubusercontent.com/uva-bi-sdad/dc.geographies/main/data/",
-  "va_geo_census_cb_2020_census_block_groups/distribution/",
-  "va_geo_census_cb_2020_census_block_groups.geojson"
+  "https://raw.githubusercontent.com/uva-bi-sdad/sdc.geographies/main/VA/Census%20Geographies/",
+  "Block%20Group/2020/data/distribution/va_geo_census_cb_2020_census_block_groups.geojson"
 ), quiet = TRUE)
 block_groups <- block_groups[grep("^51(?:107|059|600)", block_groups$geoid), ]
 

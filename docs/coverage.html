@@ -5,11 +5,11 @@
 <style>body{background-color:white;}</style>
 <script src="lib/htmlwidgets-1.5.4/htmlwidgets.js"></script>
 <link href="lib/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-<script src="lib/datatables-binding-0.23/datatables.js"></script>
+<script src="lib/datatables-binding-0.26/datatables.js"></script>
 <script src="lib/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-<link href="lib/dt-core-1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="lib/dt-core-1.11.3/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="lib/dt-core-1.11.3/js/jquery.dataTables.min.js"></script>
+<link href="lib/dt-core-1.12.1/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="lib/dt-core-1.12.1/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="lib/dt-core-1.12.1/js/jquery.dataTables.min.js"></script>
 <link href="lib/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
 <script src="lib/crosstalk-1.2.0/js/crosstalk.min.js"></script>
 <link href="lib/highlight.js-6.2/rstudio.css" rel="stylesheet" />
@@ -106,8 +106,8 @@ table.table-condensed {
       </ul>
       <div class="tab-content" data-tabsetid="covr">
         <div class="tab-pane active" title="Files" data-value="Files" id="tab-covr-1">
-          <div id="htmlwidget-ea4a1b849c9b4a72e1e0" style="width:100%;height:500px;" class="datatables html-widget"></div>
-          <script type="application/json" data-for="htmlwidget-ea4a1b849c9b4a72e1e0">{"x":{"filter":"none","vertical":false,"fillContainer":true,"data":[["<a href=\"#\">R/catchment_connections.R<\/a>","<a href=\"#\">R/catchment_aggregate.R<\/a>","<a href=\"#\">R/catchment_ratio.R<\/a>","<a href=\"#\">R/catchment_weight.R<\/a>","<a href=\"#\">R/catchment_network.R<\/a>","<a href=\"#\">R/download_census_shapes.R<\/a>","<a href=\"#\">R/download_census_population.R<\/a>","<a href=\"#\">R/simulate_catchments.R<\/a>"],[179,207,493,104,33,115,286,67],[101,115,245,69,11,63,197,27],[77,88,192,55,9,54,172,27],[24,27,53,14,2,9,25,0],["119","4","29","39","38","1","1","18"],["76.24%","76.52%","78.37%","79.71%","81.82%","85.71%","87.31%","100.00%"]],"container":"<table class=\"row-border fill-container\">\n  <thead>\n    <tr>\n      <th>File<\/th>\n      <th>Lines<\/th>\n      <th>Relevant<\/th>\n      <th>Covered<\/th>\n      <th>Missed<\/th>\n      <th>Hits / Line<\/th>\n      <th>Coverage<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"targets":6,"createdCell":"function(td, cellData, rowData, row, col) {\n  var percent = cellData.replace(\"%\", \"\");\n  if (percent > 90) {\n    var grad = \"linear-gradient(90deg, #edfde7 \" + cellData + \", white \" + cellData + \")\";\n  } else if (percent > 75) {\n    var grad = \"linear-gradient(90deg, #f9ffe5 \" + cellData + \", white \" + cellData + \")\";\n  } else {\n    var grad = \"linear-gradient(90deg, #fcece9 \" + cellData + \", white \" + cellData + \")\";\n  }\n  $(td).css(\"background\", grad);\n}\n"},{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').text(id).tab('show');\n});\n}"},"evals":["options.columnDefs.0.createdCell","callback"],"jsHooks":[]}</script>
+          <div id="htmlwidget-40c3ddb12aca053510c7" style="width:100%;height:500px;" class="datatables html-widget"></div>
+          <script type="application/json" data-for="htmlwidget-40c3ddb12aca053510c7">{"x":{"filter":"none","vertical":false,"fillContainer":false,"data":[["<a href=\"#\">R/catchment_connections.R<\/a>","<a href=\"#\">R/catchment_aggregate.R<\/a>","<a href=\"#\">R/catchment_ratio.R<\/a>","<a href=\"#\">R/catchment_weight.R<\/a>","<a href=\"#\">R/catchment_network.R<\/a>","<a href=\"#\">R/download_census_shapes.R<\/a>","<a href=\"#\">R/download_census_population.R<\/a>","<a href=\"#\">R/simulate_catchments.R<\/a>"],[179,207,493,104,33,115,286,67],[101,115,245,69,11,63,197,27],[77,88,192,55,9,54,172,27],[24,27,53,14,2,9,25,0],["122","4","29","39","38","1","1","18"],["76.24%","76.52%","78.37%","79.71%","81.82%","85.71%","87.31%","100.00%"]],"container":"<table class=\"row-border\">\n  <thead>\n    <tr>\n      <th>File<\/th>\n      <th>Lines<\/th>\n      <th>Relevant<\/th>\n      <th>Covered<\/th>\n      <th>Missed<\/th>\n      <th>Hits / Line<\/th>\n      <th>Coverage<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"targets":6,"createdCell":"function(td, cellData, rowData, row, col) {\n  var percent = cellData.replace(\"%\", \"\");\n  if (percent > 90) {\n    var grad = \"linear-gradient(90deg, #edfde7 \" + cellData + \", white \" + cellData + \")\";\n  } else if (percent > 75) {\n    var grad = \"linear-gradient(90deg, #f9ffe5 \" + cellData + \", white \" + cellData + \")\";\n  } else {\n    var grad = \"linear-gradient(90deg, #fcece9 \" + cellData + \", white \" + cellData + \")\";\n  }\n  $(td).css(\"background\", grad);\n}\n"},{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').text(id).tab('show');\n});\n}"},"evals":["options.columnDefs.0.createdCell","callback"],"jsHooks":[]}</script>
         </div>
         <div class="tab-pane" title="Source" data-value="Source" id="tab-covr-2">
           <div id="files">
@@ -1496,7 +1496,7 @@ table.table-condensed {
                     <td class="num">82</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">  ), ".csv")</pre>
+                      <pre class="language-r">  ), "_", year, ".csv")</pre>
                     </td>
                   </tr>
                   <tr class="missed">
@@ -2399,7 +2399,7 @@ table.table-condensed {
                     <td class="num">211</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">    file &lt;- paste0(tdir, state_post, "_commutes.csv")</pre>
+                      <pre class="language-r">    file &lt;- paste0(tdir, state_post, "_commutes_", year, ".csv")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -2784,7 +2784,7 @@ table.table-condensed {
                     <td class="num">266</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">    ), ".csv")</pre>
+                      <pre class="language-r">    ), "_", year, ".csv")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3021,19 +3021,19 @@ table.table-condensed {
                     <td class="num">13</td>
                     <td class="coverage">198<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">  if (is.numeric(adjust_zeros)) {</pre>
+                      <pre class="language-r">  if (!is.null(weight) &amp;&amp; is.numeric(adjust_zeros)) {</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">14</td>
-                    <td class="coverage">197<em>x</em></td>
+                    <td class="coverage">189<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    zero_costs &lt;- !is.na(cost) &amp; cost == 0</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">15</td>
-                    <td class="coverage">197<em>x</em></td>
+                    <td class="coverage">189<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (any(zero_costs)) {</pre>
                     </td>
@@ -3147,7 +3147,7 @@ table.table-condensed {
                     <td class="num">31</td>
                     <td class="coverage">8<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">    w &lt;- as(cost, "dgCMatrix")</pre>
+                      <pre class="language-r">    w &lt;- as(cost, "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3182,7 +3182,7 @@ table.table-condensed {
                     <td class="num">36</td>
                     <td class="coverage">158<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">      w &lt;- as(cost &gt; 0 &amp; cost &lt; weight[[1]], "lgCMatrix") * 1</pre>
+                      <pre class="language-r">      w &lt;- as(cost &gt; 0 &amp; cost &lt; weight[[1]], "CsparseMatrix") * 1</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3217,7 +3217,7 @@ table.table-condensed {
                     <td class="num">41</td>
                     <td class="coverage">6<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">      w &lt;- as((cost &lt;= weight[[1]][1]) * weight[[1]][2], "dgCMatrix")</pre>
+                      <pre class="language-r">      w &lt;- as((cost &lt;= weight[[1]][1]) * weight[[1]][2], "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3322,7 +3322,7 @@ table.table-condensed {
                     <td class="num">56</td>
                     <td class="coverage">4<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(sqrt(1 / cost^scale), "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(sqrt(1 / cost^scale), "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3343,7 +3343,7 @@ table.table-condensed {
                     <td class="num">59</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(exp(-cost * scale), "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(exp(-cost * scale), "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3364,7 +3364,7 @@ table.table-condensed {
                     <td class="num">62</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(1 / (1 + log(cost, scale)), "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(1 / (1 + log(cost, scale)), "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3385,7 +3385,7 @@ table.table-condensed {
                     <td class="num">65</td>
                     <td class="coverage">3<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as((scale - cost) / scale, "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as((scale - cost) / scale, "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3413,7 +3413,7 @@ table.table-condensed {
                     <td class="num">69</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(1 / (1 + exp(scale * cost)), "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(1 / (1 + exp(scale * cost)), "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3434,7 +3434,7 @@ table.table-condensed {
                     <td class="num">72</td>
                     <td class="coverage">2<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(exp(-cost^2 / (2 * scale^2)), "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(exp(-cost^2 / (2 * scale^2)), "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3455,7 +3455,7 @@ table.table-condensed {
                     <td class="num">75</td>
                     <td class="coverage">2<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(cost, "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(cost, "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3483,7 +3483,7 @@ table.table-condensed {
                     <td class="num">79</td>
                     <td class="coverage">1<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        w &lt;- as(cost, "dgCMatrix")</pre>
+                      <pre class="language-r">        w &lt;- as(cost, "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3539,7 +3539,7 @@ table.table-condensed {
                     <td class="num">87</td>
                     <td class="coverage">3<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">      w &lt;- as(weight(cost), "dgCMatrix")</pre>
+                      <pre class="language-r">      w &lt;- as(weight(cost), "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -3574,7 +3574,7 @@ table.table-condensed {
                     <td class="num">92</td>
                     <td class="coverage">8<em>x</em></td>
                     <td class="col-sm-12">
-                      <pre class="language-r">    w &lt;- as(if (is.data.frame(weight)) as.matrix(weight) else weight, "dgCMatrix")</pre>
+                      <pre class="language-r">    w &lt;- as(if (is.data.frame(weight)) as.matrix(weight) else weight, "CsparseMatrix")</pre>
                     </td>
                   </tr>
                   <tr class="never">
@@ -4712,42 +4712,42 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">150</td>
-                    <td class="coverage">426<em>x</em></td>
+                    <td class="coverage">486<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">          list(</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">151</td>
-                    <td class="coverage">426<em>x</em></td>
+                    <td class="coverage">486<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">            type = "Feature",</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">152</td>
-                    <td class="coverage">426<em>x</em></td>
+                    <td class="coverage">486<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">            properties = list(from = from_ids[[r]], to = np[[i]], weight = w[[i]], cost = wc[[i]]),</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">153</td>
-                    <td class="coverage">426<em>x</em></td>
+                    <td class="coverage">486<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">            geometry = list(</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">154</td>
-                    <td class="coverage">426<em>x</em></td>
+                    <td class="coverage">486<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">              type = "LineString",</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">155</td>
-                    <td class="coverage">426<em>x</em></td>
+                    <td class="coverage">486<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">              coordinates = list(fc, as.numeric(tc[[np[[i]]]]))</pre>
                     </td>
