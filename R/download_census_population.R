@@ -63,11 +63,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
   state_post <- us_fips$post[fid]
   display_state <- gsub("([a-z])([A-Z])", "\\1 \\2", state)
 
-  url <- paste0(
-    "https://www2.census.gov/programs-surveys/acs/summary_file/", year,
-    "/data/5_year_seq_by_state/", state, "/Tracts_Block_Groups_Only/"
-  )
-  files_zip <- paste0(year, "5", state_post, "000", 1:3, "000.zip")
   if (!is.null(dir)) {
     dir <- tdir <- paste0(normalizePath(dir, "/", FALSE), "/")
     if (!dir.exists(dir)) dir.create(dir, FALSE, TRUE)
@@ -75,6 +70,12 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     tdir <- paste0(tempdir(), "/")
   }
   folder <- paste0(tdir, state, "_Tracts_Block_Groups_Only/")
+  url <- paste0(
+    "https://www2.census.gov/programs-surveys/acs/summary_file/", year,
+    if (year > 2020) "/sequence-based-SF", "/data/5_year_seq_by_state/", state,
+    "/Tracts_Block_Groups_Only/"
+  )
+  files_zip <- paste0(year, "5", state_post, "000", 1:3, "000.zip")
   files <- paste0(folder, "e", year, "5", state_post, "000", 1:3, "000.txt")
   final_files <- paste0(if (is.null(dir)) tdir else dir, state_post, "_", c(
     "population",
@@ -103,11 +104,15 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     # column names
     headers <- read.csv(paste0(
       "https://www2.census.gov/programs-surveys/acs/summary_file/", year,
-      "/documentation/", if (year < 2013) {
-        "5_year/user_tools/Sequence_Number_and_Table_Number_Lookup"
+      if (year > 2020) {
+        "/sequence-based-SF/documentation/user_tools/ACS_5yr_Seq"
       } else {
-        "user_tools/ACS_5yr_Seq_Table_Number_Lookup"
-      }, ".txt"
+        paste0("/documentation/", if (year < 2013) {
+          "5_year/user_tools/Sequence_Number_and"
+        } else {
+          "user_tools/ACS_5yr_Seq"
+        })
+      }, "_Table_Number_Lookup.txt"
     ), nrows = 661)
     title_id <- which(headers$Total.Cells.in.Table != "")
     names <- sub("^Universe:\\s*", "", headers$Table.Title)
@@ -144,7 +149,8 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     # row geoids
     rows <- read.csv(paste0(
       "https://www2.census.gov/programs-surveys/acs/summary_file/", year,
-      "/data/5_year_seq_by_state/", state, "/Tracts_Block_Groups_Only/g", year, "5", state_post, ".csv"
+      if (year > 2020) "/sequence-based-SF", "/data/5_year_seq_by_state/", state,
+      "/Tracts_Block_Groups_Only/g", year, "5", state_post, ".csv"
     ), header = FALSE)
     rows$GEOID <- sub("\\D.*$", "", paste0(
       formatC(rows$V10, width = 2, flag = 0),
