@@ -161,8 +161,13 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
 
     # estimates
     estimates <- do.call(cbind, lapply(seq_along(files), function(i) {
-      tab <- read.csv(files[i], header = FALSE)
-      colnames(tab)[c(6, offset[inds[[i]]])] <- c("GEOID", headers[inds[[i]], "name"])
+      os <- c(6, offset[inds[[i]]])
+      tab <- read.csv(
+        files[i],
+        header = FALSE, colClasses = c(rep("character", 5), rep("numeric", length(os))),
+        na.string = "."
+      )
+      colnames(tab)[os] <- c("GEOID", headers[inds[[i]], "name"])
       tab$GEOID <- rows[tab$GEOID, "GEOID"]
       tab[nchar(tab$GEOID) == 12, -seq(1, if (i == 1) 5 else 6)]
     }))
@@ -172,8 +177,13 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     if (include_margins) {
       files_m <- paste0(folder, "m", year, "5", state_post, "000", 1:3, "000.txt")
       margins <- do.call(cbind, lapply(seq_along(files_m), function(i) {
-        tab <- read.csv(files_m[i], header = FALSE)
-        colnames(tab)[c(6, offset[inds[[i]]])] <- c("GEOID", headers[inds[[i]], "name"])
+        os <- c(6, offset[inds[[i]]])
+        tab <- read.csv(
+          files_m[i],
+          header = FALSE, colClasses = c(rep("character", 5), rep("numeric", length(os))),
+          na.string = "."
+        )
+        colnames(tab)[os] <- c("GEOID", headers[inds[[i]], "name"])
         tab$GEOID <- rows[tab$GEOID, "GEOID"]
         tab[nchar(tab$GEOID) == 12, -seq(1, if (i == 1) 5 else 6)]
       }))
@@ -209,8 +219,11 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
     }
   } else {
     if (verbose) cli_alert_info(paste("loading existing", display_state, "population data"))
-    estimates <- read.csv(final_files[1])
-    if (include_margins) margins <- read.csv(final_files[2])
+    classes <- c("character", rep("numeric", length(
+      scan(final_files[1], "", sep = ",", nlines = 1, quiet = TRUE)
+    ) - 1))
+    estimates <- read.csv(final_files[1], colClasses = classes)
+    if (include_margins) margins <- read.csv(final_files[2], colClasses = classes)
   }
   # commutes
   if (include_commutes) {
