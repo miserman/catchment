@@ -61,6 +61,7 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
   } else if (from_id %in% colnames(from)) {
     from[, from_id, drop = TRUE]
   } else {
+    if (is.null(rownames(from))) rownames(from) <- seq_len(nrow(from))
     rownames(from)
   }
   if (is.null(from_ids)) cli_abort("failed to resolve {.arg from} ids")
@@ -70,6 +71,7 @@ catchment_connections <- function(from, to, cost = NULL, weight = 1, ..., return
   } else if (to_id %in% colnames(to)) {
     to[, to_id, drop = TRUE]
   } else {
+    if (is.null(rownames(to))) rownames(to) <- seq_len(nrow(to))
     rownames(to)
   }
   if (is.null(to_id)) cli_abort("failed to resolve {.arg to} ids")

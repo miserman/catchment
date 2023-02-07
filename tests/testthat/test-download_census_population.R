@@ -3,8 +3,9 @@ test_that("files are downloaded and loaded", {
   if (grepl("R_LIBS", getwd(), fixed = TRUE)) dir.create(dir, FALSE, TRUE)
   if (!dir.exists(dir)) dir <- "../../../../census_download_tests"
   skip_if_not(dir.exists(dir), "not downloading data")
-  data <- download_census_population(dir, "dc", include_margins = TRUE, include_commutes = TRUE)
   files <- paste0(dir, "/", c("dc_population", "dc_population_margins", "dc_commutes"), "_2019.csv")
+  unlink(files)
+  data <- download_census_population(dir, "dc", include_margins = TRUE, include_commutes = TRUE)
   names(files) <- c("estimates", "margins", "commutes")
   expect_identical(names(data), names(files))
   expect_true(all(file.exists(files)))

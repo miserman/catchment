@@ -113,14 +113,15 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
           "user_tools/ACS_5yr_Seq"
         })
       }, "_Table_Number_Lookup.txt"
-    ), nrows = 661)
+    ), nrows = 2000)
+    headers <- headers[seq_len(grep("ANCESTRY", headers$Table.Title, fixed = TRUE)[1] - 1), ]
     title_id <- which(headers$Total.Cells.in.Table != "")
     names <- sub("^Universe:\\s*", "", headers$Table.Title)
     sub_id <- which(grepl(":", names, fixed = TRUE))
     headers$name <- sub("\\.$", "", sub("_\\w+_Total", "_Total", gsub("._", "_", paste0(
       rep(gsub("[;:(),\\s]+", ".", names[title_id], perl = TRUE), c(title_id[-1], nrow(headers)) - title_id),
       "_",
-      rep(gsub("[;:(),\\s]+", ".", names[sub_id], perl = TRUE), c(sub_id[-1], nrow(headers)) - sub_id),
+      rep(gsub("[;:(),\\s]+", ".", names[sub_id], perl = TRUE), c(sub_id[-1], nrow(headers)) - c(1, sub_id[-1])),
       "_",
       gsub("[;:(),\\s]+", ".", sub(" years", "", names, fixed = TRUE), perl = TRUE)
     ), fixed = TRUE)))
@@ -171,7 +172,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       tab$GEOID <- rows[tab$GEOID, "GEOID"]
       tab[nchar(tab$GEOID) == 12, -seq(1, if (i == 1) 5 else 6)]
     }))
-    estimates[estimates == "."] <- NA
 
     # margins
     if (include_margins) {
@@ -187,15 +187,12 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
         tab$GEOID <- rows[tab$GEOID, "GEOID"]
         tab[nchar(tab$GEOID) == 12, -seq(1, if (i == 1) 5 else 6)]
       }))
-      margins[margins == "."] <- NA
     }
     su <- vapply(estimates, function(v) all(is.na(v)), TRUE)
     if (any(su)) {
       estimates <- estimates[, !su, drop = FALSE]
-      colnames(estimates) <- sub("\\.1$", "", colnames(estimates))
       if (include_margins) {
         margins <- margins[, !su, drop = FALSE]
-        colnames(margins) <- sub("\\.1$", "", colnames(margins))
       }
     }
     su <- !is.na(estimates[, 2]) & estimates[, 2] == 0
