@@ -200,20 +200,6 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
       estimates <- estimates[!su, ]
       if (include_margins) margins <- margins[!su, ]
     }
-    subsetter <- !c(is.null(blockgroups), is.null(tracts), is.null(counties))
-    if (any(subsetter)) {
-      su <- if (subsetter[1]) {
-        estimates$GEOID %in% blockgroups
-      } else if (subsetter[2]) {
-        substr(estimates$GEOID, 1, 11) %in% tracts
-      } else if (subsetter[3]) {
-        substr(estimates$GEOID, 1, 5) %in% counties
-      }
-      if (any(su) && !all(su)) {
-        estimates <- estimates[su, ]
-        if (include_margins) margins <- margins[su, ]
-      }
-    }
   } else {
     if (verbose) cli_alert_info(paste("loading existing", display_state, "population data"))
     classes <- c("character", rep("numeric", length(
@@ -292,6 +278,23 @@ download_census_population <- function(dir, state, year = 2019, include_margins 
           structure(paste0("{.file ", files[ck], "}"), names = rep("*", sum(ck)))
         ))
       }
+    }
+  }
+  subsetter <- !c(is.null(blockgroups), is.null(tracts), is.null(counties))
+  if (any(subsetter)) {
+    su <- if (subsetter[1]) {
+      estimates$GEOID %in% blockgroups
+    } else if (subsetter[2]) {
+      substr(estimates$GEOID, 1, 11) %in% tracts
+    } else if (subsetter[3]) {
+      substr(estimates$GEOID, 1, 5) %in% counties
+    }
+    if (any(su) && !all(su)) {
+      if (verbose) cli_alert_info("subsetting results")
+      estimates <- estimates[su, ]
+      if (include_margins) margins <- margins[su, ]
+    } else {
+      cli_warn("a subset was requested, but no GEOIDs matched")
     }
   }
   invisible(list(
