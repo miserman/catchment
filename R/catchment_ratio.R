@@ -346,9 +346,9 @@ catchment_ratio <- function(consumers = NULL, providers = NULL, cost = NULL, wei
     dims <- dim(consumers_commutes)
     if (dims[1] != dims[2]) cli_abort("{.arg consumers_commutes} must be a square matrix")
     if (dims[1] != cn || (!is.null(colnames(consumers_commutes)) && !identical(pid, colnames(consumers_commutes)))) {
-      if (all(cid %in% colnames(consumers_commutes)) || (is.numeric(cid) && dims[1] <= max(cid))) {
+      if (is.numeric(cid) && dims[1] <= max(cid)) cid <- as.character(cid)
+      if (all(cid %in% colnames(consumers_commutes))) {
         if (verbose) cli_alert_info("ordering and/or trimming {.arg consumers_commutes} by {.arg consumers} IDs")
-        if (is.numeric(cid) || (min(cid) > 0 && max(cid) > nrow(consumers_commutes))) cid <- as.character(cid)
         consumers_commutes <- consumers_commutes[cid, cid]
       } else {
         cli_abort("{.arg consumers_commutes} could not be resolved with {.arg consumers}")

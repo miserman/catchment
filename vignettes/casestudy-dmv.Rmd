@@ -367,7 +367,10 @@ for (o in names(files)) {
     if (grepl(".geojson", files[[o]], fixed = TRUE)) {
       assign(o, st_transform(read_sf(path, as_tibble = FALSE), 4326))
     } else if (o %in% c("commutes", "traveltimes")) {
-      assign(o, as(as.matrix(read.csv(bzfile(path), row.names = 1)), "dgCMatrix"))
+      assign(o, as(as.matrix(read.csv(
+        bzfile(path),
+        row.names = 1, check.names = FALSE
+      )), "dgCMatrix"))
     } else {
       assign(o, read.csv(path))
     }

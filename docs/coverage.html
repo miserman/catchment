@@ -5,7 +5,7 @@
 <style>body{background-color:white;}</style>
 <script src="lib/htmlwidgets-1.6.2/htmlwidgets.js"></script>
 <link href="lib/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-<script src="lib/datatables-binding-0.28/datatables.js"></script>
+<script src="lib/datatables-binding-0.29/datatables.js"></script>
 <script src="lib/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <link href="lib/dt-core-1.13.4/css/jquery.dataTables.min.css" rel="stylesheet" />
 <link href="lib/dt-core-1.13.4/css/jquery.dataTables.extra.css" rel="stylesheet" />
@@ -94,7 +94,7 @@ table.table-condensed {
   font-size: 11px;
 }</style>
   <div class="col-md-8 col-md-offset-2">
-    <h2>catchment coverage - 82.70%</h2>
+    <h2>catchment coverage - 82.80%</h2>
     <div class="tabbable">
       <ul class="nav nav-tabs" data-tabsetid="covr">
         <li class="active">
@@ -106,8 +106,8 @@ table.table-condensed {
       </ul>
       <div class="tab-content" data-tabsetid="covr">
         <div class="tab-pane active" title="Files" data-value="Files" id="tab-covr-1">
-          <div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-ad56c44bf271fbff0896" style="width:100%;height:500px;"></div>
-          <script type="application/json" data-for="htmlwidget-ad56c44bf271fbff0896">{"x":{"filter":"none","vertical":false,"fillContainer":false,"data":[["<a href=\"#\">R/catchment_aggregate.R<\/a>","<a href=\"#\">R/catchment_connections.R<\/a>","<a href=\"#\">R/catchment_ratio.R<\/a>","<a href=\"#\">R/catchment_weight.R<\/a>","<a href=\"#\">R/catchment_network.R<\/a>","<a href=\"#\">R/download_census_population.R<\/a>","<a href=\"#\">R/download_census_shapes.R<\/a>","<a href=\"#\">R/simulate_catchments.R<\/a>"],[207,181,493,104,33,305,115,67],[115,103,245,69,11,211,63,27],[88,79,192,55,9,180,54,27],[27,24,53,14,2,31,9,0],["4","115","29","38","38","1","1","18"],["76.52%","76.70%","78.37%","79.71%","81.82%","85.31%","85.71%","100.00%"]],"container":"<table class=\"row-border\">\n  <thead>\n    <tr>\n      <th>File<\/th>\n      <th>Lines<\/th>\n      <th>Relevant<\/th>\n      <th>Covered<\/th>\n      <th>Missed<\/th>\n      <th>Hits / Line<\/th>\n      <th>Coverage<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"targets":6,"createdCell":"function(td, cellData, rowData, row, col) {\n  var percent = cellData.replace(\"%\", \"\");\n  if (percent > 90) {\n    var grad = \"linear-gradient(90deg, #edfde7 \" + cellData + \", white \" + cellData + \")\";\n  } else if (percent > 75) {\n    var grad = \"linear-gradient(90deg, #f9ffe5 \" + cellData + \", white \" + cellData + \")\";\n  } else {\n    var grad = \"linear-gradient(90deg, #fcece9 \" + cellData + \", white \" + cellData + \")\";\n  }\n  $(td).css(\"background\", grad);\n}\n"},{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').text(id).tab('show');\n});\n}","selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.columnDefs.0.createdCell","callback"],"jsHooks":[]}</script>
+          <div class="datatables html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-f6bdcd4abd5d346179c8" style="width:100%;height:500px;"></div>
+          <script type="application/json" data-for="htmlwidget-f6bdcd4abd5d346179c8">{"x":{"filter":"none","vertical":false,"fillContainer":false,"data":[["<a href=\"#\">R/catchment_aggregate.R<\/a>","<a href=\"#\">R/catchment_connections.R<\/a>","<a href=\"#\">R/catchment_ratio.R<\/a>","<a href=\"#\">R/catchment_weight.R<\/a>","<a href=\"#\">R/download_census_population.R<\/a>","<a href=\"#\">R/download_census_shapes.R<\/a>","<a href=\"#\">R/catchment_network.R<\/a>","<a href=\"#\">R/simulate_catchments.R<\/a>"],[207,181,493,104,305,115,33,67],[115,103,245,69,211,63,11,27],[88,79,192,55,180,54,10,27],[27,24,53,14,31,9,1,0],["4","115","28","38","1","1","3","17"],["76.52%","76.70%","78.37%","79.71%","85.31%","85.71%","90.91%","100.00%"]],"container":"<table class=\"row-border\">\n  <thead>\n    <tr>\n      <th>File<\/th>\n      <th>Lines<\/th>\n      <th>Relevant<\/th>\n      <th>Covered<\/th>\n      <th>Missed<\/th>\n      <th>Hits / Line<\/th>\n      <th>Coverage<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"searching":false,"dom":"t","paging":false,"columnDefs":[{"targets":6,"createdCell":"function(td, cellData, rowData, row, col) {\n  var percent = cellData.replace(\"%\", \"\");\n  if (percent > 90) {\n    var grad = \"linear-gradient(90deg, #edfde7 \" + cellData + \", white \" + cellData + \")\";\n  } else if (percent > 75) {\n    var grad = \"linear-gradient(90deg, #f9ffe5 \" + cellData + \", white \" + cellData + \")\";\n  } else {\n    var grad = \"linear-gradient(90deg, #fcece9 \" + cellData + \", white \" + cellData + \")\";\n  }\n  $(td).css(\"background\", grad);\n}\n"},{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false},"callback":"function(table) {\ntable.on('click.dt', 'a', function() {\n  files = $('div#files div');\n  files.not('div.hidden').addClass('hidden');\n  id = $(this).text();\n  files.filter('div[id=\\'' + id + '\\']').removeClass('hidden');\n  $('ul.nav a[data-value=Source]').text(id).tab('show');\n});\n}","selection":{"mode":"multiple","selected":null,"target":"row","selectable":null}},"evals":["options.columnDefs.0.createdCell","callback"],"jsHooks":[]}</script>
         </div>
         <div class="tab-pane" title="Source" data-value="Source" id="tab-covr-2">
           <div id="files">
@@ -1243,21 +1243,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">162</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  type &lt;- ""</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">163</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (is.null(consumers_commutes)) {</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">164</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (!missing(consumers_value)) {</pre>
                     </td>
@@ -1306,14 +1306,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">171</td>
-                    <td class="coverage">91<em>x</em></td>
+                    <td class="coverage">89<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      dims &lt;- dim(consumers)</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">172</td>
-                    <td class="coverage">91<em>x</em></td>
+                    <td class="coverage">89<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      if (missing(consumers_id) &amp;&amp; missing(consumers_location) &amp;&amp; !is.null(dims) &amp;&amp; dims[1] == dims[2]) {</pre>
                     </td>
@@ -1355,7 +1355,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">178</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  input_data &lt;- c(is.null(dim(providers)), is.null(dim(consumers)))</pre>
                     </td>
@@ -1369,7 +1369,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">180</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  cv &lt;- if (input_data[2]) {</pre>
                     </td>
@@ -1446,7 +1446,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">191</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  } else if (length(consumers_value) == 1 &amp;&amp; consumers_value %in% colnames(consumers)) {</pre>
                     </td>
@@ -1460,7 +1460,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">193</td>
-                    <td class="coverage">62<em>x</em></td>
+                    <td class="coverage">60<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    as.numeric(consumers[, consumers_value, drop = TRUE])</pre>
                     </td>
@@ -1495,7 +1495,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">198</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  cn &lt;- length(cv)</pre>
                     </td>
@@ -1516,7 +1516,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">201</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  pv &lt;- if (input_data[1]) {</pre>
                     </td>
@@ -1593,7 +1593,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">212</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  } else if (length(providers_value) == 1 &amp;&amp; providers_value %in% colnames(providers)) {</pre>
                     </td>
@@ -1628,7 +1628,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">217</td>
-                    <td class="coverage">54<em>x</em></td>
+                    <td class="coverage">52<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    rep(1, nrow(providers))</pre>
                     </td>
@@ -1663,7 +1663,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">222</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  cid &lt;- if (input_data[1]) {</pre>
                     </td>
@@ -1761,7 +1761,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">236</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  } else if (length(consumers_id) == 1 &amp;&amp; consumers_id %in% colnames(consumers)) {</pre>
                     </td>
@@ -1796,7 +1796,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">241</td>
-                    <td class="coverage">54<em>x</em></td>
+                    <td class="coverage">52<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    seq_along(cv)</pre>
                     </td>
@@ -1817,7 +1817,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">244</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  pid &lt;- if (input_data[1]) {</pre>
                     </td>
@@ -1915,7 +1915,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">258</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  } else if (length(providers_id) == 1 &amp;&amp; providers_id %in% colnames(providers)) {</pre>
                     </td>
@@ -1950,7 +1950,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">263</td>
-                    <td class="coverage">54<em>x</em></td>
+                    <td class="coverage">52<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    seq_along(pv)</pre>
                     </td>
@@ -1971,14 +1971,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">266</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (is.null(cost)) {</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">267</td>
-                    <td class="coverage">64<em>x</em></td>
+                    <td class="coverage">62<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (missing(consumers_location) &amp;&amp; !all(consumers_location %in% colnames(consumers))) {</pre>
                     </td>
@@ -1999,7 +1999,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">270</td>
-                    <td class="coverage">64<em>x</em></td>
+                    <td class="coverage">62<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (missing(providers_location) &amp;&amp; !all(providers_location %in% colnames(providers))) {</pre>
                     </td>
@@ -2020,14 +2020,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">273</td>
-                    <td class="coverage">64<em>x</em></td>
+                    <td class="coverage">62<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if ((!is.character(providers_location) || all(providers_location %in% colnames(providers))) &amp;&amp;</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">274</td>
-                    <td class="coverage">64<em>x</em></td>
+                    <td class="coverage">62<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      (!is.character(consumers_location) || all(consumers_location %in% colnames(consumers)))) {</pre>
                     </td>
@@ -2041,7 +2041,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">276</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      ccords &lt;- if (is.character(consumers_location)) {</pre>
                     </td>
@@ -2055,7 +2055,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">278</td>
-                    <td class="coverage">56<em>x</em></td>
+                    <td class="coverage">54<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">        consumers[, consumers_location, drop = TRUE]</pre>
                     </td>
@@ -2090,7 +2090,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">283</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      if (any(grepl("^sf", class(ccords)))) {</pre>
                     </td>
@@ -2146,7 +2146,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">291</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      pcords &lt;- if (is.character(providers_location)) {</pre>
                     </td>
@@ -2160,7 +2160,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">293</td>
-                    <td class="coverage">56<em>x</em></td>
+                    <td class="coverage">54<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">        providers[, providers_location, drop = FALSE]</pre>
                     </td>
@@ -2195,7 +2195,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">298</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      if (any(grepl("^sf", class(pcords)))) {</pre>
                     </td>
@@ -2251,7 +2251,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">306</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      if (ncol(pcords) == ncol(ccords)) {</pre>
                     </td>
@@ -2265,14 +2265,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">308</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">        cost &lt;- 1 / lma_simets(ccords, pcords, metric = distance_metric, pairwise = TRUE) - 1</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">309</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">        if (is.null(dim(cost))) {</pre>
                     </td>
@@ -2300,7 +2300,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">313</td>
-                    <td class="coverage">58<em>x</em></td>
+                    <td class="coverage">56<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">        dimnames(cost) &lt;- list(cid, pid)</pre>
                     </td>
@@ -2349,7 +2349,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">320</td>
-                    <td class="coverage">64<em>x</em></td>
+                    <td class="coverage">62<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (is.null(cost)) {</pre>
                     </td>
@@ -2489,28 +2489,28 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">340</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  w &lt;- catchment_weight(</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">341</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    cost, weight,</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">342</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    max_cost = max_cost, adjust_zeros = adjust_zeros, scale = scale,</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">343</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    normalize_weight = FALSE, verbose = verbose</pre>
                     </td>
@@ -2524,7 +2524,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">345</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (!is.null(consumers_commutes)) {</pre>
                     </td>
@@ -2550,25 +2550,25 @@ table.table-condensed {
                       <pre class="language-r">    if (dims[1] != cn || (!is.null(colnames(consumers_commutes)) &amp;&amp; !identical(pid, colnames(consumers_commutes)))) {</pre>
                     </td>
                   </tr>
-                  <tr class="covered">
-                    <td class="num">349</td>
-                    <td class="coverage">1<em>x</em></td>
-                    <td class="col-sm-12">
-                      <pre class="language-r">      if (all(cid %in% colnames(consumers_commutes)) || (is.numeric(cid) &amp;&amp; dims[1] &lt;= max(cid))) {</pre>
-                    </td>
-                  </tr>
                   <tr class="missed">
-                    <td class="num">350</td>
+                    <td class="num">349</td>
                     <td class="coverage">!</td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        if (verbose) cli_alert_info("ordering and/or trimming {.arg consumers_commutes} by {.arg consumers} IDs")</pre>
+                      <pre class="language-r">      if (is.numeric(cid) &amp;&amp; dims[1] &lt;= max(cid)) cid &lt;- as.character(cid)</pre>
+                    </td>
+                  </tr>
+                  <tr class="covered">
+                    <td class="num">350</td>
+                    <td class="coverage">1<em>x</em></td>
+                    <td class="col-sm-12">
+                      <pre class="language-r">      if (all(cid %in% colnames(consumers_commutes))) {</pre>
                     </td>
                   </tr>
                   <tr class="missed">
                     <td class="num">351</td>
                     <td class="coverage">!</td>
                     <td class="col-sm-12">
-                      <pre class="language-r">        if (is.numeric(cid) || (min(cid) &gt; 0 &amp;&amp; max(cid) &gt; nrow(consumers_commutes))) cid &lt;- as.character(cid)</pre>
+                      <pre class="language-r">        if (verbose) cli_alert_info("ordering and/or trimming {.arg consumers_commutes} by {.arg consumers} IDs")</pre>
                     </td>
                   </tr>
                   <tr class="covered">
@@ -2699,21 +2699,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">370</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    cn != nrow(w) &amp;&amp;</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">371</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      (cn == ncol(w) ||</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">372</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">        (!is.null(rownames(w)) &amp;&amp; !is.null(colnames(w)) &amp;&amp; sum(cid %in% colnames(w)) &gt; sum(cid %in% rownames(w)))</pre>
                     </td>
@@ -2748,21 +2748,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">377</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  wr &lt;- rowSums(w)</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">378</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (nrow(w) &lt; cn &amp;&amp; !is.null(rownames(w)) &amp;&amp;</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">379</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    (!all(cid %in% rownames(w)) || !all(cid == rownames(w)))) {</pre>
                     </td>
@@ -2860,14 +2860,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">393</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (!is.null(colnames(w)) &amp;&amp; is.character(pid) &amp;&amp; any(su &lt;- pid %in% colnames(w)) &amp;&amp;</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">394</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    (!all(su) || length(pv) != ncol(w) || !all(pid == colnames(w)))) {</pre>
                     </td>
@@ -2909,7 +2909,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">400</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (nrow(w) != cn) {</pre>
                     </td>
@@ -2993,7 +2993,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">412</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (ncol(w) != length(pv) &amp;&amp; is.numeric(pid)) {</pre>
                     </td>
@@ -3105,7 +3105,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">428</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (!all(dim(w) == c(cn, length(pv)))) {</pre>
                     </td>
@@ -3126,7 +3126,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">431</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (normalize_weight) {</pre>
                     </td>
@@ -3182,7 +3182,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">439</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    type &lt;- paste0(type, "2-step floating catchment area")</pre>
                     </td>
@@ -3196,28 +3196,28 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">441</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  provided_return_type &lt;- !missing(return_type)</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">442</td>
-                    <td class="coverage">106<em>x</em></td>
+                    <td class="coverage">104<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (is.character(return_type)) {</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">443</td>
-                    <td class="coverage">105<em>x</em></td>
+                    <td class="coverage">103<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    return_type &lt;- tolower(substr(return_type, 1, 1))</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">444</td>
-                    <td class="coverage">105<em>x</em></td>
+                    <td class="coverage">103<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (return_type == "s") {</pre>
                     </td>
@@ -3301,7 +3301,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">456</td>
-                    <td class="coverage">105<em>x</em></td>
+                    <td class="coverage">103<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  wd &lt;- crossprod(if (is.function(adjust_consumers)) {</pre>
                     </td>
@@ -3329,21 +3329,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">460</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    w</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">461</td>
-                    <td class="coverage">105<em>x</em></td>
+                    <td class="coverage">103<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  }, cv)</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">462</td>
-                    <td class="coverage">105<em>x</em></td>
+                    <td class="coverage">103<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (return_type == "d") {</pre>
                     </td>
@@ -3371,14 +3371,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">466</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  wd[abs(wd) &lt; .Machine$double.eps] &lt;- 1</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">467</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  r &lt;- as.numeric((if (is.function(adjust_providers)) {</pre>
                     </td>
@@ -3406,21 +3406,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">471</td>
-                    <td class="coverage">103<em>x</em></td>
+                    <td class="coverage">101<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    w</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">472</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  }) %*% (pv / wd))</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">473</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (provided_return_type) {</pre>
                     </td>
@@ -3532,7 +3532,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">489</td>
-                    <td class="coverage">101<em>x</em></td>
+                    <td class="coverage">99<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    type &lt;- paste(type, "(resources per consumer)")</pre>
                     </td>
@@ -3553,7 +3553,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">492</td>
-                    <td class="coverage">104<em>x</em></td>
+                    <td class="coverage">102<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  r</pre>
                     </td>
@@ -3657,21 +3657,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">13</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (!is.null(weight) &amp;&amp; is.numeric(adjust_zeros)) {</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">14</td>
-                    <td class="coverage">187<em>x</em></td>
+                    <td class="coverage">183<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    zero_costs &lt;- !is.na(cost) &amp; cost == 0</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">15</td>
-                    <td class="coverage">187<em>x</em></td>
+                    <td class="coverage">183<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (any(zero_costs)) {</pre>
                     </td>
@@ -3685,14 +3685,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">17</td>
-                    <td class="coverage">68<em>x</em></td>
+                    <td class="coverage">64<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      cost[zero_costs] &lt;- adjust_zeros</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">18</td>
-                    <td class="coverage">68<em>x</em></td>
+                    <td class="coverage">64<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      rm(zero_costs)</pre>
                     </td>
@@ -3720,7 +3720,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">22</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (is.numeric(weight) &amp;&amp; is.null(dim(weight)) &amp;&amp; length(weight) &gt; 1) {</pre>
                     </td>
@@ -3741,7 +3741,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">25</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (is.null(weight) &amp;&amp; !is.null(max_cost)) {</pre>
                     </td>
@@ -3769,7 +3769,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">29</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (is.null(weight)) {</pre>
                     </td>
@@ -3790,14 +3790,14 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">32</td>
-                    <td class="coverage">188<em>x</em></td>
+                    <td class="coverage">184<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  } else if (is.null(dim(weight))) {</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">33</td>
-                    <td class="coverage">180<em>x</em></td>
+                    <td class="coverage">176<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (is.numeric(weight)) {</pre>
                     </td>
@@ -3818,7 +3818,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">36</td>
-                    <td class="coverage">156<em>x</em></td>
+                    <td class="coverage">152<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      w &lt;- as(cost &gt; 0 &amp; cost &lt; weight[[1]], "CsparseMatrix") * 1</pre>
                     </td>
@@ -4224,7 +4224,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">94</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (!is.null(max_cost)) {</pre>
                     </td>
@@ -4252,7 +4252,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">98</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  if (normalize_weight) {</pre>
                     </td>
@@ -4287,7 +4287,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">103</td>
-                    <td class="coverage">196<em>x</em></td>
+                    <td class="coverage">192<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">  w</pre>
                     </td>
@@ -7505,42 +7505,42 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">152</td>
-                    <td class="coverage">394<em>x</em></td>
+                    <td class="coverage">402<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">          list(</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">153</td>
-                    <td class="coverage">394<em>x</em></td>
+                    <td class="coverage">402<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">            type = "Feature",</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">154</td>
-                    <td class="coverage">394<em>x</em></td>
+                    <td class="coverage">402<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">            properties = list(from = from_ids[[r]], to = np[[i]], weight = w[[i]], cost = wc[[i]]),</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">155</td>
-                    <td class="coverage">394<em>x</em></td>
+                    <td class="coverage">402<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">            geometry = list(</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">156</td>
-                    <td class="coverage">394<em>x</em></td>
+                    <td class="coverage">402<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">              type = "LineString",</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">157</td>
-                    <td class="coverage">394<em>x</em></td>
+                    <td class="coverage">402<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">              coordinates = list(fc, as.numeric(tc[[np[[i]]]]))</pre>
                     </td>
@@ -9505,49 +9505,49 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">48</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    sel &lt;- c(start, which(consumers_dist[start, ] * catchment_weight(</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">49</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      consumers_dist[start, , drop = FALSE],</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">50</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">      weight, ...</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">51</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    ) != 0))</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">52</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    providers[i, c("X", "Y")] &lt;- colMeans(locs[sel, , drop = FALSE] + rnorm(length(sel) * 2, 0, .1))</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">53</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    r &lt;- catchment_ratio(consumers, providers[seq_len(i), , drop = FALSE], weight = weight, ...)</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">54</td>
-                    <td class="coverage">52<em>x</em></td>
+                    <td class="coverage">50<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (all(r != 0)) {</pre>
                     </td>
@@ -9575,7 +9575,7 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">58</td>
-                    <td class="coverage">48<em>x</em></td>
+                    <td class="coverage">46<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    start &lt;- which.min(r)</pre>
                     </td>
@@ -10651,21 +10651,21 @@ table.table-condensed {
                   </tr>
                   <tr class="covered">
                     <td class="num">28</td>
-                    <td class="coverage">200<em>x</em></td>
+                    <td class="coverage">8<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    tos &lt;- unique(c(tos, to[from %in% froms]))</pre>
                     </td>
                   </tr>
                   <tr class="covered">
                     <td class="num">29</td>
-                    <td class="coverage">200<em>x</em></td>
+                    <td class="coverage">8<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    froms &lt;- unique(c(froms, from[to %in% tos]))</pre>
                     </td>
                   </tr>
-                  <tr class="missed">
+                  <tr class="covered">
                     <td class="num">30</td>
-                    <td class="coverage">!</td>
+                    <td class="coverage">2<em>x</em></td>
                     <td class="col-sm-12">
                       <pre class="language-r">    if (all(from_ids %in% froms)) break</pre>
                     </td>
